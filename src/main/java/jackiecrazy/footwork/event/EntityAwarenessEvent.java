@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.event;
 
 import jackiecrazy.footwork.utils.StealthUtils;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 import javax.annotation.Nullable;

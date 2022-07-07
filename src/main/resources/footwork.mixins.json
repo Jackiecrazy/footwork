@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "jackiecrazy.footwork.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "wardance.refmap.json",
+  "mixins": [
+    "MixinAttackSpeed"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  },
+  "minVersion": "0.8"
+}

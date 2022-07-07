@@ -1,12 +1,12 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.event.EntityAwarenessEvent;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
-import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.Level;
+import net.minecraft.block.material.Material;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.LightType;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
 public class StealthUtils {
@@ -33,15 +33,15 @@ public class StealthUtils {
         return false;
     }
 
-    public static int getActualLightLevel(Level world, BlockPos pos) {
+    public static int getActualLightLevel(World world, BlockPos pos) {
         int i = 0;
         if (world.dimensionType().hasSkyLight()) {
             world.updateSkyBrightness();
             int dark = world.getSkyDarken();
-            i = world.getBrightness(LightLayer.SKY, pos) - dark;
+            i = world.getBrightness(LightType.SKY, pos) - dark;
         }
 
-        i = Mth.clamp(Math.max(world.getBrightness(LightLayer.BLOCK, pos), i), 0, 15);
+        i = MathHelper.clamp(Math.max(world.getBrightness(LightType.BLOCK, pos), i), 0, 15);
         return i;
     }
 

@@ -1,12 +1,12 @@
 package jackiecrazy.footwork.capability.weaponry;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.core.Direction;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.eventbus.api.Event;
 
@@ -109,12 +109,12 @@ public class DummyCombatItemCap implements ICombatItemCapability {
 
         @Nullable
         @Override
-        public Tag writeNBT(Capability<ICombatItemCapability> capability, ICombatItemCapability instance, Direction side) {
-            return new CompoundTag();
+        public INBT writeNBT(Capability<ICombatItemCapability> capability, ICombatItemCapability instance, Direction side) {
+            return new CompoundNBT();
         }
 
         @Override
-        public void readNBT(Capability<ICombatItemCapability> capability, ICombatItemCapability instance, Direction side, Tag nbt) {
+        public void readNBT(Capability<ICombatItemCapability> capability, ICombatItemCapability instance, Direction side, INBT nbt) {
 
         }
     }

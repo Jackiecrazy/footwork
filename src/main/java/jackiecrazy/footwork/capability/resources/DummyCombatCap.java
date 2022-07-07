@@ -1,10 +1,10 @@
 package jackiecrazy.footwork.capability.resources;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class DummyCombatCap implements ICombatCapability {
 
@@ -382,27 +382,27 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public int getHandBind(InteractionHand h) {
+    public int getHandBind(Hand h) {
         return 0;
     }
 
     @Override
-    public void setHandBind(InteractionHand h, int amount) {
+    public void setHandBind(Hand h, int amount) {
 
     }
 
     @Override
-    public void decrementHandBind(InteractionHand h, int amount) {
+    public void decrementHandBind(Hand h, int amount) {
 
     }
 
     @Override
-    public float getHandReel(InteractionHand hand) {
+    public float getHandReel(Hand hand) {
         return 0;
     }
 
     @Override
-    public void setHandReel(InteractionHand hand, float value) {
+    public void setHandReel(Hand hand, float value) {
 
     }
 
@@ -472,7 +472,7 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void read(CompoundTag tag) {
+    public void read(CompoundNBT tag) {
 
     }
 
@@ -502,12 +502,12 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public Vec3 getMotionConsistently() {
-        return Vec3.ZERO;
+    public Vector3d getMotionConsistently() {
+        return Vector3d.ZERO;
     }
 
     @Override
-    public CompoundTag write() {
+    public CompoundNBT write() {
         return null;
     }
 

@@ -1,8 +1,8 @@
 package jackiecrazy.footwork.api;
 
 import jackiecrazy.footwork.utils.GeneralUtils;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.vector.Vector3d;
 
 import javax.annotation.Nullable;
 
@@ -12,12 +12,12 @@ public interface ITetherAnchor {
      */
     default void updateTetheringVelocity() {
         if (getTetheringEntity() != null) {
-            Vec3 offset = getTetheredOffset();
+            Vector3d offset = getTetheredOffset();
             Entity toBeMoved = getTetheringEntity();
             Entity moveTowards = getTetheredEntity();
             if (toBeMoved != null) {
                 double distsq = 0;
-                Vec3 point = null;
+                Vector3d point = null;
                 if (offset != null) {
                     distsq = GeneralUtils.getDistSqCompensated(toBeMoved, offset);
                     point = offset;
@@ -40,7 +40,7 @@ public interface ITetherAnchor {
                     //if(NeedyLittleThings.getDistSqCompensated(moveTowards, toBeMoved)>8){
                     toBeMoved.setPos(moveTowards.getX(), moveTowards.getY(), moveTowards.getZ());
                     //}
-                    Vec3 vec = moveTowards.getDeltaMovement();
+                    Vector3d vec = moveTowards.getDeltaMovement();
                     toBeMoved.setDeltaMovement(moveTowards.getDeltaMovement());
                     if (!moveTowards.isOnGround())
                         toBeMoved.lerpMotion(vec.x, moveTowards.isOnGround() ? 0 : vec.y, vec.z);
@@ -55,7 +55,7 @@ public interface ITetherAnchor {
     void setTetheringEntity(Entity to);
 
     @Nullable
-    Vec3 getTetheredOffset();
+    Vector3d getTetheredOffset();
 
     @Nullable
     Entity getTetheredEntity();

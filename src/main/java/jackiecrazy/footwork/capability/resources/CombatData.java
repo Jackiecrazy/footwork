@@ -1,8 +1,8 @@
 package jackiecrazy.footwork.capability.resources;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
@@ -11,7 +11,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class CombatData implements ICapabilitySerializable<CompoundTag> {
+public class CombatData implements ICapabilitySerializable<CompoundNBT> {
     private static ICombatCapability OHNO=new DummyCombatCap();
 
     @CapabilityInject(ICombatCapability.class)
@@ -34,8 +34,8 @@ public class CombatData implements ICapabilitySerializable<CompoundTag> {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        return (CompoundTag) CAP.getStorage().writeNBT(
+    public CompoundNBT serializeNBT() {
+        return (CompoundNBT) CAP.getStorage().writeNBT(
                 CAP,
                 instance.orElseThrow(() ->
                         new IllegalArgumentException("LazyOptional cannot be empty!")),
@@ -43,7 +43,7 @@ public class CombatData implements ICapabilitySerializable<CompoundTag> {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeNBT(CompoundNBT nbt) {
         CAP.getStorage().readNBT(
                 CAP,
                 instance.orElseThrow(() ->

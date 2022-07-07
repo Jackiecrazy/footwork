@@ -6,6 +6,7 @@ import jackiecrazy.footwork.capability.resources.DummyCombatCap;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.weaponry.DummyCombatItemCap;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
+import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
@@ -52,6 +53,7 @@ public class Footwork {
         MinecraftForge.EVENT_BUS.register(this);
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         WarAttributes.ATTRIBUTES.register(bus);
+        FootworkEffects.EFFECTS.register(bus);
     }
 
     private void setup(final FMLCommonSetupEvent event) {

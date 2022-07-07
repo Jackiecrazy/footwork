@@ -1,10 +1,10 @@
 package jackiecrazy.footwork.capability.resources;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.vector.Vector3d;
 
 public interface ICombatCapability {
     //might, spirit, posture, combo
@@ -213,15 +213,15 @@ public interface ICombatCapability {
 
     void addBurnout(float amount);
 
-    int getHandBind(InteractionHand h);
+    int getHandBind(Hand h);
 
-    void setHandBind(InteractionHand h, int amount);
+    void setHandBind(Hand h, int amount);
 
-    void decrementHandBind(InteractionHand h, int amount);
+    void decrementHandBind(Hand h, int amount);
 
-    float getHandReel(InteractionHand hand);
+    float getHandReel(Hand hand);
 
-    void setHandReel(InteractionHand hand, float value);
+    void setHandReel(Hand hand, float value);
 
     boolean consumeShatter(float value);
 
@@ -249,7 +249,7 @@ public interface ICombatCapability {
 
     void setTempItemStack(ItemStack is);
 
-    void read(CompoundTag tag);
+    void read(CompoundNBT tag);
 
     int getParryingTick();//hey, it's useful for future "smart" entities as well.
 
@@ -261,9 +261,9 @@ public interface ICombatCapability {
 
     boolean isValid();
 
-    Vec3 getMotionConsistently();//I can't believe I have to do this.
+    Vector3d getMotionConsistently();//I can't believe I have to do this.
 
-    CompoundTag write();
+    CompoundNBT write();
 
     void addRangedMight(boolean pass);
 

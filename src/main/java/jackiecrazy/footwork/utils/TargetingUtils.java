@@ -1,22 +1,22 @@
 package jackiecrazy.footwork.utils;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.entity.player.PlayerEntity;
 
 public class TargetingUtils {
 
     public static boolean isAlly(Entity entity, Entity of) {
         if (entity == null || of == null) return false;
         if (of == entity) return true;
-        if (entity instanceof TamableAnimal && of instanceof LivingEntity && ((TamableAnimal) entity).isOwnedBy((LivingEntity) of))
+        if (entity instanceof TameableEntity && of instanceof LivingEntity && ((TameableEntity) entity).isOwnedBy((LivingEntity) of))
             return true;
-        if (of instanceof TamableAnimal && entity instanceof LivingEntity && ((TamableAnimal) of).isOwnedBy((LivingEntity) entity))
+        if (of instanceof TameableEntity && entity instanceof LivingEntity && ((TameableEntity) of).isOwnedBy((LivingEntity) entity))
             return true;
         if (entity.isAlliedTo(of)) return true;
-        if (entity instanceof Player && of instanceof Player && entity.getServer() != null && entity.getServer().isPvpAllowed())
+        if (entity instanceof PlayerEntity && of instanceof PlayerEntity && entity.getServer() != null && entity.getServer().isPvpAllowed())
             return true;
         return false;
     }
@@ -29,8 +29,8 @@ public class TargetingUtils {
                 LivingEntity revenge = ((LivingEntity) entity).getLastHurtByMob();
                 if (isAlly(revenge, to)) return true;
             }
-            if (entity instanceof Mob && ((Mob) entity).getTarget() != null) {
-                LivingEntity attack = ((Mob) entity).getTarget();
+            if (entity instanceof MobEntity && ((MobEntity) entity).getTarget() != null) {
+                LivingEntity attack = ((MobEntity) entity).getTarget();
                 return isAlly(attack, to);
             }
         }
