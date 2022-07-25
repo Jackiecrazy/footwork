@@ -154,3 +154,7 @@ jar {
 }
 
 jar.finalizedBy('reobfJar')
+
+mixin {
+    add sourceSets.main, "footwork.refmap.json"
+}
