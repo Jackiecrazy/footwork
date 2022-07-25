@@ -707,7 +707,7 @@ public class GeneralUtils {
 
     public static double getAttributeValueSafe(LivingEntity e, Attribute a) {
         if (e.getAttribute(a) != null) return e.getAttributeValue(a);
-        return 0;
+        return a.getDefaultValue();
     }
 
     public static boolean isKitMain(ItemStack is) {

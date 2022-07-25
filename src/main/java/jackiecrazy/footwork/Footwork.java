@@ -9,12 +9,18 @@ import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attribute;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
+import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -40,14 +46,8 @@ public class Footwork {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public Footwork() {
-        // Register the setup method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the enqueueIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-        // Register the processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
-        // Register the doClientStuff method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::attribute);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -61,12 +61,14 @@ public class Footwork {
         CapabilityManager.INSTANCE.register(ICombatItemCapability.class, new DummyCombatItemCap.Storage(), DummyCombatItemCap::new);
     }
 
-    private void doClientStuff(final FMLClientSetupEvent event) {
-    }
-
-    private void enqueueIMC(final InterModEnqueueEvent event) {
-    }
-
-    private void processIMC(final InterModProcessEvent event) {
+    private void attribute(EntityAttributeModificationEvent e) {
+        for (EntityType<? extends LivingEntity> type:e.getTypes()){
+            if(!e.has(type, Attributes.FOLLOW_RANGE))
+                e.add(type, Attributes.FOLLOW_RANGE, 32);
+            if(!e.has(type, Attributes.ATTACK_SPEED))
+                e.add(type, Attributes.ATTACK_SPEED);
+            for(RegistryObject<Attribute> a: WarAttributes.ATTRIBUTES.getEntries())
+                e.add(type, a.get());
+        }
     }
 }
