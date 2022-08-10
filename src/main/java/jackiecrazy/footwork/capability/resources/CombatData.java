@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.capability.resources;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
@@ -21,10 +22,17 @@ public class CombatData implements ICapabilitySerializable<CompoundNBT> {
         return le.getCapability(CAP).orElse(OHNO);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
     }
 
-    private final LazyOptional<ICombatCapability> instance;
+    protected final LazyOptional<ICombatCapability> instance;
 
     public CombatData() {
-        instance = LazyOptional.of(() -> CAP.getDefaultInstance());
+        this(LazyOptional.of(() -> CAP.getDefaultInstance()));
+    }
+
+    /**
+     * dummy constructor to make the compiler not compress, do not use this!
+     */
+    public CombatData(LazyOptional<ICombatCapability> cap) {
+        instance = cap;
     }
 
     @Nonnull
