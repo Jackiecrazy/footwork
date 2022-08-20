@@ -1,6 +1,8 @@
 package jackiecrazy.footwork;
 
 import jackiecrazy.footwork.api.WarAttributes;
+import jackiecrazy.footwork.capability.goal.GoalCapability;
+import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.CombatStorage;
 import jackiecrazy.footwork.capability.resources.DummyCombatCap;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
@@ -59,6 +61,7 @@ public class Footwork {
     private void setup(final FMLCommonSetupEvent event) {
         CapabilityManager.INSTANCE.register(ICombatCapability.class, new CombatStorage(), DummyCombatCap::new);
         CapabilityManager.INSTANCE.register(ICombatItemCapability.class, new DummyCombatItemCap.Storage(), DummyCombatItemCap::new);
+        CapabilityManager.INSTANCE.register(IGoalHelper.class, new GoalCapability.Storage(), GoalCapability::new);
     }
 
     private void attribute(EntityAttributeModificationEvent e) {

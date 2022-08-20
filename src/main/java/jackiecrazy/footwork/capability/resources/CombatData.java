@@ -28,9 +28,6 @@ public class CombatData implements ICapabilitySerializable<CompoundNBT> {
         this(LazyOptional.of(() -> CAP.getDefaultInstance()));
     }
 
-    /**
-     * dummy constructor to make the compiler not compress, do not use this!
-     */
     public CombatData(LazyOptional<ICombatCapability> cap) {
         instance = cap;
     }
