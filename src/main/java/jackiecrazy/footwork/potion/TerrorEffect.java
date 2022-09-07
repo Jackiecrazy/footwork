@@ -1,15 +1,15 @@
 package jackiecrazy.footwork.potion;
 
 import jackiecrazy.footwork.utils.EffectUtils;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.potion.EffectType;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.effect.MobEffectCategory;
 
 import javax.annotation.Nullable;
 
 public class TerrorEffect extends FootworkEffect{
     TerrorEffect() {
-        super(EffectType.HARMFUL, 0xfcfc00);
+        super(MobEffectCategory.HARMFUL, 0xfcfc00);
     }
 
     @Override

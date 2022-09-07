@@ -1,19 +1,19 @@
 package jackiecrazy.footwork.event;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.Event;
 
 @Event.HasResult
 public class DamageKnockbackEvent extends LivingEvent {
-    protected final float originalStrength;
+    protected final double originalStrength;
     protected final double originalRatioX, originalRatioZ;
     protected DamageSource ds;
-    protected float strength;
+    protected double strength;
     protected double ratioX, ratioZ;
 
-    public DamageKnockbackEvent(LivingEntity target, DamageSource source, float strength, double ratioX, double ratioZ) {
+    public DamageKnockbackEvent(LivingEntity target, DamageSource source, double strength, double ratioX, double ratioZ) {
         super(target);
         this.strength = this.originalStrength = strength;
         this.ratioX = this.originalRatioX = ratioX;
@@ -21,9 +21,9 @@ public class DamageKnockbackEvent extends LivingEvent {
         ds = source;
     }
 
-    public float getStrength() {return this.strength;}
+    public double getStrength() {return this.strength;}
 
-    public void setStrength(float strength) {this.strength = strength;}
+    public void setStrength(double strength) {this.strength = strength;}
 
     public double getRatioX() {return this.ratioX;}
 
@@ -33,7 +33,7 @@ public class DamageKnockbackEvent extends LivingEvent {
 
     public void setRatioZ(double ratioZ) {this.ratioZ = ratioZ;}
 
-    public float getOriginalStrength() {return this.originalStrength;}
+    public double getOriginalStrength() {return this.originalStrength;}
 
     public double getOriginalRatioX() {return this.originalRatioX;}
 

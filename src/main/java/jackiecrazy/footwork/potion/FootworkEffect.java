@@ -1,14 +1,14 @@
 package jackiecrazy.footwork.potion;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectType;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.server.level.ServerLevel;
 
-class FootworkEffect extends Effect {
-    FootworkEffect(EffectType typeIn, int liquidColorIn) {
+class FootworkEffect extends MobEffect {
+    FootworkEffect(MobEffectCategory typeIn, int liquidColorIn) {
         super(typeIn, liquidColorIn);
     }
 
@@ -23,8 +23,8 @@ class FootworkEffect extends Effect {
         if (this == FootworkEffects.REFRESHMENT.get()) {
             CombatData.getCap(l).addFatigue(-amplifier);
         }
-        if (this == FootworkEffects.FEAR.get() && l.level instanceof ServerWorld) {
-            ((ServerWorld) l.level).sendParticles(ParticleTypes.DRIPPING_WATER, l.getX(), l.getY() + l.getBbHeight() / 2, l.getZ(), 5, l.getBbWidth() / 4, l.getBbHeight() / 4, l.getBbWidth() / 4, 0.5f);
+        if (this == FootworkEffects.FEAR.get() && l.level instanceof ServerLevel) {
+            ((ServerLevel) l.level).sendParticles(ParticleTypes.DRIPPING_WATER, l.getX(), l.getY() + l.getBbHeight() / 2, l.getZ(), 5, l.getBbWidth() / 4, l.getBbHeight() / 4, l.getBbWidth() / 4, 0.5f);
         }
     }
 

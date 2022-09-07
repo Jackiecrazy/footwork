@@ -1,17 +1,17 @@
 package jackiecrazy.footwork.api;
 
 import jackiecrazy.footwork.move.Move;
-import net.minecraft.util.Hand;
-import net.minecraft.util.EntityDamageSource;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
 public class CombatDamageSource extends EntityDamageSource {
     private ItemStack damageDealer = ItemStack.EMPTY;
-    private Hand attackingHand = Hand.MAIN_HAND;
+    private InteractionHand attackingHand = InteractionHand.MAIN_HAND;
     private Entity proxy = null;
     private Move skillUsed = null;
     private boolean procNormalEffects = false;
@@ -68,11 +68,11 @@ public class CombatDamageSource extends EntityDamageSource {
     }
 
     @Nullable
-    public Hand getAttackingHand() {
+    public InteractionHand getAttackingHand() {
         return attackingHand;
     }
 
-    public CombatDamageSource setAttackingHand(Hand attackingHand) {
+    public CombatDamageSource setAttackingHand(InteractionHand attackingHand) {
         this.attackingHand = attackingHand;
         return this;
     }

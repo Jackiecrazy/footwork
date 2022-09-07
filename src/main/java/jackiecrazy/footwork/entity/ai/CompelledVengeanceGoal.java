@@ -2,14 +2,14 @@ package jackiecrazy.footwork.entity.ai;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.ai.goal.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 
 public class CompelledVengeanceGoal extends NearestAttackableTargetGoal<LivingEntity> {
     private int compelledTicks = 0;
 
-    public CompelledVengeanceGoal(MobEntity p_i50313_1_) {
+    public CompelledVengeanceGoal(Mob p_i50313_1_) {
         super(p_i50313_1_, LivingEntity.class, false);
     }
 

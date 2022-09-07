@@ -2,7 +2,7 @@ package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.event.LuckEvent;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Event;
 

@@ -1,57 +1,50 @@
 package jackiecrazy.footwork.capability.resources;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class CombatData implements ICapabilitySerializable<CompoundNBT> {
+public class CombatData implements ICapabilitySerializable<CompoundTag> {
     private static ICombatCapability OHNO=new DummyCombatCap();
 
-    @CapabilityInject(ICombatCapability.class)
-    public static Capability<ICombatCapability> CAP = null;
+    public static Capability<ICombatCapability> CAP  = CapabilityManager.get(new CapabilityToken<>() {
+    });
 
     public static ICombatCapability getCap(LivingEntity le) {
         return le.getCapability(CAP).orElse(OHNO);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
     }
 
-    protected final LazyOptional<ICombatCapability> instance;
+    protected final ICombatCapability instance;
 
     public CombatData() {
-        this(LazyOptional.of(() -> CAP.getDefaultInstance()));
+        this(new DummyCombatCap());
     }
 
-    public CombatData(LazyOptional<ICombatCapability> cap) {
+    public CombatData(ICombatCapability cap) {
         instance = cap;
     }
 
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        return CAP.orEmpty(cap, instance);
+        return CAP.orEmpty(cap, LazyOptional.of(()->instance));
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        return (CompoundNBT) CAP.getStorage().writeNBT(
-                CAP,
-                instance.orElseThrow(() ->
-                        new IllegalArgumentException("LazyOptional cannot be empty!")),
-                null);
+    public CompoundTag serializeNBT() {
+        return instance.write();
     }
 
     @Override
-    public void deserializeNBT(CompoundNBT nbt) {
-        CAP.getStorage().readNBT(
-                CAP,
-                instance.orElseThrow(() ->
-                        new IllegalArgumentException("LazyOptional cannot be empty!")),
-                null, nbt);
+    public void deserializeNBT(CompoundTag nbt) {
+        instance.read(nbt);
     }
 }

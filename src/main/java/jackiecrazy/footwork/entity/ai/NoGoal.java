@@ -2,10 +2,12 @@ package jackiecrazy.footwork.entity.ai;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
 
 import java.util.EnumSet;
+
+import net.minecraft.world.entity.ai.goal.Goal.Flag;
 
 public class NoGoal extends Goal {
     static final EnumSet<Flag> mutex = EnumSet.allOf(Flag.class);

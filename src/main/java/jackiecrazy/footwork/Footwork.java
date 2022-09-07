@@ -1,40 +1,25 @@
 package jackiecrazy.footwork;
 
 import jackiecrazy.footwork.api.WarAttributes;
-import jackiecrazy.footwork.capability.goal.GoalCapability;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
-import jackiecrazy.footwork.capability.resources.CombatStorage;
-import jackiecrazy.footwork.capability.resources.DummyCombatCap;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
-import jackiecrazy.footwork.capability.weaponry.DummyCombatItemCap;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
-import java.util.stream.Collectors;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("footwork")
@@ -58,10 +43,10 @@ public class Footwork {
         FootworkEffects.EFFECTS.register(bus);
     }
 
-    private void setup(final FMLCommonSetupEvent event) {
-        CapabilityManager.INSTANCE.register(ICombatCapability.class, new CombatStorage(), DummyCombatCap::new);
-        CapabilityManager.INSTANCE.register(ICombatItemCapability.class, new DummyCombatItemCap.Storage(), DummyCombatItemCap::new);
-        CapabilityManager.INSTANCE.register(IGoalHelper.class, new GoalCapability.Storage(), GoalCapability::new);
+    private void setup(final RegisterCapabilitiesEvent event) {
+        event.register(ICombatCapability.class);
+        event.register(ICombatItemCapability.class);
+        event.register(IGoalHelper.class);
     }
 
     private void attribute(EntityAttributeModificationEvent e) {

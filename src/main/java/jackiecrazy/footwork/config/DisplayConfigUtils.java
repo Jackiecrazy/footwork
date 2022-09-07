@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.config;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class DisplayConfigUtils {
@@ -69,8 +69,8 @@ public class DisplayConfigUtils {
             default:
                 retx = rety = 0;
         }
-        retx = MathHelper.clamp(retx + x, 0, width);
-        rety = MathHelper.clamp(rety + y, 0, height);
+        retx = Mth.clamp(retx + x, 0, width);
+        rety = Mth.clamp(rety + y, 0, height);
         return Pair.of(retx, rety);
     }
 

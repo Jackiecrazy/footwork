@@ -1,9 +1,9 @@
 package jackiecrazy.footwork.capability.weaponry;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.eventbus.api.Event;
 
 public interface ICombatItemCapability {

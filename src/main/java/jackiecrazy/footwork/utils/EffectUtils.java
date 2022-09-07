@@ -2,13 +2,13 @@ package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectInstance;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 
 import java.util.Map;
 
@@ -19,13 +19,13 @@ public class EffectUtils {
      * Attempts to add the potion effect. If it fails, the function will *permanently* apply all the attribute modifiers, with the option to stack them as well
      * Take that, wither!
      */
-    public static boolean attemptAddPot(LivingEntity elb, EffectInstance pot, boolean stackWhenFailed) {
-        Effect p = pot.getEffect();
+    public static boolean attemptAddPot(LivingEntity elb, MobEffectInstance pot, boolean stackWhenFailed) {
+        MobEffect p = pot.getEffect();
         elb.addEffect(pot);
         if (!elb.hasEffect(p)) {
             //I'm gonna do it anyways, take that.
             for (Map.Entry<Attribute, AttributeModifier> e : p.getAttributeModifiers().entrySet()) {
-                final ModifiableAttributeInstance attribute = elb.getAttribute(e.getKey());
+                final AttributeInstance attribute = elb.getAttribute(e.getKey());
                 if (attribute != null) {
                     if (stackWhenFailed) {
                         AttributeModifier am = attribute.getModifier(e.getValue().getId());
@@ -51,9 +51,9 @@ public class EffectUtils {
     /**
      * increases the potion amplifier on the entity, with options on the duration
      */
-    public static EffectInstance stackPot(LivingEntity elb, EffectInstance toAdd, StackingMethod method) {
-        Effect p = toAdd.getEffect();
-        EffectInstance pe = elb.getEffect(p);
+    public static MobEffectInstance stackPot(LivingEntity elb, MobEffectInstance toAdd, StackingMethod method) {
+        MobEffect p = toAdd.getEffect();
+        MobEffectInstance pe = elb.getEffect(p);
         if (pe == null || method == StackingMethod.NONE) {
             //System.out.println("beep1");
             return toAdd;
@@ -86,19 +86,19 @@ public class EffectUtils {
                 break;
         }
         //System.out.println(ret);
-        return new EffectInstance(p, length, potency, pe.isAmbient(), pe.isVisible(), pe.showIcon());
+        return new MobEffectInstance(p, length, potency, pe.isAmbient(), pe.isVisible(), pe.showIcon());
     }
 
-    public static int getEffectiveLevel(LivingEntity elb, Effect p) {
+    public static int getEffectiveLevel(LivingEntity elb, MobEffect p) {
         if (elb.getEffect(p) != null)
             return elb.getEffect(p).getAmplifier() + 1;
         return 0;
     }
 
     public static void causeFear(LivingEntity elb, LivingEntity applier, int duration) {
-        attemptAddPot(elb, new EffectInstance(FootworkEffects.FEAR.get(), duration, 0), false);
-        if (elb instanceof MobEntity) {
-            MobEntity el = (MobEntity) elb;
+        attemptAddPot(elb, new MobEffectInstance(FootworkEffects.FEAR.get(), duration, 0), false);
+        if (elb instanceof Mob) {
+            Mob el = (Mob) elb;
             el.getNavigation().stop();
             el.setTarget(null);
             GoalCapabilityProvider.getCap(elb).ifPresent(a->a.setFearSource(applier));
