@@ -14,41 +14,41 @@ public class CompelledVengeanceGoal extends NearestAttackableTargetGoal<LivingEn
     }
 
     @Override
-    protected void findTarget() {
-        mob.getCapability(GoalCapabilityProvider.CAP).ifPresent(a -> {
+    protected void m_26073_() {
+        f_26135_.getCapability(GoalCapabilityProvider.CAP).ifPresent(a -> {
             LivingEntity potential = a.getForcedTarget();
-            if (potential != null && mob.distanceToSqr(potential) < 100)
-                target = potential;
+            if (potential != null && f_26135_.m_20280_(potential) < 100)
+                f_26050_ = potential;
         });
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void m_8037_() {
+        super.m_8037_();
         compelledTicks--;
     }
 
     @Override
-    public void start() {
-        super.start();
+    public void m_8056_() {
+        super.m_8056_();
         compelledTicks = Footwork.rand.nextInt(100)+40;
     }
 
     @Override
-    public void stop() {
-        super.stop();
-        target=null;
-        mob.getCapability(GoalCapabilityProvider.CAP).ifPresent(a -> a.setForcedTarget(null));
+    public void m_8041_() {
+        super.m_8041_();
+        f_26050_=null;
+        f_26135_.getCapability(GoalCapabilityProvider.CAP).ifPresent(a -> a.setForcedTarget(null));
     }
 
     @Override
-    public boolean canUse() {
-        return super.canUse();
+    public boolean m_8036_() {
+        return super.m_8036_();
     }
 
     @Override
-    public boolean canContinueToUse() {
+    public boolean m_8045_() {
         if (compelledTicks < 0) return false;
-        return super.canContinueToUse();
+        return super.m_8045_();
     }
 }

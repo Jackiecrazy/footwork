@@ -18,17 +18,17 @@ public class NoGoal extends Goal {
     }
 
     @Override
-    public boolean canUse() {
-        return (CombatData.getCap(e).isValid() && CombatData.getCap(e).getStaggerTime() > 0) || e.hasEffect(FootworkEffects.PETRIFY.get()) || e.hasEffect(FootworkEffects.PARALYSIS.get()) || e.hasEffect(FootworkEffects.SLEEP.get());
+    public boolean m_8036_() {
+        return (CombatData.getCap(e).isValid() && CombatData.getCap(e).getStaggerTime() > 0) || e.m_21023_(FootworkEffects.PETRIFY.get()) || e.m_21023_(FootworkEffects.PARALYSIS.get()) || e.m_21023_(FootworkEffects.SLEEP.get());
     }
 
     @Override
-    public boolean isInterruptable() {
+    public boolean m_6767_() {
         return false;
     }
 
     @Override
-    public EnumSet<Flag> getFlags() {
+    public EnumSet<Flag> m_7684_() {
         return mutex;
     }
 }

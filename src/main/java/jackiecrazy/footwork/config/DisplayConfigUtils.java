@@ -69,8 +69,8 @@ public class DisplayConfigUtils {
             default:
                 retx = rety = 0;
         }
-        retx = Mth.clamp(retx + x, 0, width);
-        rety = Mth.clamp(rety + y, 0, height);
+        retx = Mth.m_14045_(retx + x, 0, width);
+        rety = Mth.m_14045_(rety + y, 0, height);
         return Pair.of(retx, rety);
     }
 

@@ -2,11 +2,14 @@ package jackiecrazy.footwork.capability.weaponry;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.util.LazyOptional;
 
 public class CombatManipulator {
 
-    public static Capability<ICombatItemCapability> CAP = null;
+    public static Capability<ICombatItemCapability> CAP = CapabilityManager.get(new CapabilityToken<>() {
+    });;
 
     public static LazyOptional<ICombatItemCapability> getCap(ItemStack le) {
         return le.getCapability(CAP);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
