@@ -503,7 +503,7 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public Vec3 getMotionConsistently() {
-        return Vec3.f_82478_;
+        return Vec3.ZERO;
     }
 
     @Override

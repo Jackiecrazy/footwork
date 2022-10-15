@@ -27,7 +27,7 @@ public class MixinAttackSpeed {
     private void change(LivingEntity livingEntity, double strength, double ratioX, double ratioZ) {
         DamageKnockbackEvent mke = new DamageKnockbackEvent(livingEntity, tempDS, strength, ratioX, ratioZ);
         MinecraftForge.EVENT_BUS.post(mke);
-        livingEntity.m_147240_(mke.getStrength(), mke.getRatioX(), mke.getRatioZ());
+        livingEntity.knockback(mke.getStrength(), mke.getRatioX(), mke.getRatioZ());
         tempDS = null;
     }
 }

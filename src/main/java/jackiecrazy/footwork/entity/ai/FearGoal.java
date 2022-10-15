@@ -17,22 +17,22 @@ public class FearGoal extends AvoidEntityGoal<LivingEntity> {
         super(entityIn, LivingEntity.class, 16, 1.3, 1.6);
     }
 
-    public boolean m_8036_() {
-        if (!f_25015_.m_21023_(FootworkEffects.FEAR.get())) return false;
-        this.f_25016_ = f_25015_.m_21232_();
-        final Optional<IGoalHelper> goal = GoalCapabilityProvider.getCap(f_25015_).resolve();
-        goal.ifPresent(iGoalHelper -> f_25016_ = iGoalHelper.getFearSource());
-        if (this.f_25016_ == null) {
+    public boolean canUse() {
+        if (!mob.hasEffect(FootworkEffects.FEAR.get())) return false;
+        this.toAvoid = mob.getKillCredit();
+        final Optional<IGoalHelper> goal = GoalCapabilityProvider.getCap(mob).resolve();
+        goal.ifPresent(iGoalHelper -> toAvoid = iGoalHelper.getFearSource());
+        if (this.toAvoid == null) {
             return false;
         } else {
-            Vec3 vector3d = DefaultRandomPos.m_148407_(this.f_25015_, 16, 7, this.f_25016_.m_20182_());
+            Vec3 vector3d = DefaultRandomPos.getPosAway(this.mob, 16, 7, this.toAvoid.position());
             if (vector3d == null) {
                 return false;
-            } else if (this.f_25016_.m_20275_(vector3d.f_82479_, vector3d.f_82480_, vector3d.f_82481_) < this.f_25016_.m_20280_(this.f_25015_)) {
+            } else if (this.toAvoid.distanceToSqr(vector3d.x, vector3d.y, vector3d.z) < this.toAvoid.distanceToSqr(this.mob)) {
                 return false;
             } else {
-                this.f_25018_ = this.f_25019_.m_26524_(vector3d.f_82479_, vector3d.f_82480_, vector3d.f_82481_, 0);
-                return this.f_25018_ != null;
+                this.path = this.pathNav.createPath(vector3d.x, vector3d.y, vector3d.z, 0);
+                return this.path != null;
             }
         }
     }

@@ -20,30 +20,30 @@ public class EffectUtils {
      * Take that, wither!
      */
     public static boolean attemptAddPot(LivingEntity elb, MobEffectInstance pot, boolean stackWhenFailed) {
-        MobEffect p = pot.m_19544_();
-        elb.m_7292_(pot);
-        if (!elb.m_21023_(p)) {
+        MobEffect p = pot.getEffect();
+        elb.addEffect(pot);
+        if (!elb.hasEffect(p)) {
             //I'm gonna do it anyways, take that.
-            for (Map.Entry<Attribute, AttributeModifier> e : p.m_19485_().entrySet()) {
-                final AttributeInstance attribute = elb.m_21051_(e.getKey());
+            for (Map.Entry<Attribute, AttributeModifier> e : p.getAttributeModifiers().entrySet()) {
+                final AttributeInstance attribute = elb.getAttribute(e.getKey());
                 if (attribute != null) {
                     if (stackWhenFailed) {
-                        AttributeModifier am = attribute.m_22111_(e.getValue().m_22209_());
-                        if (am != null && am.m_22217_() == e.getValue().m_22217_()) {
-                            AttributeModifier apply = new AttributeModifier(e.getValue().m_22209_(), e.getValue().m_22214_(), am.m_22218_() + e.getValue().m_22218_(), am.m_22217_());
-                            attribute.m_22120_(e.getValue().m_22209_());
-                            attribute.m_22118_(apply);
-                        } else attribute.m_22118_(e.getValue());
+                        AttributeModifier am = attribute.getModifier(e.getValue().getId());
+                        if (am != null && am.getOperation() == e.getValue().getOperation()) {
+                            AttributeModifier apply = new AttributeModifier(e.getValue().getId(), e.getValue().getName(), am.getAmount() + e.getValue().getAmount(), am.getOperation());
+                            attribute.removeModifier(e.getValue().getId());
+                            attribute.addTransientModifier(apply);
+                        } else attribute.addTransientModifier(e.getValue());
                     } else {
-                        attribute.m_22120_(e.getValue().m_22209_());
-                        attribute.m_22118_(e.getValue());
+                        attribute.removeModifier(e.getValue().getId());
+                        attribute.addTransientModifier(e.getValue());
                     }
                 }
             }
-            elb.m_21221_().put(pot.m_19544_(), pot);
+            elb.getActiveEffectsMap().put(pot.getEffect(), pot);
             return false;
         } else {
-            elb.m_21124_(pot.m_19544_()).m_19558_(pot);
+            elb.getEffect(pot.getEffect()).update(pot);
         }
         return true;
     }
@@ -52,46 +52,46 @@ public class EffectUtils {
      * increases the potion amplifier on the entity, with options on the duration
      */
     public static MobEffectInstance stackPot(LivingEntity elb, MobEffectInstance toAdd, StackingMethod method) {
-        MobEffect p = toAdd.m_19544_();
-        MobEffectInstance pe = elb.m_21124_(p);
+        MobEffect p = toAdd.getEffect();
+        MobEffectInstance pe = elb.getEffect(p);
         if (pe == null || method == StackingMethod.NONE) {
             //System.out.println("beep1");
             return toAdd;
         }
         //System.out.println(pe);
-        int length = pe.m_19557_();
-        int potency = pe.m_19564_() + 1 + toAdd.m_19564_();
+        int length = pe.getDuration();
+        int potency = pe.getAmplifier() + 1 + toAdd.getAmplifier();
         //System.out.println(length);
         //System.out.println(potency);
 
         switch (method) {
             case ADD:
-                length = toAdd.m_19557_() + pe.m_19557_();
+                length = toAdd.getDuration() + pe.getDuration();
                 break;
             case MAXDURATION:
-                length = Math.max(pe.m_19557_(), toAdd.m_19557_());
+                length = Math.max(pe.getDuration(), toAdd.getDuration());
                 break;
             case MAXPOTENCY:
-                length = pe.m_19564_() == toAdd.m_19564_() ? Math.max(pe.m_19557_(), toAdd.m_19557_()) : pe.m_19564_() > toAdd.m_19564_() ? pe.m_19557_() : toAdd.m_19557_();
+                length = pe.getAmplifier() == toAdd.getAmplifier() ? Math.max(pe.getDuration(), toAdd.getDuration()) : pe.getAmplifier() > toAdd.getAmplifier() ? pe.getDuration() : toAdd.getDuration();
                 break;
             case MINDURATION:
-                length = Math.min(pe.m_19557_(), toAdd.m_19557_());
+                length = Math.min(pe.getDuration(), toAdd.getDuration());
                 break;
             case MINPOTENCY:
-                length = pe.m_19564_() == toAdd.m_19564_() ? Math.min(pe.m_19557_(), toAdd.m_19557_()) : pe.m_19564_() < toAdd.m_19564_() ? pe.m_19557_() : toAdd.m_19557_();
+                length = pe.getAmplifier() == toAdd.getAmplifier() ? Math.min(pe.getDuration(), toAdd.getDuration()) : pe.getAmplifier() < toAdd.getAmplifier() ? pe.getDuration() : toAdd.getDuration();
                 break;
             case ONLYADD:
-                potency = toAdd.m_19564_();
-                length = toAdd.m_19557_() + pe.m_19557_();
+                potency = toAdd.getAmplifier();
+                length = toAdd.getDuration() + pe.getDuration();
                 break;
         }
         //System.out.println(ret);
-        return new MobEffectInstance(p, length, potency, pe.m_19571_(), pe.m_19572_(), pe.m_19575_());
+        return new MobEffectInstance(p, length, potency, pe.isAmbient(), pe.isVisible(), pe.showIcon());
     }
 
     public static int getEffectiveLevel(LivingEntity elb, MobEffect p) {
-        if (elb.m_21124_(p) != null)
-            return elb.m_21124_(p).m_19564_() + 1;
+        if (elb.getEffect(p) != null)
+            return elb.getEffect(p).getAmplifier() + 1;
         return 0;
     }
 
@@ -99,8 +99,8 @@ public class EffectUtils {
         attemptAddPot(elb, new MobEffectInstance(FootworkEffects.FEAR.get(), duration, 0), false);
         if (elb instanceof Mob) {
             Mob el = (Mob) elb;
-            el.m_21573_().m_26573_();
-            el.m_6710_(null);
+            el.getNavigation().stop();
+            el.setTarget(null);
             GoalCapabilityProvider.getCap(elb).ifPresent(a->a.setFearSource(applier));
         }
 //        if (!elb.level.isClientSide) {

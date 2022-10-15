@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 
 public class CombatDamageSource extends EntityDamageSource {
-    private ItemStack damageDealer = ItemStack.f_41583_;
+    private ItemStack damageDealer = ItemStack.EMPTY;
     private InteractionHand attackingHand = InteractionHand.MAIN_HAND;
     private Entity proxy = null;
     private Move skillUsed = null;

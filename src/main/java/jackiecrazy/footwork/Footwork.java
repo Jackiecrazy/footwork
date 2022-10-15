@@ -51,12 +51,10 @@ public class Footwork {
 
     private void attribute(EntityAttributeModificationEvent e) {
         for (EntityType<? extends LivingEntity> type:e.getTypes()){
-            if(!e.has(type, Attributes.f_22277_))
-                e.add(type, Attributes.f_22277_, 32);
-            if(!e.has(type, Attributes.f_22283_))
-                e.add(type, Attributes.f_22283_);
-            if(!e.has(type, Attributes.f_22286_))
-                e.add(type, Attributes.f_22286_);
+            if(!e.has(type, Attributes.FOLLOW_RANGE))
+                e.add(type, Attributes.FOLLOW_RANGE, 32);
+            if(!e.has(type, Attributes.ATTACK_SPEED))
+                e.add(type, Attributes.ATTACK_SPEED);
             for(RegistryObject<Attribute> a: WarAttributes.ATTRIBUTES.getEntries())
                 e.add(type, a.get());
         }

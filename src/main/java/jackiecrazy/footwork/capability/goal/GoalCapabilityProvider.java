@@ -5,8 +5,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -15,8 +13,7 @@ import javax.annotation.Nullable;
 
 public class GoalCapabilityProvider implements ICapabilitySerializable<Tag> {
 
-    public static Capability<IGoalHelper> CAP = CapabilityManager.get(new CapabilityToken<>() {
-    });;
+    public static Capability<IGoalHelper> CAP = null;
 
     public static LazyOptional<IGoalHelper> getCap(LivingEntity le) {
         return le.getCapability(CAP);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));

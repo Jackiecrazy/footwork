@@ -11,12 +11,12 @@ public class TargetingUtils {
     public static boolean isAlly(Entity entity, Entity of) {
         if (entity == null || of == null) return false;
         if (of == entity) return true;
-        if (entity instanceof TamableAnimal && of instanceof LivingEntity && ((TamableAnimal) entity).m_21830_((LivingEntity) of))
+        if (entity instanceof TamableAnimal && of instanceof LivingEntity && ((TamableAnimal) entity).isOwnedBy((LivingEntity) of))
             return true;
-        if (of instanceof TamableAnimal && entity instanceof LivingEntity && ((TamableAnimal) of).m_21830_((LivingEntity) entity))
+        if (of instanceof TamableAnimal && entity instanceof LivingEntity && ((TamableAnimal) of).isOwnedBy((LivingEntity) entity))
             return true;
-        if (entity.m_7307_(of)) return true;
-        if (entity instanceof Player && of instanceof Player && entity.m_20194_() != null && entity.m_20194_().m_129799_())
+        if (entity.isAlliedTo(of)) return true;
+        if (entity instanceof Player && of instanceof Player && entity.getServer() != null && entity.getServer().isPvpAllowed())
             return true;
         return false;
     }
@@ -25,12 +25,12 @@ public class TargetingUtils {
         if (entity == null || to == null) return false;
         if (isAlly(entity, to)) return false;
         if (entity instanceof LivingEntity) {
-            if (((LivingEntity) entity).m_142581_() != null) {
-                LivingEntity revenge = ((LivingEntity) entity).m_142581_();
+            if (((LivingEntity) entity).getLastHurtByMob() != null) {
+                LivingEntity revenge = ((LivingEntity) entity).getLastHurtByMob();
                 if (isAlly(revenge, to)) return true;
             }
-            if (entity instanceof Mob && ((Mob) entity).m_5448_() != null) {
-                LivingEntity attack = ((Mob) entity).m_5448_();
+            if (entity instanceof Mob && ((Mob) entity).getTarget() != null) {
+                LivingEntity attack = ((Mob) entity).getTarget();
                 return isAlly(attack, to);
             }
         }

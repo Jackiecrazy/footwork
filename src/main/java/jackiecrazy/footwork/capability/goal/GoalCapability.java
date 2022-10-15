@@ -10,7 +10,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import javax.annotation.Nullable;
 
 public class GoalCapability implements IGoalHelper {
-    private BlockPos p = BlockPos.f_121853_.m_6625_(100);
+    private BlockPos p = BlockPos.ZERO.below(100);
     private LivingEntity target;
     private LivingEntity fear;
 
@@ -28,7 +28,7 @@ public class GoalCapability implements IGoalHelper {
 
     @Override
     public LivingEntity getFearSource() {
-        if (fear != null && fear.m_21224_()) fear = null;
+        if (fear != null && fear.isDeadOrDying()) fear = null;
         return fear;
     }
 

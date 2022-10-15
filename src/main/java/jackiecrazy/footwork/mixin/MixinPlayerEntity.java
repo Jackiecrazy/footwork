@@ -49,7 +49,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     @Redirect(method = "attack",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/DamageSource;playerAttack(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/damagesource/DamageSource;"))
     private DamageSource customDamageSource(Player player) {
-        CombatDamageSource d = new CombatDamageSource("player", player).setDamageDealer(player.m_21205_()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).setCritDamage(tempCdmg).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
+        CombatDamageSource d = new CombatDamageSource("player", player).setDamageDealer(player.getMainHandItem()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).setCritDamage(tempCdmg).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
         ds = d;
         return d;
     }
@@ -57,9 +57,9 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     @Inject(method = "attack",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
     private void stats(Entity targetEntity, CallbackInfo ci) {
-        targetEntity.f_19802_ = 0;
+        targetEntity.invulnerableTime = 0;
         if (targetEntity instanceof LivingEntity) {
-            ((LivingEntity) targetEntity).f_20916_ = ((LivingEntity) targetEntity).f_20917_ = 0;
+            ((LivingEntity) targetEntity).hurtTime = ((LivingEntity) targetEntity).hurtDuration = 0;
         }
     }
 
@@ -68,6 +68,6 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     private void mark(LivingEntity livingEntity, double strength, double ratioX, double ratioZ) {
         MeleeKnockbackEvent mke = new MeleeKnockbackEvent(this, ds, livingEntity, strength, ratioX, ratioZ);
         MinecraftForge.EVENT_BUS.post(mke);
-        livingEntity.m_147240_(mke.getStrength(), mke.getRatioX(), mke.getRatioZ());
+        livingEntity.knockback(mke.getStrength(), mke.getRatioX(), mke.getRatioZ());
     }
 }
