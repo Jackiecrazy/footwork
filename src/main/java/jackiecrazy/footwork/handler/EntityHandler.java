@@ -10,8 +10,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -19,8 +19,8 @@ import net.minecraftforge.fml.common.Mod;
 public class EntityHandler {
 
     @SubscribeEvent
-    public static void takeThis(EntityJoinWorldEvent e) {
-        if (e.getEntity() instanceof Mob) {
+    public static void takeThis(LivingSpawnEvent e) {
+        if (e.getEntity() != null) {
             Mob mob = (Mob) e.getEntity();
             mob.goalSelector.addGoal(-1, new NoGoal(mob));
             mob.targetSelector.addGoal(-1, new NoGoal(mob));
@@ -33,8 +33,8 @@ public class EntityHandler {
     }
 
     @SubscribeEvent
-    public static void tickMobs(LivingEvent.LivingUpdateEvent e) {
-        LivingEntity elb = e.getEntityLiving();
+    public static void tickMobs(LivingEvent.LivingTickEvent e) {
+        LivingEntity elb = e.getEntity();
         if (!elb.level.isClientSide) {
             if (elb.hasEffect(FootworkEffects.PETRIFY.get())) {
                 elb.setXRot(elb.xRotO);
@@ -47,8 +47,8 @@ public class EntityHandler {
 
     @SubscribeEvent
     public static void noJump(LivingEvent.LivingJumpEvent e) {
-        if (!(e.getEntityLiving() instanceof Player) && CombatData.getCap(e.getEntityLiving()).getStaggerTime() > 0) {
-            e.getEntityLiving().setDeltaMovement(0, 0, 0);
+        if (!(e.getEntity() instanceof Player) && CombatData.getCap(e.getEntity()).getStaggerTime() > 0) {
+            e.getEntity().setDeltaMovement(0, 0, 0);
         }
     }
 

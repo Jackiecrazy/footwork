@@ -64,23 +64,23 @@ public class GeneralUtils {
 
     @Nullable
     public static EntityType getEntityTypeFromResourceLocation(ResourceLocation rl) {
-        if (ForgeRegistries.ENTITIES.containsKey(rl))
-            return ForgeRegistries.ENTITIES.getValue(rl);
+        if (ForgeRegistries.ENTITY_TYPES.containsKey(rl))
+            return ForgeRegistries.ENTITY_TYPES.getValue(rl);
         return null;
     }
 
     @Nullable
     public static ResourceLocation getResourceLocationFromEntityType(EntityType et) {
-        if (ForgeRegistries.ENTITIES.containsValue(et))
-            return ForgeRegistries.ENTITIES.getKey(et);
+        if (ForgeRegistries.ENTITY_TYPES.containsValue(et))
+            return ForgeRegistries.ENTITY_TYPES.getKey(et);
         return null;
     }
 
     @Nullable
     public static ResourceLocation getResourceLocationFromEntity(Entity et) {
         final EntityType<?> type = et.getType();
-        if (ForgeRegistries.ENTITIES.containsValue(type)) {
-            final ResourceLocation key = ForgeRegistries.ENTITIES.getKey(type);
+        if (ForgeRegistries.ENTITY_TYPES.containsValue(type)) {
+            final ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(type);
             return key;
         }
         return null;
