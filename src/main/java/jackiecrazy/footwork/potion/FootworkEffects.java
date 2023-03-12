@@ -37,11 +37,7 @@ public class FootworkEffects {
     public static final RegistryObject<MobEffect> FORTIFICATION = EFFECTS.register("fortification", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x0eb00c).addAttributeModifier(Attributes.ARMOR, "55FCED67-E92A-486E-9800-B47F202C4386", 2, AttributeModifier.Operation.ADDITION));
     //increases posture damage by 20% per level
     public static final RegistryObject<MobEffect> ENFEEBLE = EFFECTS.register("enfeeble", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x5c452f));
-    //reduces (potency) wounding per second
-    public static final RegistryObject<MobEffect> RESTORATION = EFFECTS.register("restoration", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x5c452f));
-//reduces (potency) fatigue per second
-    public static final RegistryObject<MobEffect> REFRESHMENT = EFFECTS.register("refreshment", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x5c452f));
-//reduces (potency) burnout per second
-    public static final RegistryObject<MobEffect> REENERGIZATION = EFFECTS.register("reenergization", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x5c452f));
+    //only applied to players to show that they are exposed, does nothing
+    public static final RegistryObject<MobEffect> EXPOSED = EFFECTS.register("exposed", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x000000));
 
 }

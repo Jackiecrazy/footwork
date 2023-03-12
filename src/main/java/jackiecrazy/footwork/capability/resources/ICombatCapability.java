@@ -6,6 +6,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.UUID;
+
 public interface ICombatCapability {
     //might, spirit, posture, combo
     //might cooldown, spirit cooldown, posture cooldown, combo grace period
@@ -14,9 +19,7 @@ public interface ICombatCapability {
     //set, get, increment/decrement, consume (resource only)
     //is offhand attack, combat mode
     //shatter, shatter cooldown
-    float getResolve();
-
-    void setResolve(float amount);
+    float getMaxMight();
 
     float getMight();
 
@@ -36,6 +39,8 @@ public interface ICombatCapability {
 
     int decrementMightGrace(int amount);
 
+    float getMaxSpirit();
+
     float getSpirit();
 
     void setSpirit(float amount);
@@ -51,6 +56,8 @@ public interface ICombatCapability {
     int getSpiritGrace();
 
     void setSpiritGrace(int amount);
+
+    float getMaxPosture();
 
     int decrementSpiritGrace(int amount);
 
@@ -80,8 +87,6 @@ public interface ICombatCapability {
         return consumePosture(attacker, amount, above, false);
     }
 
-    boolean isFirstStaggerStrike();
-
     float consumePosture(LivingEntity assailant, float amount, float above, boolean force);
 
     int getPostureGrace();
@@ -89,6 +94,38 @@ public interface ICombatCapability {
     void setPostureGrace(int amount);
 
     int decrementPostureGrace(int amount);
+
+    int getMaxStaggerTime();
+
+    int getStaggerTime();
+
+    void stagger(int time);
+
+    int decrementStaggerTime(int amount);
+
+    int getFractureCount();
+
+    int getFractureCount(LivingEntity appliedBy);
+
+    /**
+     * @return the entity id-fracture marks inflicted by it
+     * edge case behavior: revenge killing an entity will clear all invalid fracture marks, for dimension reasons
+     */
+    HashMap<UUID, Integer> getFractureList();
+
+    void addFracture(@Nullable LivingEntity source, int amount);
+
+    void clearFracture(@Nullable LivingEntity of, boolean clearInvalid);
+
+    float getMaxFracture();
+
+    int getMaxExposeTime();
+
+    int getExposeTime();
+
+    void expose(int time);
+
+    int decrementExposeTime(int amount);
 
     float getRank();
 
@@ -108,6 +145,7 @@ public interface ICombatCapability {
     }
 
     void setAdrenalineCooldown(int amount);
+
     boolean halvedAdrenaline();
 
     float addRank(float amount);
@@ -117,60 +155,6 @@ public interface ICombatCapability {
     }
 
     boolean consumeRank(float amount, float above);
-
-    float getTrueMaxPosture();
-
-    void setTrueMaxPosture(float amount);
-
-    float getTrueMaxSpirit();
-
-    void setTrueMaxSpirit(float amount);
-
-    float getMaxMight();
-
-    void setMaxMight(float amount);
-
-    default float getMaxPosture() {
-        return Math.max(0.1f, getTrueMaxPosture() - getFatigue());
-    }
-
-    default float getMaxSpirit() {
-        return Math.max(0.1f, getTrueMaxSpirit() - getBurnout());
-    }
-
-    int getMaxStaggerTime();
-
-    int getStaggerTime();
-
-    void setStaggerTime(int amount);
-
-    int decrementStaggerTime(int amount);
-
-    int getMaxStaggerCount();
-
-    int getStaggerCount();
-
-    void setStaggerCount(int amount);
-
-    void decrementStaggerCount(int amount);
-
-    int getBarrierCooldown();
-
-    void setBarrierCooldown(int amount);
-
-    void decrementBarrierCooldown(int amount);
-
-    float getMaxBarrier();
-
-    void setMaxBarrier(float amount);
-
-    float getBarrier();
-
-    void setBarrier(float amount);
-
-    float consumeBarrier(float amount);
-
-    void addBarrier(float amount);
 
     int getOffhandCooldown();
 
@@ -195,33 +179,11 @@ public interface ICombatCapability {
 
     void toggleCombatMode(boolean on);
 
-    float getWounding();
-
-    void setWounding(float amount);
-
-    float getFatigue();
-
-    void setFatigue(float amount);
-
-    float getBurnout();
-
-    void setBurnout(float amount);
-
-    void addWounding(float amount);
-
-    void addFatigue(float amount);
-
-    void addBurnout(float amount);
-
     int getHandBind(InteractionHand h);
 
     void setHandBind(InteractionHand h, int amount);
 
     void decrementHandBind(InteractionHand h, int amount);
-
-    float getHandReel(InteractionHand hand);
-
-    void setHandReel(InteractionHand hand, float value);
 
     boolean consumeShatter(float value);
 
@@ -266,6 +228,8 @@ public interface ICombatCapability {
     CompoundTag write();
 
     void addRangedMight(boolean pass);
+
+    boolean isStaggeringStrike();
 
     int getRetina();
 

@@ -5,18 +5,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 public class DummyCombatCap implements ICombatCapability {
 
 
     @Override
-    public float getResolve() {
+    public float getMaxMight() {
         return 0;
-    }
-
-    @Override
-    public void setResolve(float amount) {
-
     }
 
     @Override
@@ -55,6 +54,11 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
+    public float getMaxSpirit() {
+        return 0;
+    }
+
+    @Override
     public float getSpirit() {
         return 0;
     }
@@ -85,6 +89,11 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
+    public float getMaxPosture() {
+        return 0;
+    }
+
+    @Override
     public int decrementSpiritGrace(int amount) {
         return 0;
     }
@@ -105,11 +114,6 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public boolean isFirstStaggerStrike() {
-        return false;
-    }
-
-    @Override
     public float consumePosture(LivingEntity assailant, float amount, float above, boolean force) {
         return 0;
     }
@@ -126,6 +130,76 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public int decrementPostureGrace(int amount) {
+        return 0;
+    }
+
+    @Override
+    public int getMaxStaggerTime() {
+        return 0;
+    }
+
+    @Override
+    public int getStaggerTime() {
+        return 0;
+    }
+
+    @Override
+    public void stagger(int time) {
+
+    }
+
+    @Override
+    public int decrementStaggerTime(int amount) {
+        return 0;
+    }
+
+    @Override
+    public int getFractureCount() {
+        return 0;
+    }
+
+    @Override
+    public int getFractureCount(LivingEntity appliedBy) {
+        return 0;
+    }
+
+    @Override
+    public HashMap<UUID, Integer> getFractureList() {
+        return null;
+    }
+
+    @Override
+    public void addFracture(@Nullable LivingEntity source, int amount) {
+
+    }
+
+    @Override
+    public void clearFracture(@Nullable LivingEntity of, boolean clearInvalid) {
+
+    }
+
+    @Override
+    public float getMaxFracture() {
+        return 0;
+    }
+
+    @Override
+    public int getMaxExposeTime() {
+        return 0;
+    }
+
+    @Override
+    public int getExposeTime() {
+        return 0;
+    }
+
+    @Override
+    public void expose(int time) {
+
+    }
+
+    @Override
+    public int decrementExposeTime(int amount) {
         return 0;
     }
 
@@ -157,133 +231,6 @@ public class DummyCombatCap implements ICombatCapability {
     @Override
     public boolean consumeRank(float amount, float above) {
         return false;
-    }
-
-    @Override
-    public float getTrueMaxPosture() {
-        return 0;
-    }
-
-    @Override
-    public void setTrueMaxPosture(float amount) {
-
-    }
-
-    @Override
-    public float getTrueMaxSpirit() {
-        return 0;
-    }
-
-    @Override
-    public void setTrueMaxSpirit(float amount) {
-
-    }
-
-    @Override
-    public float getMaxMight() {
-        return 0;
-    }
-
-    @Override
-    public void setMaxMight(float amount) {
-
-    }
-
-    @Override
-    public int getMaxStaggerTime() {
-        return 0;
-    }
-
-    private int getComboGrace() {
-        return 0;
-    }
-
-    private void setComboGrace(int amount) {
-
-    }
-
-    private int decrementComboGrace(int amount) {
-        return 0;
-    }
-
-    @Override
-    public int getStaggerTime() {
-        return 0;
-    }
-
-    @Override
-    public void setStaggerTime(int amount) {
-
-    }
-
-    @Override
-    public int decrementStaggerTime(int amount) {
-        return 0;
-    }
-
-    @Override
-    public int getMaxStaggerCount() {
-        return 0;
-    }
-
-    @Override
-    public int getStaggerCount() {
-        return 0;
-    }
-
-    @Override
-    public void setStaggerCount(int amount) {
-
-    }
-
-    @Override
-    public void decrementStaggerCount(int amount) {
-
-    }
-
-    @Override
-    public int getBarrierCooldown() {
-        return 0;
-    }
-
-    @Override
-    public void setBarrierCooldown(int amount) {
-
-    }
-
-    @Override
-    public void decrementBarrierCooldown(int amount) {
-
-    }
-
-    @Override
-    public float getMaxBarrier() {
-        return 0;
-    }
-
-    @Override
-    public void setMaxBarrier(float amount) {
-
-    }
-
-    @Override
-    public float getBarrier() {
-        return 0;
-    }
-
-    @Override
-    public void setBarrier(float amount) {
-
-    }
-
-    @Override
-    public float consumeBarrier(float amount) {
-        return 0;
-    }
-
-    @Override
-    public void addBarrier(float amount) {
-
     }
 
     @Override
@@ -337,51 +284,6 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public float getWounding() {
-        return 0;
-    }
-
-    @Override
-    public void setWounding(float amount) {
-
-    }
-
-    @Override
-    public float getFatigue() {
-        return 0;
-    }
-
-    @Override
-    public void setFatigue(float amount) {
-
-    }
-
-    @Override
-    public float getBurnout() {
-        return 0;
-    }
-
-    @Override
-    public void setBurnout(float amount) {
-
-    }
-
-    @Override
-    public void addWounding(float amount) {
-
-    }
-
-    @Override
-    public void addFatigue(float amount) {
-
-    }
-
-    @Override
-    public void addBurnout(float amount) {
-
-    }
-
-    @Override
     public int getHandBind(InteractionHand h) {
         return 0;
     }
@@ -393,16 +295,6 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public void decrementHandBind(InteractionHand h, int amount) {
-
-    }
-
-    @Override
-    public float getHandReel(InteractionHand hand) {
-        return 0;
-    }
-
-    @Override
-    public void setHandReel(InteractionHand hand, float value) {
 
     }
 
@@ -462,22 +354,17 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void setTempItemStack(ItemStack is) {
-
-    }
-
-    @Override
     public ItemStack getTempItemStack() {
         return null;
     }
 
     @Override
-    public void read(CompoundTag tag) {
+    public void setTempItemStack(ItemStack is) {
 
     }
 
     @Override
-    public void setParryingTick(int parrying) {
+    public void read(CompoundTag tag) {
 
     }
 
@@ -487,7 +374,7 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void setSweepTick(int tick) {
+    public void setParryingTick(int parrying) {
 
     }
 
@@ -497,13 +384,18 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
+    public void setSweepTick(int tick) {
+
+    }
+
+    @Override
     public boolean isValid() {
         return false;
     }
 
     @Override
     public Vec3 getMotionConsistently() {
-        return Vec3.ZERO;
+        return null;
     }
 
     @Override
@@ -514,6 +406,11 @@ public class DummyCombatCap implements ICombatCapability {
     @Override
     public void addRangedMight(boolean pass) {
 
+    }
+
+    @Override
+    public boolean isStaggeringStrike() {
+        return false;
     }
 
     @Override

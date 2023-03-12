@@ -22,12 +22,11 @@ public class WarAttributes {
     public static final RegistryObject<Attribute> DEFLECTION = ATTRIBUTES.register("deflection", () -> new RangedAttribute(Footwork.MODID + ".deflection", 0d, 0, 60).setSyncable(true));
     public static final RegistryObject<Attribute> SHATTER = ATTRIBUTES.register("shatter", () -> new RangedAttribute(Footwork.MODID + ".shatter", 0d, 0, Double.MAX_VALUE).setSyncable(true));
     public static final RegistryObject<Attribute> STEALTH = ATTRIBUTES.register("stealth", () -> new RangedAttribute(Footwork.MODID + ".stealth", 10d, -Double.MAX_VALUE, Double.MAX_VALUE).setSyncable(true));
+    public static final RegistryObject<Attribute> MAX_FRACTURE = ATTRIBUTES.register("max_fracture", () -> new RangedAttribute(Footwork.MODID + ".max_fracture", 3, 1   , Double.MAX_VALUE).setSyncable(true));
     public static final RegistryObject<Attribute> MAX_POSTURE = ATTRIBUTES.register("max_posture", () -> new RangedAttribute(Footwork.MODID + ".maxPosture", 0d, 0, Double.MAX_VALUE));
     public static final RegistryObject<Attribute> MAX_SPIRIT = ATTRIBUTES.register("max_spirit", () -> new RangedAttribute(Footwork.MODID + ".maxSpirit", 10d, 0, Double.MAX_VALUE));
     public static final RegistryObject<Attribute> MAX_MIGHT = ATTRIBUTES.register("max_might", () -> new RangedAttribute(Footwork.MODID + ".maxMight", 10d, 0, Double.MAX_VALUE));
     public static final RegistryObject<Attribute> POSTURE_REGEN = ATTRIBUTES.register("posture_regen", () -> new RangedAttribute(Footwork.MODID + ".postureGen", 0d, -Double.MAX_VALUE, Double.MAX_VALUE));
     public static final RegistryObject<Attribute> SPIRIT_REGEN = ATTRIBUTES.register("spirit_regen", () -> new RangedAttribute(Footwork.MODID + ".spiritGen", 10d, -Double.MAX_VALUE, Double.MAX_VALUE));
     public static final RegistryObject<Attribute> MIGHT_GEN = ATTRIBUTES.register("might_gen", () -> new RangedAttribute(Footwork.MODID + ".mightGen", 10d, -Double.MAX_VALUE, Double.MAX_VALUE));
-    public static final RegistryObject<Attribute> BARRIER = ATTRIBUTES.register("barrier", () -> new RangedAttribute(Footwork.MODID + ".barrier", 0.0d, 0, 1).setSyncable(true));
-    public static final RegistryObject<Attribute> BARRIER_COOLDOWN = ATTRIBUTES.register("barrier_cooldown", () -> new RangedAttribute(Footwork.MODID + ".barrierCooldown", 0d, 0, Integer.MAX_VALUE).setSyncable(true));
 }
