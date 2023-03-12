@@ -136,7 +136,7 @@ public class GeneralUtils {
     }
 
     public static float getMaxHealthBeforeWounding(LivingEntity of) {
-        return of.getMaxHealth() + CombatData.getCap(of).getWounding();
+        return of.getMaxHealth();
     }
 
     /**
