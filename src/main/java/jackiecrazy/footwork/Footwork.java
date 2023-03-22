@@ -1,6 +1,6 @@
 package jackiecrazy.footwork;
 
-import jackiecrazy.footwork.api.WarAttributes;
+import jackiecrazy.footwork.api.FootworkAttributes;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
@@ -39,7 +39,7 @@ public class Footwork {
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        WarAttributes.ATTRIBUTES.register(bus);
+        FootworkAttributes.ATTRIBUTES.register(bus);
         FootworkEffects.EFFECTS.register(bus);
     }
 
@@ -55,7 +55,9 @@ public class Footwork {
                 e.add(type, Attributes.FOLLOW_RANGE, 32);
             if(!e.has(type, Attributes.ATTACK_SPEED))
                 e.add(type, Attributes.ATTACK_SPEED);
-            for(RegistryObject<Attribute> a: WarAttributes.ATTRIBUTES.getEntries())
+            if(!e.has(type, Attributes.LUCK))
+                e.add(type, Attributes.LUCK);
+            for(RegistryObject<Attribute> a: FootworkAttributes.ATTRIBUTES.getEntries())
                 e.add(type, a.get());
         }
     }

@@ -21,18 +21,18 @@ public class DummyCombatItemCap implements ICombatItemCapability {
     }
 
     @Override
-    public boolean canAttack(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig) {
+    public boolean canAttack(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig) {
         return false;
     }
 
     @Override
-    public void attackStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig) {
+    public void attackStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig) {
 
     }
 
     @Override
-    public Event.Result critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, float crit, boolean vanCrit) {
-        return null;
+    public Event.Result critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit) {
+        return Event.Result.DEFAULT;
     }
 
     @Override
@@ -46,62 +46,62 @@ public class DummyCombatItemCap implements ICombatItemCapability {
     }
 
     @Override
-    public float onKnockingBack(LivingEntity attacker, LivingEntity target, ItemStack item, float orig) {
+    public float onKnockingBack(LivingEntity attacker, LivingEntity target, ItemStack item, double orig) {
         return 0;
     }
 
     @Override
-    public float onBeingKnockedBack(LivingEntity attacker, LivingEntity target, ItemStack item, float orig) {
+    public float onBeingKnockedBack(LivingEntity attacker, LivingEntity target, ItemStack item, double orig) {
         return 0;
     }
 
     @Override
-    public float hurtStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig) {
+    public float hurtStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig) {
         return 0;
     }
 
     @Override
-    public float damageStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig) {
+    public float damageStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig) {
         return 0;
     }
 
     @Override
-    public int armorIgnoreAmount(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig) {
+    public int armorIgnoreAmount(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig) {
         return 0;
     }
 
     @Override
-    public float onBeingHurt(DamageSource ds, LivingEntity defender, ItemStack item, float amount) {
+    public float onBeingHurt(DamageSource ds, LivingEntity defender, ItemStack item, double amount) {
         return 0;
     }
 
     @Override
-    public float onBeingDamaged(DamageSource ds, LivingEntity defender, ItemStack item, float amount) {
+    public float onBeingDamaged(DamageSource ds, LivingEntity defender, ItemStack item, double amount) {
         return 0;
     }
 
     @Override
-    public boolean canBlock(LivingEntity defender, Entity attacker, ItemStack item, boolean recharged, float amount) {
+    public boolean canBlock(LivingEntity defender, Entity attacker, ItemStack item, boolean recharged, double amount) {
         return false;
     }
 
     @Override
-    public void onParry(LivingEntity attacker, LivingEntity defender, ItemStack item, float amount) {
+    public void onParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount) {
 
     }
 
     @Override
-    public void onOtherHandParry(LivingEntity attacker, LivingEntity defender, ItemStack item, float amount) {
+    public void onOtherHandParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount) {
 
     }
 
     @Override
-    public float postureMultiplierDefend(Entity attacker, LivingEntity defender, ItemStack item, float amount) {
+    public float postureMultiplierDefend(Entity attacker, LivingEntity defender, ItemStack item, double amount) {
         return 0;
     }
 
     @Override
-    public float postureDealtBase(LivingEntity attacker, LivingEntity defender, ItemStack item, float amount) {
+    public float postureDealtBase(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount) {
         return 0;
     }
 }

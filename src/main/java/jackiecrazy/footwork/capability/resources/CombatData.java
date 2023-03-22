@@ -13,9 +13,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class CombatData implements ICapabilitySerializable<CompoundTag> {
-    private static ICombatCapability OHNO=new DummyCombatCap();
+    private static ICombatCapability OHNO = new DummyCombatCap();
 
-    public static Capability<ICombatCapability> CAP  = CapabilityManager.get(new CapabilityToken<>() {
+    public static Capability<ICombatCapability> CAP = CapabilityManager.get(new CapabilityToken<>() {
     });
 
     public static ICombatCapability getCap(LivingEntity le) {
@@ -35,7 +35,7 @@ public class CombatData implements ICapabilitySerializable<CompoundTag> {
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        return CAP.orEmpty(cap, LazyOptional.of(()->instance));
+        return CAP.orEmpty(cap, LazyOptional.of(() -> instance));
     }
 
     @Override

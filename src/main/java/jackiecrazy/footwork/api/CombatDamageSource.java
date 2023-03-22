@@ -20,7 +20,7 @@ public class CombatDamageSource extends EntityDamageSource {
     private boolean crit = false;
     private float cdmg = 1.5f;
     private float postureDamage = -1;
-    private float armor = 1f, knockback=1f;
+    private float armor = 1f, knockback=1f, multiplier = 1f;
     private TYPE damageTyping = TYPE.PHYSICAL;
 
     public static CombatDamageSource causeSelfDamage(LivingEntity to){
@@ -146,6 +146,15 @@ public class CombatDamageSource extends EntityDamageSource {
 
     public CombatDamageSource setPostureDamage(float postureDamage) {
         this.postureDamage = postureDamage;
+        return this;
+    }
+
+    public float getMultiplier() {
+        return multiplier;
+    }
+
+    public CombatDamageSource setMultiplier(float multiplier) {
+        this.multiplier = multiplier;
         return this;
     }
 

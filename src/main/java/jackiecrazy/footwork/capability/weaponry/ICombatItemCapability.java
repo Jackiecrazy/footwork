@@ -16,17 +16,17 @@ public interface ICombatItemCapability {
     /**
      * called on LivingAttackEvent to determine whether the hit is valid
      */
-    boolean canAttack(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig);
+    boolean canAttack(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingAttackEvent, before parries. It returns void because LAE doesn't support modifying amounts
      */
-    void attackStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig);
+    void attackStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * called on CriticalHitEvent to determine whether the hit is critical
      */
-    Event.Result critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, float crit, boolean vanCrit);
+    Event.Result critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit);
 
     /**
      * this is called on CriticalHitEvent to determine crit multiplier
@@ -43,70 +43,70 @@ public interface ICombatItemCapability {
      *
      * @return a new knockback if necessary
      */
-    float onKnockingBack(LivingEntity attacker, LivingEntity target, ItemStack item, float orig);
+    float onKnockingBack(LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on MeleeKnockbackEvent
      *
      * @return a new knockback if necessary
      */
-    float onBeingKnockedBack(LivingEntity attacker, LivingEntity target, ItemStack item, float orig);
+    float onBeingKnockedBack(LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingHurtEvent, before armor reductions
      *
      * @return a new damage if necessary
      */
-    float hurtStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig);
+    float hurtStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingDamageEvent, after armor, absorption, and all other reductions
      *
      * @return a new damage if necessary
      */
-    float damageStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig);
+    float damageStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingHurtEvent to apply armor down for the particular attack only
      *
      * @return how much armor to ignore
      */
-    int armorIgnoreAmount(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, float orig);
+    int armorIgnoreAmount(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingHurtEvent, after hurtStart, but before downed damage multipliers have been applied
      *
      * @return a new damage if necessary
      */
-    float onBeingHurt(DamageSource ds, LivingEntity defender, ItemStack item, float amount);
+    float onBeingHurt(DamageSource ds, LivingEntity defender, ItemStack item, double amount);
 
     /**
      * this is called on LivingDamageEvent, after damageStart
      *
      * @return a new damage if necessary
      */
-    float onBeingDamaged(DamageSource ds, LivingEntity defender, ItemStack item, float amount);
+    float onBeingDamaged(DamageSource ds, LivingEntity defender, ItemStack item, double amount);
 
     /**
      * this is called during LivingAttackEvent to determine whether this item can parry
      */
-    boolean canBlock(LivingEntity defender, Entity attacker, ItemStack item, boolean recharged, float amount);
+    boolean canBlock(LivingEntity defender, Entity attacker, ItemStack item, boolean recharged, double amount);
 
     /**
      * use this to apply special effects on parrying
      */
-    void onParry(LivingEntity attacker, LivingEntity defender, ItemStack item, float amount);
+    void onParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount);
 
     /**
      * use this to apply special effects on the other hand parrying. It's kind of obscure, but it exists
      */
-    void onOtherHandParry(LivingEntity attacker, LivingEntity defender, ItemStack item, float amount);
+    void onOtherHandParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount);
 
-    float postureMultiplierDefend(Entity attacker, LivingEntity defender, ItemStack item, float amount);
+    float postureMultiplierDefend(Entity attacker, LivingEntity defender, ItemStack item, double amount);
 
     /**
      * this is a flat value rather than a multiplier with damage. The reasoning is that a sharp sword doesn't actually confer more force.
      * When empty-handed you can get hard-hitting unarmed fighters with damage multipliers, but the damage enchants on weapons are too much.
      */
-    float postureDealtBase(LivingEntity attacker, LivingEntity defender, ItemStack item, float amount);
+    float postureDealtBase(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount);
 }

@@ -19,6 +19,8 @@ public interface ICombatCapability {
     //set, get, increment/decrement, consume (resource only)
     //is offhand attack, combat mode
     //shatter, shatter cooldown
+    void updateDefenselessStatus();
+
     float getMaxMight();
 
     float getMight();
@@ -36,8 +38,6 @@ public interface ICombatCapability {
     int getMightGrace();
 
     void setMightGrace(int amount);
-
-    int decrementMightGrace(int amount);
 
     float getMaxSpirit();
 
@@ -58,8 +58,6 @@ public interface ICombatCapability {
     void setSpiritGrace(int amount);
 
     float getMaxPosture();
-
-    int decrementSpiritGrace(int amount);
 
     float getPosture();
 
@@ -93,15 +91,13 @@ public interface ICombatCapability {
 
     void setPostureGrace(int amount);
 
-    int decrementPostureGrace(int amount);
-
     int getMaxStaggerTime();
 
     int getStaggerTime();
 
     void stagger(int time);
 
-    int decrementStaggerTime(int amount);
+    boolean isStaggered();
 
     int getFractureCount();
 
@@ -113,7 +109,7 @@ public interface ICombatCapability {
      */
     HashMap<UUID, Integer> getFractureList();
 
-    void addFracture(@Nullable LivingEntity source, int amount);
+    boolean addFracture(@Nullable LivingEntity source, int amount);
 
     void clearFracture(@Nullable LivingEntity of, boolean clearInvalid);
 
@@ -125,7 +121,7 @@ public interface ICombatCapability {
 
     void expose(int time);
 
-    int decrementExposeTime(int amount);
+    boolean isExposed();
 
     float getRank();
 
@@ -160,8 +156,6 @@ public interface ICombatCapability {
 
     void setOffhandCooldown(int amount);
 
-    void addOffhandCooldown(int amount);
-
     /**
      * for the sake of convenience, positive is subject to cooldown and negatives are free
      */
@@ -183,15 +177,11 @@ public interface ICombatCapability {
 
     void setHandBind(InteractionHand h, int amount);
 
-    void decrementHandBind(InteractionHand h, int amount);
+    boolean consumeEvade();
 
-    boolean consumeShatter(float value);
+    int getEvade();
 
-    int getShatterCooldown();
-
-    void setShatterCooldown(int value);
-
-    int decrementShatterCooldown(int value);
+    void setEvade(int value);
 
     float getCachedCooldown();
 

@@ -5,11 +5,11 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.Cancelable;
 
 @Cancelable
-public class StaggerEvent extends LivingEvent {
+public class ExposeEvent extends LivingEvent {
     private final LivingEntity attacker;
     private int length;
 
-    public StaggerEvent(LivingEntity entity, LivingEntity attacker, int staggerTime) {
+    public ExposeEvent(LivingEntity entity, LivingEntity attacker, int staggerTime) {
         super(entity);
         length = staggerTime;
         this.attacker = attacker;

@@ -1,6 +1,10 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.event.EntityAwarenessEvent;
+import jackiecrazy.footwork.potion.FootworkEffects;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.BlockPos;
@@ -10,12 +14,26 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 
 public class StealthUtils {
-    public static StealthUtils INSTANCE=new StealthUtils();//this will be usurped by the stealth one when appropriate
+    public static StealthUtils INSTANCE = new StealthUtils();//this will be usurped by the stealth one when appropriate
+
     public Awareness getAwareness(LivingEntity attacker, LivingEntity target) {
-        //essentially a dummy
-        EntityAwarenessEvent eae = new EntityAwarenessEvent(target, attacker, Awareness.ALERT);
-        MinecraftForge.EVENT_BUS.post(eae);
-        return eae.getAwareness();
+        if (target != null && attacker != target) {
+            if (target instanceof Player) {
+                return Awareness.ALERT;
+            } else {
+                StealthUtils.Awareness a = Awareness.ALERT;
+                if (target.hasEffect(FootworkEffects.SLEEP.get()) || target.hasEffect(FootworkEffects.PARALYSIS.get()) || target.hasEffect(FootworkEffects.PETRIFY.get())) {
+                    a = Awareness.UNAWARE;
+                } else if (target.hasEffect(FootworkEffects.DISTRACTION.get()) || target.hasEffect(FootworkEffects.CONFUSION.get())) {
+                    a = Awareness.DISTRACTED;
+                }
+                EntityAwarenessEvent eae = new EntityAwarenessEvent(target, attacker, a);
+                MinecraftForge.EVENT_BUS.post(eae);
+                return eae.getAwareness();
+            }
+        } else {
+            return Awareness.ALERT;
+        }
     }
 
     public static boolean inWeb(LivingEntity e) {

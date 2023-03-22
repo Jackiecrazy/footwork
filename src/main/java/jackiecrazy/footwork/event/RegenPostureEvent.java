@@ -3,9 +3,9 @@ package jackiecrazy.footwork.event;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
-public class GainBarrierEvent extends LivingEvent {
+public class RegenPostureEvent extends LivingEvent {
     private float quantity;
-    public GainBarrierEvent(LivingEntity subject, float amount) {
+    public RegenPostureEvent(LivingEntity subject, float amount) {
         super(subject);
         quantity=amount;
     }

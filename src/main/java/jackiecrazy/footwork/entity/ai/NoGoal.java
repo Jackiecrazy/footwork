@@ -19,7 +19,7 @@ public class NoGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return (CombatData.getCap(e).isValid() && CombatData.getCap(e).getStaggerTime() > 0) || e.hasEffect(FootworkEffects.PETRIFY.get()) || e.hasEffect(FootworkEffects.PARALYSIS.get()) || e.hasEffect(FootworkEffects.SLEEP.get());
+        return e.hasEffect(FootworkEffects.PETRIFY.get()) || e.hasEffect(FootworkEffects.PARALYSIS.get()) || e.hasEffect(FootworkEffects.SLEEP.get());
     }
 
     @Override

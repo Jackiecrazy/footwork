@@ -7,11 +7,18 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class DummyCombatCap implements ICombatCapability {
 
+
+    @Override
+    public void updateDefenselessStatus() {
+
+    }
 
     @Override
     public float getMaxMight() {
@@ -149,6 +156,11 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
+    public boolean isStaggered() {
+        return false;
+    }
+
+    @Override
     public int decrementStaggerTime(int amount) {
         return 0;
     }
@@ -163,14 +175,16 @@ public class DummyCombatCap implements ICombatCapability {
         return 0;
     }
 
+    HashMap<UUID, Integer> EMPTY=new HashMap<>();
+
     @Override
     public HashMap<UUID, Integer> getFractureList() {
-        return null;
+        return EMPTY;
     }
 
     @Override
-    public void addFracture(@Nullable LivingEntity source, int amount) {
-
+    public boolean addFracture(@Nullable LivingEntity source, int amount) {
+        return true;
     }
 
     @Override
@@ -196,6 +210,11 @@ public class DummyCombatCap implements ICombatCapability {
     @Override
     public void expose(int time) {
 
+    }
+
+    @Override
+    public boolean isExposed() {
+        return false;
     }
 
     @Override
@@ -355,7 +374,7 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public ItemStack getTempItemStack() {
-        return null;
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -395,12 +414,12 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public Vec3 getMotionConsistently() {
-        return null;
+        return Vec3.ZERO;
     }
 
     @Override
     public CompoundTag write() {
-        return null;
+        return new CompoundTag();
     }
 
     @Override
