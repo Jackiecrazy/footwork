@@ -55,10 +55,6 @@ public class DummyCombatCap implements ICombatCapability {
 
     }
 
-    @Override
-    public int decrementMightGrace(int amount) {
-        return 0;
-    }
 
     @Override
     public float getMaxSpirit() {
@@ -100,10 +96,6 @@ public class DummyCombatCap implements ICombatCapability {
         return 0;
     }
 
-    @Override
-    public int decrementSpiritGrace(int amount) {
-        return 0;
-    }
 
     @Override
     public float getPosture() {
@@ -135,10 +127,6 @@ public class DummyCombatCap implements ICombatCapability {
 
     }
 
-    @Override
-    public int decrementPostureGrace(int amount) {
-        return 0;
-    }
 
     @Override
     public int getMaxStaggerTime() {
@@ -160,10 +148,6 @@ public class DummyCombatCap implements ICombatCapability {
         return false;
     }
 
-    @Override
-    public int decrementStaggerTime(int amount) {
-        return 0;
-    }
 
     @Override
     public int getFractureCount() {
@@ -217,10 +201,6 @@ public class DummyCombatCap implements ICombatCapability {
         return false;
     }
 
-    @Override
-    public int decrementExposeTime(int amount) {
-        return 0;
-    }
 
     @Override
     public float getRank() {
@@ -259,11 +239,6 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public void setOffhandCooldown(int amount) {
-
-    }
-
-    @Override
-    public void addOffhandCooldown(int amount) {
 
     }
 
@@ -313,28 +288,18 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void decrementHandBind(InteractionHand h, int amount) {
-
-    }
-
-    @Override
-    public boolean consumeShatter(float value) {
+    public boolean consumeEvade() {
         return false;
     }
 
     @Override
-    public int getShatterCooldown() {
+    public int getEvade() {
         return 0;
     }
 
     @Override
-    public void setShatterCooldown(int value) {
+    public void setEvade(int value) {
 
-    }
-
-    @Override
-    public int decrementShatterCooldown(int value) {
-        return 0;
     }
 
     @Override

@@ -5,14 +5,16 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.Cancelable;
 
 @Cancelable
-public class StaggerEvent extends LivingEvent {
+public class StunEvent extends LivingEvent {
     private final LivingEntity attacker;
     private int length;
+    private boolean knockdown;
 
-    public StaggerEvent(LivingEntity entity, LivingEntity attacker, int staggerTime) {
+    public StunEvent(LivingEntity entity, LivingEntity attacker, int staggerTime, boolean knockdown) {
         super(entity);
         length = staggerTime;
         this.attacker = attacker;
+        this.knockdown=knockdown;
     }
 
     public int getLength() {
@@ -25,5 +27,13 @@ public class StaggerEvent extends LivingEvent {
 
     public LivingEntity getAttacker() {
         return attacker;
+    }
+
+    public boolean isKnockdown() {
+        return knockdown;
+    }
+
+    public void setKnockdown(boolean knockdown) {
+        this.knockdown = knockdown;
     }
 }
