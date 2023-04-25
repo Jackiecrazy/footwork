@@ -1,7 +1,9 @@
 {
+  "footwork.command.exported": "Worn armor successfully exported",
+  "footwork.command.missing": "Missing arguments",
   "footwork.command.": "",
 
-  "footwork.evasion": "Evasion",
+  "footwork.evasion": "Deflection",
   "footwork.maxFracture": "Max Fracture",
   "footwork.maxPosture": "Max Posture",
   "footwork.postureSpeed": "Posture Cooldown Speed",
@@ -15,6 +17,8 @@
   "footwork.mightSpeed": "Might Duration",
   "footwork.mightGen": "Might Generation Multiplier",
   "footwork.stealth": "Stealth",
+  "footwork.encirclement_distance": "Encirclement Distance (does nothing on a player)",
+  "footwork.threat": "Threat Rank",
 
   "footwork.combat.on": "Combat Mode Activated",
   "footwork.combat.off": "Combat Mode Deactivated",
@@ -37,5 +41,8 @@
   "effect.footwork.fortification": "Fortification",
   "effect.footwork.corrosion": "Corrosion",
   "effect.footwork.terror": "Terror",
-  "effect.footwork.fear": "Fear"
+  "effect.footwork.fear": "Fear",
+  "effect.footwork.exposed": "Exposed",
+  "effect.footwork.conceal": "Concealed",
+  "effect.footwork.reveal": "Revealed"
 }

@@ -4,6 +4,7 @@ import jackiecrazy.footwork.api.FootworkAttributes;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
+import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -19,15 +21,17 @@ import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.util.Random;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("footwork")
 public class Footwork {
 
-    public static final String MODID="footwork";
+    public static final String MODID = "footwork";
+    public static File configDirPath;
 
-    public static final Random rand=new Random();
+    public static final Random rand = new Random();
 
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
@@ -41,6 +45,7 @@ public class Footwork {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         FootworkAttributes.ATTRIBUTES.register(bus);
         FootworkEffects.EFFECTS.register(bus);
+        MinecraftForge.EVENT_BUS.addListener(this::commands);
     }
 
     private void setup(final RegisterCapabilitiesEvent event) {
@@ -50,15 +55,20 @@ public class Footwork {
     }
 
     private void attribute(EntityAttributeModificationEvent e) {
-        for (EntityType<? extends LivingEntity> type:e.getTypes()){
-            if(!e.has(type, Attributes.FOLLOW_RANGE))
+        for (EntityType<? extends LivingEntity> type : e.getTypes()) {
+            if (!e.has(type, Attributes.FOLLOW_RANGE))
                 e.add(type, Attributes.FOLLOW_RANGE, 32);
-            if(!e.has(type, Attributes.ATTACK_SPEED))
+            if (!e.has(type, Attributes.ATTACK_SPEED))
                 e.add(type, Attributes.ATTACK_SPEED);
-            if(!e.has(type, Attributes.LUCK))
+            if (!e.has(type, Attributes.LUCK))
                 e.add(type, Attributes.LUCK);
-            for(RegistryObject<Attribute> a: FootworkAttributes.ATTRIBUTES.getEntries())
+            for (RegistryObject<Attribute> a : FootworkAttributes.ATTRIBUTES.getEntries())
                 e.add(type, a.get());
         }
+    }
+
+
+    private void commands(final RegisterCommandsEvent event) {
+        AttributizeCommand.register(event.getDispatcher());
     }
 }

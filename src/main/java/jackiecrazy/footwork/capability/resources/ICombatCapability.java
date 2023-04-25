@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.UUID;
@@ -91,13 +90,25 @@ public interface ICombatCapability {
 
     void setPostureGrace(int amount);
 
-    int getMaxStaggerTime();
+    int getMaxStunTime();
 
-    int getStaggerTime();
+    int getStunTime();
 
-    void stagger(int time);
+    void stun(int time);
 
-    boolean isStaggered();
+    default boolean isVulnerable() {
+        return isStunned() || isKnockedDown() || isExposed();
+    }
+
+    int getMaxKnockdownTime();
+
+    int getKnockdownTime();
+
+    void knockdown(int time);
+
+    boolean isStunned();
+
+    boolean isKnockedDown();
 
     int getFractureCount();
 
@@ -201,8 +212,6 @@ public interface ICombatCapability {
 
     void setTempItemStack(ItemStack is);
 
-    void read(CompoundTag tag);
-
     int getParryingTick();//hey, it's useful for future "smart" entities as well.
 
     void setParryingTick(int parrying);
@@ -216,6 +225,8 @@ public interface ICombatCapability {
     Vec3 getMotionConsistently();//I can't believe I have to do this.
 
     CompoundTag write();
+
+    void read(CompoundTag tag);
 
     void addRangedMight(boolean pass);
 

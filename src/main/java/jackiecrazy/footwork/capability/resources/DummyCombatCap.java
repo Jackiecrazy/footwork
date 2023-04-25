@@ -129,22 +129,42 @@ public class DummyCombatCap implements ICombatCapability {
 
 
     @Override
-    public int getMaxStaggerTime() {
+    public int getMaxStunTime() {
         return 0;
     }
 
     @Override
-    public int getStaggerTime() {
+    public int getStunTime() {
         return 0;
     }
 
     @Override
-    public void stagger(int time) {
+    public void stun(int time) {
 
     }
 
     @Override
-    public boolean isStaggered() {
+    public int getMaxKnockdownTime() {
+        return 0;
+    }
+
+    @Override
+    public int getKnockdownTime() {
+        return 0;
+    }
+
+    @Override
+    public void knockdown(int time) {
+
+    }
+
+    @Override
+    public boolean isStunned() {
+        return false;
+    }
+
+    @Override
+    public boolean isKnockedDown() {
         return false;
     }
 

@@ -172,7 +172,7 @@ public class GeneralUtils {
         Vec3 look = attacker.getLookAngle().scale(range + 2);
         Vec3 end = start.add(look);
         Entity entity = null;
-        List<Entity> list = world.getEntities(attacker, attacker.getBoundingBox().expandTowards(look.x, look.y, look.z).inflate(1.0D), null);
+        List<Entity> list = world.getEntities(attacker, attacker.getBoundingBox().expandTowards(look.x, look.y, look.z).inflate(1.0D), EntitySelector.LIVING_ENTITY_STILL_ALIVE);
         double d0 = -1.0D;//necessary to prevent small derps
 
         for (Entity entity1 : list) {

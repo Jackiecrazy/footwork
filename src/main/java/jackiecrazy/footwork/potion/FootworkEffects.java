@@ -34,12 +34,16 @@ public class FootworkEffects {
     //reduces armor by 2 per level
     public static final RegistryObject<MobEffect> CORROSION = EFFECTS.register("corrosion", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0xcfd102).addAttributeModifier(Attributes.ARMOR, "55FCED67-E92A-486E-9800-B47F202C4386", -2, AttributeModifier.Operation.ADDITION));
     //increases armor by 2 per level
-    public static final RegistryObject<MobEffect> FORTIFICATION = EFFECTS.register("fortification", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x0eb00c).addAttributeModifier(Attributes.ARMOR, "55FCED67-E92A-486E-9800-B47F202C4386", 2, AttributeModifier.Operation.ADDITION));
+    public static final RegistryObject<MobEffect> FORTIFICATION = EFFECTS.register("fortification", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x0eb00c).addAttributeModifier(Attributes.ARMOR, "55FCED67-E92B-486E-9800-B47F202C4386", 2, AttributeModifier.Operation.ADDITION));
     //increases posture damage by 20% per level
     public static final RegistryObject<MobEffect> ENFEEBLE = EFFECTS.register("enfeeble", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x5c452f));
-    //only applied to players to show that they are exposed, does nothing
-    public static final RegistryObject<MobEffect> EXPOSED = EFFECTS.register("exposed", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x000000));
+    //nullifies invisibility
+    public static final RegistryObject<MobEffect> EXPOSED = EFFECTS.register("exposed", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x000000));
+    //reduces stealth by 2 per level
+    public static final RegistryObject<MobEffect> REVEAL = EFFECTS.register("reveal", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0xF74708).addAttributeModifier(FootworkAttributes.STEALTH.get(), "55FCED67-D92A-486E-9800-B47F202C4386", -2, AttributeModifier.Operation.ADDITION));
+    //increases stealth by 2 per level
+    public static final RegistryObject<MobEffect> CONCEAL = EFFECTS.register("conceal", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x949494).addAttributeModifier(FootworkAttributes.STEALTH.get(), "55FCED67-E92A-486E-9800-B47F202C4386", 2, AttributeModifier.Operation.ADDITION));
     //stuns are upgraded to knockdowns when unsteady
-    public static final RegistryObject<MobEffect> UNSTEADY = EFFECTS.register("unsteady", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x949494));
+    public static final RegistryObject<MobEffect> UNSTEADY = EFFECTS.register("unsteady", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x949494));
 
 }
