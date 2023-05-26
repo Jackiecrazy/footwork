@@ -19,7 +19,7 @@ public class ThreatUtils {
         15. bosses, naga
         19. elite bosses, enderdragon
         20. gods
-        11. godslayers
+        21. godslayers
          */
     public static double getThreat(LivingEntity e) {
         return GeneralUtils.getAttributeValueSafe(e, FootworkAttributes.THREAT.get());
