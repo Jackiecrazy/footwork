@@ -4,8 +4,11 @@ import jackiecrazy.footwork.api.FootworkAttributes;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
+import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
+import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.potion.FootworkEffects;
+import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -15,7 +18,9 @@ import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
@@ -39,12 +44,14 @@ public class Footwork {
     public Footwork() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::attribute);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         FootworkAttributes.ATTRIBUTES.register(bus);
         FootworkEffects.EFFECTS.register(bus);
+        FootworkEntities.ENTITIES.register(bus);
         MinecraftForge.EVENT_BUS.addListener(this::commands);
     }
 
@@ -65,6 +72,10 @@ public class Footwork {
             for (RegistryObject<Attribute> a : FootworkAttributes.ATTRIBUTES.getEntries())
                 e.add(type, a.get());
         }
+    }
+
+    public void onClientSetup(FMLClientSetupEvent event) {
+        EntityRenderers.register(FootworkEntities.DUMMY.get(), NothingRender::new);
     }
 
 

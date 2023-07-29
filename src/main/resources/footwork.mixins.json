@@ -5,7 +5,8 @@
   "refmap": "footwork.refmap.json",
   "mixins": [
     "MixinAttackSpeed",
-    "MixinPlayerEntity"
+    "MixinPlayerEntity",
+    "MixinTagEntry"
   ],
   "injectors": {
     "defaultRequire": 1
