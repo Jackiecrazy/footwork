@@ -5,25 +5,9 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.Cancelable;
 
 @Cancelable
-public class ExposeEvent extends LivingEvent {
-    private final LivingEntity attacker;
-    private int length;
+public class ExposeEvent extends StunEvent {
 
     public ExposeEvent(LivingEntity entity, LivingEntity attacker, int staggerTime) {
-        super(entity);
-        length = staggerTime;
-        this.attacker = attacker;
-    }
-
-    public int getLength() {
-        return length;
-    }
-
-    public void setLength(int length) {
-        this.length = length;
-    }
-
-    public LivingEntity getAttacker() {
-        return attacker;
+        super(entity, attacker, staggerTime, true);
     }
 }

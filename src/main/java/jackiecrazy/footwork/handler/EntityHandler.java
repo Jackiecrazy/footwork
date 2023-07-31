@@ -9,6 +9,7 @@ import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
+import jackiecrazy.footwork.utils.EffectUtils;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -30,6 +32,9 @@ import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Footwork.MODID)
 public class EntityHandler {
+
+    private static final UUID uuid = UUID.fromString("98c361c7-de32-4f40-b129-d7752bac3712");
+    private static final UUID uuid2 = UUID.fromString("98c361c8-de32-4f40-b129-d7752bac3722");
 
     @SubscribeEvent
     public static void takeThis(EntityJoinLevelEvent e) {
@@ -78,9 +83,6 @@ public class EntityHandler {
         //TODO does this break anything?
         return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.isExplosion() && !s.isProjectile();//!s.isFire() && !s.isMagic() &&
     }
-
-    private static final UUID uuid = UUID.fromString("98c361c7-de32-4f40-b129-d7752bac3712");
-    private static final UUID uuid2 = UUID.fromString("98c361c8-de32-4f40-b129-d7752bac3722");
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void pain(LivingHurtEvent e) {

@@ -27,7 +27,7 @@ public class DummyEntity extends Mob {
     private int ticksToLive;
     private LivingEntity boundTo;
 
-    protected DummyEntity(EntityType<? extends DummyEntity> p_21368_, Level p_21369_) {
+    public DummyEntity(EntityType<? extends DummyEntity> p_21368_, Level p_21369_) {
         super(p_21368_, p_21369_);
         setNoAi(true);
         setInvisible(true);
