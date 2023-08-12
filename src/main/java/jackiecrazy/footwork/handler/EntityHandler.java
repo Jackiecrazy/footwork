@@ -5,11 +5,15 @@ import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
+import jackiecrazy.footwork.client.particle.FootworkParticles;
+import jackiecrazy.footwork.client.particle.ScalingParticleType;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import jackiecrazy.footwork.utils.EffectUtils;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -19,6 +23,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -157,5 +162,13 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
+        if (uke.level instanceof ServerLevel) {
+            Vec3 vec = uke.position();
+            ((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.IMPACT.get(), 10), vec.x, vec.y, vec.z, 0, 0, 0.0D, 0, 0.0D);
+            //((ServerLevel) uke.level).sendParticles(FootworkParticles.CIRCLE.get(), vec.x, vec.y + 1, vec.z, 0, 0, 0.0D, 0, 0.0D);
+            //((ServerLevel) uke.level).sendParticles(FootworkParticles.CLEAVE.get(), vec.x, vec.y + 2, vec.z, 0, 0, 0.0D, 0, 0.0D);
+            //((ServerLevel) uke.level).sendParticles(FootworkParticles.SWEEP.get(), vec.x, vec.y + 3, vec.z, 0, 0, 0.0D, 0, 0.0D);
+            //((ServerLevel) uke.level).sendParticles(FootworkParticles.LINE.get(), vec.x, vec.y + 4, vec.z, 0, 0, 0.0D, 0, 0.0D);
+        }
     }
 }

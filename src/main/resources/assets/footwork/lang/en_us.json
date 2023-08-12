@@ -19,6 +19,7 @@
   "footwork.stealth": "Stealth",
   "footwork.encirclement_distance": "Encirclement Distance (does nothing on a player)",
   "footwork.threat": "Threat Rank",
+  "footwork.skill_effectiveness": "Skill Effectiveness",
 
   "footwork.combat.on": "Combat Mode Activated",
   "footwork.combat.off": "Combat Mode Deactivated",

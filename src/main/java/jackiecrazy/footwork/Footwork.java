@@ -4,6 +4,8 @@ import jackiecrazy.footwork.api.FootworkAttributes;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
+import jackiecrazy.footwork.client.particle.FootworkParticles;
+import jackiecrazy.footwork.client.particle.CustomSweepParticle;
 import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.entity.FootworkEntities;
@@ -13,12 +15,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -45,6 +47,7 @@ public class Footwork {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::attribute);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::particles);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -52,6 +55,7 @@ public class Footwork {
         FootworkAttributes.ATTRIBUTES.register(bus);
         FootworkEffects.EFFECTS.register(bus);
         FootworkEntities.ENTITIES.register(bus);
+        FootworkParticles.PARTICLES.register(bus);
         MinecraftForge.EVENT_BUS.addListener(this::commands);
     }
 
@@ -76,6 +80,14 @@ public class Footwork {
 
     public void onClientSetup(FMLClientSetupEvent event) {
         EntityRenderers.register(FootworkEntities.DUMMY.get(), NothingRender::new);
+    }
+
+    public void particles(RegisterParticleProvidersEvent e){
+        e.register(FootworkParticles.IMPACT.get(), CustomSweepParticle.Provider::new);
+        e.register(FootworkParticles.LINE.get(), CustomSweepParticle.Provider::new);
+        e.register(FootworkParticles.CLEAVE.get(), CustomSweepParticle.Provider::new);
+        e.register(FootworkParticles.SWEEP.get(), CustomSweepParticle.Provider::new);
+        e.register(FootworkParticles.CIRCLE.get(), CustomSweepParticle.Provider::new);
     }
 
 
