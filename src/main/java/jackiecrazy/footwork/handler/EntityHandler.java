@@ -164,15 +164,5 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
-        if (uke.level instanceof ServerLevel) {
-            Vec3 vec = uke.position();
-            if(e.getSource().getEntity() instanceof LivingEntity elb) {
-                Vec3 look = elb.getLookAngle();
-                ParticleUtils.playSweepParticle(FootworkParticles.IMPACT.get(), elb, 0, 3, 0.1);
-                //((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.CIRCLE.get(), 7,7), vec.x, vec.y + 1, vec.z, 0, elb.getXRot(), elb.getYRot(), look.z, 1.0D);
-                //((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.SWEEP.get(), 7,1), vec.x, vec.y + 1, vec.z, 0, elb.getXRot(), elb.getYRot(), look.z, 1.0D);
-                //((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.LINE.get(), 1, 1), vec.x, vec.y + 1, vec.z, 0, elb.getXRot(), elb.getYRot(), look.z, 1.0D);
-            }
-        }
     }
 }

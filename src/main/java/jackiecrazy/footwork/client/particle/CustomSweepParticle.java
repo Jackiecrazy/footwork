@@ -4,10 +4,14 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3d;
 import com.mojang.math.Vector3f;
+import jackiecrazy.footwork.utils.GeneralUtils;
+import jackiecrazy.footwork.utils.ParticleUtils;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,11 +22,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  */
 public class CustomSweepParticle extends TextureSheetParticle {
 
-    private final SpriteSet sprites;
+    protected final SpriteSet sprites;
+    protected final float xzScale, yScale;
+    protected final float xRot, yRot;
     private final ROTATIONTYPE type;
-    private final float xzScale, yScale;
-
-    private final float xRot, yRot;
 
     CustomSweepParticle(ClientLevel level, double posX, double posY, double posZ, double dirX, double dirY, double dirZ, SpriteSet set, ROTATIONTYPE flat, double xScale, double yScale) {
         super(level, posX, posY, posZ, 0.0D, 0.0D, 0.0D);
@@ -105,6 +108,15 @@ public class CustomSweepParticle extends TextureSheetParticle {
         } else {
             this.setSpriteFromAge(this.sprites);
         }
+        /*if (age == 5 && !level.isEmptyBlock(new BlockPos(x, y - yScale / 2, z))) {
+            for (int i = 0; i < 16; i++) {
+                float radians = GeneralUtils.rad(i * 360f / 16f);
+
+                final double sin = Mth.sin(radians) * 0.5;
+                final double cos = Mth.cos(radians) * 0.5;
+                level.addParticle(new DustParticleOptions(ParticleUtils.gravel, 1), x + cos, y, z + sin, cos, 0.0D, sin);
+            }
+        }*/
     }
 
     public ParticleRenderType getRenderType() {
@@ -132,6 +144,8 @@ public class CustomSweepParticle extends TextureSheetParticle {
         }
 
         public Particle createParticle(ScalingParticleType type, ClientLevel world, double posX, double posY, double posZ, double dirX, double dirY, double dirZ) {
+            if (type.getType() == FootworkParticles.IMPACT.get())
+                return new ImpactParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize());
             return new CustomSweepParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize());
         }
     }
