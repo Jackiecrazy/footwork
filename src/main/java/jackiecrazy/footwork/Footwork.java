@@ -4,8 +4,8 @@ import jackiecrazy.footwork.api.FootworkAttributes;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
-import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.particle.CustomSweepParticle;
+import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.entity.FootworkEntities;
@@ -83,11 +83,12 @@ public class Footwork {
     }
 
     public void particles(RegisterParticleProvidersEvent e){
-        e.register(FootworkParticles.IMPACT.get(), CustomSweepParticle.Provider::new);
-        e.register(FootworkParticles.LINE.get(), CustomSweepParticle.Provider::new);
-        e.register(FootworkParticles.CLEAVE.get(), CustomSweepParticle.Provider::new);
-        e.register(FootworkParticles.SWEEP.get(), CustomSweepParticle.Provider::new);
-        e.register(FootworkParticles.CIRCLE.get(), CustomSweepParticle.Provider::new);
+        e.register(FootworkParticles.IMPACT.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
+        e.register(FootworkParticles.LINE.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
+        e.register(FootworkParticles.CLEAVE.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));//TODO ??????
+        e.register(FootworkParticles.SWEEP.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
+        e.register(FootworkParticles.CIRCLE.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.SUPERFLAT));
+        e.register(FootworkParticles.SWEEP_LEFT.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
     }
 
 

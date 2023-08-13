@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.handler;
 
+import com.mojang.math.Vector3f;
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.capability.resources.CombatData;
@@ -12,6 +13,7 @@ import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import jackiecrazy.footwork.utils.EffectUtils;
+import jackiecrazy.footwork.utils.ParticleUtils;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -164,11 +166,13 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.SLEEP.get());
         if (uke.level instanceof ServerLevel) {
             Vec3 vec = uke.position();
-            ((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.IMPACT.get(), 10), vec.x, vec.y, vec.z, 0, 0, 0.0D, 0, 0.0D);
-            //((ServerLevel) uke.level).sendParticles(FootworkParticles.CIRCLE.get(), vec.x, vec.y + 1, vec.z, 0, 0, 0.0D, 0, 0.0D);
-            //((ServerLevel) uke.level).sendParticles(FootworkParticles.CLEAVE.get(), vec.x, vec.y + 2, vec.z, 0, 0, 0.0D, 0, 0.0D);
-            //((ServerLevel) uke.level).sendParticles(FootworkParticles.SWEEP.get(), vec.x, vec.y + 3, vec.z, 0, 0, 0.0D, 0, 0.0D);
-            //((ServerLevel) uke.level).sendParticles(FootworkParticles.LINE.get(), vec.x, vec.y + 4, vec.z, 0, 0, 0.0D, 0, 0.0D);
+            if(e.getSource().getEntity() instanceof LivingEntity elb) {
+                Vec3 look = elb.getLookAngle();
+                ParticleUtils.playSweepParticle(FootworkParticles.IMPACT.get(), elb, 0, 3, 0.1);
+                //((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.CIRCLE.get(), 7,7), vec.x, vec.y + 1, vec.z, 0, elb.getXRot(), elb.getYRot(), look.z, 1.0D);
+                //((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.SWEEP.get(), 7,1), vec.x, vec.y + 1, vec.z, 0, elb.getXRot(), elb.getYRot(), look.z, 1.0D);
+                //((ServerLevel) uke.level).sendParticles(new ScalingParticleType(FootworkParticles.LINE.get(), 1, 1), vec.x, vec.y + 1, vec.z, 0, elb.getXRot(), elb.getYRot(), look.z, 1.0D);
+            }
         }
     }
 }

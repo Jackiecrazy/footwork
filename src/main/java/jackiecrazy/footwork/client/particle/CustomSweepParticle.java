@@ -2,8 +2,10 @@ package jackiecrazy.footwork.client.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
+import com.mojang.math.Vector3d;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.util.Mth;
@@ -15,18 +17,35 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * Literally a copy-paste of AttackSweepParticle :P
  */
 public class CustomSweepParticle extends TextureSheetParticle {
-    private final SpriteSet sprites;
 
-    CustomSweepParticle(ClientLevel p_105546_, double p_105547_, double p_105548_, double p_105549_, double p_105550_, SpriteSet p_105551_, double scale) {
-        super(p_105546_, p_105547_, p_105548_, p_105549_, 0.0D, 0.0D, 0.0D);
-        this.sprites = p_105551_;
-        this.lifetime = 7;
+    private final SpriteSet sprites;
+    private final ROTATIONTYPE type;
+    private final float xzScale, yScale;
+
+    private final float xRot, yRot;
+
+    CustomSweepParticle(ClientLevel level, double posX, double posY, double posZ, double dirX, double dirY, double dirZ, SpriteSet set, ROTATIONTYPE flat, double xScale, double yScale) {
+        super(level, posX, posY, posZ, 0.0D, 0.0D, 0.0D);
+        this.xo = dirX;
+        this.yo = dirY;
+        this.zo = dirZ;
+        xRot = (float) dirX;
+        yRot = (float) dirY;
+
+        //orientation.cross(Vector3f.YP);
+        this.sprites = set;
+        this.lifetime = 10;
         float f = this.random.nextFloat() * 0.6F + 0.4F;
         this.rCol = f;
         this.gCol = f;
         this.bCol = f;
-        this.quadSize = (float) scale + 1;
-        this.setSpriteFromAge(p_105551_);
+        roll = Mth.PI / 2;
+        xzScale = (float) xScale;
+        this.yScale = (float) yScale;
+        type = flat;
+        quadSize = 1;
+
+        this.setSpriteFromAge(set);
     }
 
     public void render(VertexConsumer p_107678_, Camera camera, float p_107680_) {
@@ -35,26 +54,29 @@ public class CustomSweepParticle extends TextureSheetParticle {
         float f1 = (float) (Mth.lerp((double) p_107680_, this.yo, this.y) - vec3.y());
         float f2 = (float) (Mth.lerp((double) p_107680_, this.zo, this.z) - vec3.z());
         Quaternion quaternion;
-        if (this.roll == 0.0F) {
-            quaternion = camera.rotation();
-        } else {
-            quaternion = new Quaternion(camera.rotation());
-            float f3 = Mth.lerp(p_107680_, this.oRoll, this.roll);
-            quaternion.mul(Vector3f.ZP.rotation(f3));
+        switch (type) {
+            case FLAT -> {
+                quaternion = new Quaternion(0, 0, 0, 1);
+                quaternion.mul(Vector3f.YP.rotationDegrees(-yRot));
+                quaternion.mul(Vector3f.XP.rotationDegrees(xRot));
+                quaternion.mul(Vector3f.XP.rotation(1.4f));
+            }
+            case SUPERFLAT -> quaternion = new Quaternion(Vector3f.XP.rotation(Mth.PI / 2));
+            default -> quaternion = camera.rotation();
         }
 
         Vector3f vector3f1 = new Vector3f(-1.0F, -1.0F, 0.0F);
         vector3f1.transform(quaternion);
-        Vector3f[] avector3f = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F),
+
+        float scale = this.getQuadSize(p_107680_);
+        Vector3f[] transforms = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F),
                 new Vector3f(-1.0F, 1.0F, 0.0F),
                 new Vector3f(1.0F, 1.0F, 0.0F),
                 new Vector3f(1.0F, -1.0F, 0.0F)};
-        float f4 = this.getQuadSize(p_107680_);
-
         for (int i = 0; i < 4; ++i) {
-            Vector3f vector3f = avector3f[i];
+            Vector3f vector3f = transforms[i];
+            vector3f.mul(xzScale, yScale, xzScale);
             vector3f.transform(quaternion);
-            vector3f.mul(f4);
             vector3f.add(f, f1, f2);
         }
 
@@ -63,10 +85,15 @@ public class CustomSweepParticle extends TextureSheetParticle {
         float f5 = this.getV0();
         float f6 = this.getV1();
         int j = this.getLightColor(p_107680_);
-        p_107678_.vertex((double) avector3f[0].x(), (double) avector3f[0].y(), (double) avector3f[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) avector3f[1].x(), (double) avector3f[1].y(), (double) avector3f[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) avector3f[2].x(), (double) avector3f[2].y(), (double) avector3f[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) avector3f[3].x(), (double) avector3f[3].y(), (double) avector3f[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex((double) transforms[3].x(), (double) transforms[3].y(), (double) transforms[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+
+        p_107678_.vertex((double) transforms[3].x(), (double) transforms[3].y(), (double) transforms[3].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
     }
 
     public void tick() {
@@ -88,16 +115,24 @@ public class CustomSweepParticle extends TextureSheetParticle {
         return 15728880;
     }
 
+    public enum ROTATIONTYPE {
+        NORMAL,
+        FLAT,
+        SUPERFLAT
+    }
+
     @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<ScalingParticleType> {
         private final SpriteSet sprites;
+        private final ROTATIONTYPE flat;
 
-        public Provider(SpriteSet set) {
+        public Provider(SpriteSet set, ROTATIONTYPE flat) {
             this.sprites = set;
+            this.flat = flat;
         }
 
-        public Particle createParticle(ScalingParticleType type, ClientLevel world, double p_105579_, double p_105580_, double p_105581_, double p_105582_, double p_105583_, double p_105584_) {
-            return new CustomSweepParticle(world, p_105579_, p_105580_, p_105581_, p_105582_, this.sprites, type.getSize());
+        public Particle createParticle(ScalingParticleType type, ClientLevel world, double posX, double posY, double posZ, double dirX, double dirY, double dirZ) {
+            return new CustomSweepParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize());
         }
     }
 }

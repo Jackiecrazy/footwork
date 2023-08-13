@@ -21,10 +21,7 @@ public class FootworkParticles {
     public static final RegistryObject<ParticleType<ScalingParticleType>> CIRCLE = PARTICLES.register("circle", scalingParticle());
     public static final RegistryObject<ParticleType<ScalingParticleType>> CLEAVE = PARTICLES.register("cleave", scalingParticle());
     public static final RegistryObject<ParticleType<ScalingParticleType>> SWEEP = PARTICLES.register("sweep", scalingParticle());
-    ParticleType<VibrationParticleOption> VIBRATION = register("vibration", true, VibrationParticleOption.DESERIALIZER, (p_235911_) -> {
-        return VibrationParticleOption.CODEC;
-    });
-
+    public static final RegistryObject<ParticleType<ScalingParticleType>> SWEEP_LEFT = PARTICLES.register("sweep_left", scalingParticle());
     @NotNull
     private static Supplier<ParticleType<ScalingParticleType>> scalingParticle() {
         return () -> new ParticleType<>(true, ScalingParticleType.DESERIALIZER) {
@@ -42,4 +39,5 @@ public class FootworkParticles {
             }
         });
     }
+
 }
