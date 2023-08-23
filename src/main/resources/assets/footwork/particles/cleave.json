@@ -1,12 +1,11 @@
 {
   "textures": [
-    "footwork:cleave_0",
-    "footwork:cleave_1",
-    "footwork:cleave_2",
-    "footwork:cleave_3",
-    "footwork:cleave_4",
-    "footwork:cleave_5",
-    "footwork:cleave_6",
-    "footwork:cleave_7"
+    "footwork:slash_cleaver/cleave_0",
+    "footwork:slash_cleaver/cleave_1",
+    "footwork:slash_cleaver/cleave_2",
+    "footwork:slash_cleaver/cleave_3",
+    "footwork:slash_cleaver/cleave_4",
+    "footwork:slash_cleaver/cleave_5",
+    "footwork:slash_cleaver/cleave_6"
   ]
 }

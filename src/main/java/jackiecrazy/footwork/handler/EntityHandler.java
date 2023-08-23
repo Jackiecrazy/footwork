@@ -34,6 +34,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.awt.*;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Footwork.MODID)
@@ -171,5 +172,6 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
+        //ParticleUtils.playBonkParticle(uke.level, uke.getEyePosition(), 1, 1, 20, Color.RED);
     }
 }

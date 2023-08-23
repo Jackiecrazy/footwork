@@ -16,9 +16,11 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.awt.*;
+
 public class ImpactParticle extends CustomSweepParticle {
-    ImpactParticle(ClientLevel level, double posX, double posY, double posZ, double dirX, double dirY, double dirZ, SpriteSet set, ROTATIONTYPE flat, double xScale, double yScale) {
-        super(level, posX, posY, posZ, dirX, dirY, dirZ, set, flat, xScale, yScale);
+    ImpactParticle(ClientLevel level, double posX, double posY, double posZ, double dirX, double dirY, double dirZ, SpriteSet set, ROTATIONTYPE flat, double xScale, double yScale, Color c) {
+        super(level, posX, posY + 0.7, posZ, dirX, dirY, dirZ, set, flat, xScale, yScale, 7, c);
     }
 
     public void render(VertexConsumer p_107678_, Camera camera, float p_107680_) {
@@ -67,7 +69,7 @@ public class ImpactParticle extends CustomSweepParticle {
 
                 final double sin = Mth.sin(radians) * xzScale;
                 final double cos = Mth.cos(radians) * xzScale;
-                level.addParticle(new DustParticleOptions(ParticleUtils.gravel, 1), x + cos, y, z + sin, 0, 0.0D, 0);
+                level.addParticle(new DustParticleOptions(ParticleUtils.gravel, 1), x + cos, y - 0.7, z + sin, 0, 0.0D, 0);
             }
         }
     }

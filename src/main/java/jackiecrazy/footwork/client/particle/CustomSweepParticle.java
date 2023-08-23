@@ -1,21 +1,18 @@
 package jackiecrazy.footwork.client.particle;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3d;
 import com.mojang.math.Vector3f;
-import jackiecrazy.footwork.utils.GeneralUtils;
-import jackiecrazy.footwork.utils.ParticleUtils;
 import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.awt.*;
 
 /**
  * Literally a copy-paste of AttackSweepParticle :P
@@ -27,7 +24,7 @@ public class CustomSweepParticle extends TextureSheetParticle {
     protected final float xRot, yRot;
     private final ROTATIONTYPE type;
 
-    CustomSweepParticle(ClientLevel level, double posX, double posY, double posZ, double dirX, double dirY, double dirZ, SpriteSet set, ROTATIONTYPE flat, double xScale, double yScale) {
+    CustomSweepParticle(ClientLevel level, double posX, double posY, double posZ, double dirX, double dirY, double dirZ, SpriteSet set, ROTATIONTYPE flat, double xScale, double yScale, int life, Color c) {
         super(level, posX, posY, posZ, 0.0D, 0.0D, 0.0D);
         this.xo = dirX;
         this.yo = dirY;
@@ -37,11 +34,11 @@ public class CustomSweepParticle extends TextureSheetParticle {
 
         //orientation.cross(Vector3f.YP);
         this.sprites = set;
-        this.lifetime = 10;
-        float f = this.random.nextFloat() * 0.6F + 0.4F;
-        this.rCol = f;
-        this.gCol = f;
-        this.bCol = f;
+        this.lifetime = life;
+        float f = this.random.nextFloat() * 0.4F + 0.6F;
+        this.rCol = f * c.getRed() / 255f;
+        this.gCol = f * c.getGreen() / 255f;
+        this.bCol = f * c.getBlue() / 255f;
         roll = Mth.PI / 2;
         xzScale = (float) xScale;
         this.yScale = (float) yScale;
@@ -71,7 +68,6 @@ public class CustomSweepParticle extends TextureSheetParticle {
         Vector3f vector3f1 = new Vector3f(-1.0F, -1.0F, 0.0F);
         vector3f1.transform(quaternion);
 
-        float scale = this.getQuadSize(p_107680_);
         Vector3f[] transforms = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F),
                 new Vector3f(-1.0F, 1.0F, 0.0F),
                 new Vector3f(1.0F, 1.0F, 0.0F),
@@ -88,6 +84,7 @@ public class CustomSweepParticle extends TextureSheetParticle {
         float f5 = this.getV0();
         float f6 = this.getV1();
         int j = this.getLightColor(p_107680_);
+        RenderSystem.disableCull();
         p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
         p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
         p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
@@ -97,6 +94,7 @@ public class CustomSweepParticle extends TextureSheetParticle {
         p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
         p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
         p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        RenderSystem.enableCull();
     }
 
     public void tick() {
@@ -127,6 +125,10 @@ public class CustomSweepParticle extends TextureSheetParticle {
         return 15728880;
     }
 
+    public boolean shouldCull() {
+        return false;
+    }
+
     public enum ROTATIONTYPE {
         NORMAL,
         FLAT,
@@ -134,19 +136,32 @@ public class CustomSweepParticle extends TextureSheetParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Provider implements ParticleProvider<ScalingParticleType> {
+    public static class SweepProvider implements ParticleProvider<ScalingParticleType> {
         private final SpriteSet sprites;
         private final ROTATIONTYPE flat;
 
-        public Provider(SpriteSet set, ROTATIONTYPE flat) {
+        public SweepProvider(SpriteSet set, ROTATIONTYPE flat) {
             this.sprites = set;
             this.flat = flat;
         }
 
         public Particle createParticle(ScalingParticleType type, ClientLevel world, double posX, double posY, double posZ, double dirX, double dirY, double dirZ) {
             if (type.getType() == FootworkParticles.IMPACT.get())
-                return new ImpactParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize());
-            return new CustomSweepParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize());
+                return new ImpactParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize(), type.getColor());
+            return new CustomSweepParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize(), type.getLife(), type.getColor());
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static class BonkProvider implements ParticleProvider<ScalingParticleType> {
+        private final SpriteSet sprites;
+
+        public BonkProvider(SpriteSet set) {
+            this.sprites = set;
+        }
+
+        public Particle createParticle(ScalingParticleType type, ClientLevel world, double posX, double posY, double posZ, double dirX, double dirY, double dirZ) {
+            return new CustomSweepParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, ROTATIONTYPE.NORMAL, type.getXSize(), type.getYSize(), type.getLife(), type.getColor());
         }
     }
 }

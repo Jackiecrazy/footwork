@@ -47,7 +47,6 @@ public class Footwork {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::attribute);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::particles);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -80,15 +79,6 @@ public class Footwork {
 
     public void onClientSetup(FMLClientSetupEvent event) {
         EntityRenderers.register(FootworkEntities.DUMMY.get(), NothingRender::new);
-    }
-
-    public void particles(RegisterParticleProvidersEvent e){
-        e.register(FootworkParticles.IMPACT.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
-        e.register(FootworkParticles.LINE.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
-        e.register(FootworkParticles.CLEAVE.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));//TODO ??????
-        e.register(FootworkParticles.SWEEP.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
-        e.register(FootworkParticles.CIRCLE.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.SUPERFLAT));
-        e.register(FootworkParticles.SWEEP_LEFT.get(), set -> new CustomSweepParticle.Provider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
     }
 
 

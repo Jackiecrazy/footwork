@@ -5,7 +5,7 @@ import jackiecrazy.footwork.Footwork;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.particles.VibrationParticleOption;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -22,6 +22,8 @@ public class FootworkParticles {
     public static final RegistryObject<ParticleType<ScalingParticleType>> CLEAVE = PARTICLES.register("cleave", scalingParticle());
     public static final RegistryObject<ParticleType<ScalingParticleType>> SWEEP = PARTICLES.register("sweep", scalingParticle());
     public static final RegistryObject<ParticleType<ScalingParticleType>> SWEEP_LEFT = PARTICLES.register("sweep_left", scalingParticle());
+    public static final RegistryObject<ParticleType<ScalingParticleType>> BONK = PARTICLES.register("bonk", scalingParticle());
+
     @NotNull
     private static Supplier<ParticleType<ScalingParticleType>> scalingParticle() {
         return () -> new ParticleType<>(true, ScalingParticleType.DESERIALIZER) {

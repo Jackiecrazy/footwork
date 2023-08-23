@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.TickEvent;
@@ -17,7 +18,7 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.awt.event.MouseEvent;
 
-@Mod.EventBusSubscriber(modid = Footwork.MODID)
+@Mod.EventBusSubscriber(modid = Footwork.MODID, value = Dist.CLIENT)
 public class ClientEvents {
     public static boolean paralysis=false;
     @SubscribeEvent

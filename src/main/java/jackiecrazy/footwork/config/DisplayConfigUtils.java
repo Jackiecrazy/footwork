@@ -75,10 +75,10 @@ public class DisplayConfigUtils {
     }
 
     public static class DisplayData {
-        private final ForgeConfigSpec.EnumValue<AnchorPoint> _anchor;
-        private final ForgeConfigSpec.IntValue _numberX;
-        private final ForgeConfigSpec.IntValue _numberY;
-        private final ForgeConfigSpec.BooleanValue _display;
+        protected final ForgeConfigSpec.EnumValue<AnchorPoint> _anchor;
+        protected final ForgeConfigSpec.IntValue _numberX;
+        protected final ForgeConfigSpec.IntValue _numberY;
+        protected final ForgeConfigSpec.BooleanValue _display;
         public AnchorPoint anchorPoint;
         public int numberX;
         public int numberY;
