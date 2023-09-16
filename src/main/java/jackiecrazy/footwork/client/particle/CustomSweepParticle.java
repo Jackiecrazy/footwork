@@ -50,9 +50,9 @@ public class CustomSweepParticle extends TextureSheetParticle {
 
     public void render(VertexConsumer p_107678_, Camera camera, float p_107680_) {
         Vec3 vec3 = camera.getPosition();
-        float f = (float) (Mth.lerp((double) p_107680_, this.xo, this.x) - vec3.x());
-        float f1 = (float) (Mth.lerp((double) p_107680_, this.yo, this.y) - vec3.y());
-        float f2 = (float) (Mth.lerp((double) p_107680_, this.zo, this.z) - vec3.z());
+        float f = (float) (Mth.lerp(p_107680_, this.xo, this.x) - vec3.x());
+        float f1 = (float) (Mth.lerp(p_107680_, this.yo, this.y) - vec3.y());
+        float f2 = (float) (Mth.lerp(p_107680_, this.zo, this.z) - vec3.z());
         Quaternion quaternion;
         switch (type) {
             case FLAT -> {
@@ -85,15 +85,15 @@ public class CustomSweepParticle extends TextureSheetParticle {
         float f6 = this.getV1();
         int j = this.getLightColor(p_107680_);
         RenderSystem.disableCull();
-        p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[3].x(), (double) transforms[3].y(), (double) transforms[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
 
-        p_107678_.vertex((double) transforms[3].x(), (double) transforms[3].y(), (double) transforms[3].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.vertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
         RenderSystem.enableCull();
     }
 

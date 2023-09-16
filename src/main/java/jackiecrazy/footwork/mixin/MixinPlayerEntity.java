@@ -66,6 +66,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     @Redirect(method = "attack",
             at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))
     private void mark(LivingEntity livingEntity, double strength, double ratioX, double ratioZ) {
+        //fixme this only happens if the item has knockback enchant
         MeleeKnockbackEvent mke = new MeleeKnockbackEvent(this, ds, livingEntity, strength, ratioX, ratioZ);
         MinecraftForge.EVENT_BUS.post(mke);
         livingEntity.knockback(mke.getStrength(), mke.getRatioX(), mke.getRatioZ());

@@ -34,4 +34,5 @@ public class FootworkAttributes {
     public static final RegistryObject<Attribute> MIGHT_GEN = ATTRIBUTES.register("might_gen", () -> new RangedAttribute(Footwork.MODID + ".mightGen", 1d, -Double.MAX_VALUE, Double.MAX_VALUE));
     public static final RegistryObject<Attribute> THREAT = ATTRIBUTES.register("threat", () -> new RangedAttribute(Footwork.MODID + ".threat", 5d, 0, 100));
     public static final RegistryObject<Attribute> SKILL_EFFECTIVENESS = ATTRIBUTES.register("skill_effectiveness", () -> new RangedAttribute(Footwork.MODID + ".skill_effectiveness", 1d, 0, 100));
+    public static final RegistryObject<Attribute> TWO_HANDING = ATTRIBUTES.register("two_handing", () -> new RangedAttribute(Footwork.MODID + ".two_handing", 0d, -1, 4));
 }

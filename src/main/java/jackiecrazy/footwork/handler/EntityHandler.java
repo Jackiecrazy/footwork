@@ -172,6 +172,6 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
-        //ParticleUtils.playBonkParticle(uke.level, uke.getEyePosition(), 1, 1, 20, Color.RED);
+        //ParticleUtils.playSweepParticle(FootworkParticles.CLEAVE.get(), uke, uke.getEyePosition(), 1, 1, Color.RED, 1);
     }
 }
