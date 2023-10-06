@@ -59,13 +59,11 @@ public class EntityHandler {
     @SubscribeEvent
     public static void tickMobs(LivingEvent.LivingTickEvent e) {
         LivingEntity elb = e.getEntity();
-        if (!elb.level.isClientSide) {
-            if (elb.hasEffect(FootworkEffects.PETRIFY.get())) {
-                elb.setXRot(elb.xRotO);
-                elb.setYRot(elb.yRotO);
-                elb.yHeadRot = elb.yHeadRotO;
-                elb.setDeltaMovement(0, 0, 0);
-            }
+        if (CombatData.getCap(elb).isVulnerable() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
+            elb.setXRot(elb.xRotO);
+            elb.setYRot(elb.yRotO);
+            elb.yHeadRot = elb.yHeadRotO;
+            elb.setDeltaMovement(0, 0, 0);
         }
     }
 
@@ -97,6 +95,12 @@ public class EntityHandler {
         }
         //TODO does this break anything?
         return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.isExplosion() && !s.isProjectile();//!s.isFire() && !s.isMagic() &&
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void save(LivingAttackEvent e) {
+        if (e.getSource() instanceof CombatDamageSource cds)
+            cds.setOriginalDamage(e.getAmount());
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -172,6 +176,10 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
+        if (e.getSource() instanceof CombatDamageSource cds && cds.getDamageTyping() == CombatDamageSource.TYPE.TRUE) {
+            //true damage means true damage, dammit!
+            e.setAmount(cds.getOriginalDamage());
+        }
         //ParticleUtils.playSweepParticle(FootworkParticles.CLEAVE.get(), uke, uke.getEyePosition(), 1, 1, Color.RED, 1);
     }
 }

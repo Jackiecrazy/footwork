@@ -2,7 +2,6 @@
   "footwork.command.exported": "Worn armor successfully exported",
   "footwork.command.missing": "Missing arguments",
   "footwork.command.": "",
-
   "footwork.evasion": "Evasion",
   "footwork.evasion.desc": "Gain this much evasion per tick, up to 1000. Upon reaching 1000, the next attack is automatically negated.",
   "footwork.maxFracture": "Max Fracture",
@@ -38,8 +37,9 @@
   "footwork.skill_effectiveness": "Skill Effectiveness",
   "footwork.skill_effectiveness.desc": "Scales the potency of different War Dance skills. View skill descriptions for its effects upon the skill.",
   "footwork.two_handing": "Two-Handing",
-  "footwork.two_handing.desc": "At 0, you wield two-handed weapons normally. -1 disallows receiving bonuses from two-handing. 1 allows you to wield a two-handed weapon with a one-handed weapon in the offhand. 2 allows you to do so while maintaining the two-handed bonus. 3 allows dual wielding two-handers with no offhand bonus, and 4 allows you to maintain the two-handing bonus of both.",
-
+  "footwork.two_handing.desc": "At 0, you wield two-handed weapons normally. -1 disallows receiving bonuses from two-handing. 1 allows you to wield a two-handed weapon with a one-handed weapon in the offhand. 2 allows you to do so while maintaining the main hand two-handed bonus. 3 allows dual wielding two-handers with no offhand bonus, and 4 allows you to maintain the two-handing bonus of both.",
+  "footwork:skill_effectiveness": "Skill Effectiveness",
+  "footwork:skill_effectiveness.desc": "Increases the effectiveness of skills.",
 
   "footwork.combat.on": "Combat Mode Activated",
   "footwork.combat.off": "Combat Mode Deactivated",
@@ -66,5 +66,6 @@
   "effect.footwork.exposed": "Exposed",
   "effect.footwork.conceal": "Concealed",
   "effect.footwork.reveal": "Revealed",
-  "effect.footwork.vulnerable": "Elemental Vulnerability"
+  "effect.footwork.vulnerable": "Elemental Vulnerability",
+  "effect.footwork.unsteady": "Unsteady"
 }

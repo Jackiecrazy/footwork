@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 
 public class CombatDamageSource extends EntityDamageSource {
+    private float original=0;
     private ItemStack damageDealer = ItemStack.EMPTY;
     private InteractionHand attackingHand = InteractionHand.MAIN_HAND;
     private Entity proxy = null;
@@ -155,6 +156,15 @@ public class CombatDamageSource extends EntityDamageSource {
 
     public CombatDamageSource setMultiplier(float multiplier) {
         this.multiplier = multiplier;
+        return this;
+    }
+
+    public float getOriginalDamage() {
+        return original;
+    }
+
+    public CombatDamageSource setOriginalDamage(float original) {
+        this.original = original;
         return this;
     }
 

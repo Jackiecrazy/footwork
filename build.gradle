@@ -114,6 +114,7 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    runtimeOnly fg.deobf("curse.maven:patchouli-306770:4031402")
     //compile fg.deobf("curse.maven:offhandcombat-417112:3203449")
 }
 
