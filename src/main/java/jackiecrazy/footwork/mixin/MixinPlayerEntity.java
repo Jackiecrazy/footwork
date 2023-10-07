@@ -40,8 +40,8 @@ public abstract class MixinPlayerEntity extends LivingEntity {
 
 
     @Inject(method = "attack", locals = LocalCapture.CAPTURE_FAILSOFT,
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
-    private void store(Entity targetEntity, CallbackInfo ci, float f, float f1, float f2, boolean flag, boolean flag1, float i, boolean flag2, CriticalHitEvent hitResult, boolean flag3, double d0, float f4, boolean flag4, int j, Vec3 vector3d) {
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getDeltaMovement()Lnet/minecraft/world/phys/Vec3;"))
+    private void store(Entity p_36347_, CallbackInfo ci, float f, float f1, float f2, boolean flag, boolean flag1, float i, boolean flag2, CriticalHitEvent hitResult, boolean flag3, double d0, float f4, boolean flag4, int j) {
         tempCrit = flag2;
         tempCdmg = hitResult == null ? 1 : hitResult.getDamageModifier();
     }
