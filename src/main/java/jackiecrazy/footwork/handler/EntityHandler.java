@@ -63,7 +63,6 @@ public class EntityHandler {
             elb.setXRot(elb.xRotO);
             elb.setYRot(elb.yRotO);
             elb.yHeadRot = elb.yHeadRotO;
-            elb.setDeltaMovement(0, 0, 0);
         }
     }
 
