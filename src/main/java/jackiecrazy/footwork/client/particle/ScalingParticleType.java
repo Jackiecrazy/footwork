@@ -10,6 +10,7 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.VibrationParticleOption;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.gameevent.PositionSource;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,7 +95,7 @@ public ScalingParticleType(ParticleType<ScalingParticleType> type, double xsize,
 
     @Override
     public String writeToString() {
-        return String.format(Locale.ROOT, "%s %.2f %.2f", Registry.PARTICLE_TYPE.getKey(this.getType()), xsize, ysize);
+        return String.format(Locale.ROOT, "%s %.2f %.2f", ForgeRegistries.PARTICLE_TYPES.getKey(this.getType()), xsize, ysize);
     }
 
     public double getXSize() {

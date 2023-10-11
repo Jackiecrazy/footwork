@@ -118,7 +118,7 @@ public class AttributizeCommand {
             throw EntitySelectorOptions.ERROR_UNKNOWN_OPTION.create("something went wrong");
         }
 
-        ctx.getSource().sendSuccess(Component.translatable("footwork.command.exported", str), false);
+        ctx.getSource().sendSuccess(()->Component.translatable("footwork.command.exported", str), false);
         return Command.SINGLE_SUCCESS;
     }
 

@@ -13,12 +13,12 @@ public class ClientRegisters {
 
     @SubscribeEvent
     public static void particles(RegisterParticleProvidersEvent e) {
-        e.register(FootworkParticles.IMPACT.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
-        e.register(FootworkParticles.LINE.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
-        e.register(FootworkParticles.CLEAVE.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
-        e.register(FootworkParticles.SWEEP.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
-        e.register(FootworkParticles.CIRCLE.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.SUPERFLAT));
-        e.register(FootworkParticles.SWEEP_LEFT.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
-        e.register(FootworkParticles.BONK.get(), CustomSweepParticle.BonkProvider::new);
+        e.registerSpriteSet(FootworkParticles.IMPACT.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
+        e.registerSpriteSet(FootworkParticles.LINE.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.FLAT));
+        e.registerSpriteSet(FootworkParticles.CLEAVE.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
+        e.registerSpriteSet(FootworkParticles.SWEEP.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
+        e.registerSpriteSet(FootworkParticles.CIRCLE.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.SUPERFLAT));
+        e.registerSpriteSet(FootworkParticles.SWEEP_LEFT.get(), set -> new CustomSweepParticle.SweepProvider(set, CustomSweepParticle.ROTATIONTYPE.NORMAL));
+        e.registerSpriteSet(FootworkParticles.BONK.get(), CustomSweepParticle.BonkProvider::new);
     }
 }

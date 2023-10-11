@@ -47,8 +47,8 @@ public interface ITetherItem {
                     //}
                     Vec3 vec = moveTowards.getDeltaMovement();
                     toBeMoved.setDeltaMovement(moveTowards.getDeltaMovement());
-                    if (!moveTowards.isOnGround())
-                        toBeMoved.lerpMotion(vec.x, moveTowards.isOnGround() ? 0 : vec.y, vec.z);
+                    if (!moveTowards.onGround())
+                        toBeMoved.lerpMotion(vec.x, moveTowards.onGround() ? 0 : vec.y, vec.z);
                 }//else e.motionZ=e.motionX=e.motionY=0;
                 toBeMoved.hurtMarked = true;
             }

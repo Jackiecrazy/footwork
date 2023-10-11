@@ -6,6 +6,7 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.DoorBlock;
@@ -116,7 +117,7 @@ public class GeneralUtils {
         if (rtr != null) {
             return rtr;
         }
-        return new BlockHitResult(end, Direction.UP, new BlockPos(end), false);
+        return BlockHitResult.miss(end, Direction.UP, BlockPos.containing(end.x, end.y, end.z));
     }
 
     /**
@@ -193,7 +194,7 @@ public class GeneralUtils {
     }
 
     public static LivingEntity raytraceLiving(LivingEntity attacker, double range) {
-        return raytraceLiving(attacker.level, attacker, range);
+        return raytraceLiving(attacker.level(), attacker, range);
     }
 
     public static LivingEntity raytraceLiving(Level world, LivingEntity attacker, double range) {
@@ -230,7 +231,7 @@ public class GeneralUtils {
     public static Entity collidingEntity(Entity elb) {
         AABB aabb = elb.getBoundingBox();
         Vec3 motion = elb.getDeltaMovement().normalize().scale(0.5);
-        List<Entity> entities = elb.level.getEntities(elb, aabb.expandTowards(motion.x, motion.y, motion.z), EntitySelector.ENTITY_STILL_ALIVE);
+        List<Entity> entities = elb.level().getEntities(elb, aabb.expandTowards(motion.x, motion.y, motion.z), EntitySelector.ENTITY_STILL_ALIVE);
         double dist = 0;
         Entity pick = null;
         for (Entity e : entities) {
@@ -286,7 +287,7 @@ public class GeneralUtils {
             for (double addZ = -widthParse; addZ <= widthParse; addZ += 0.5) {
                 for (double addY = e.getBbHeight() / 2; addY <= heightParse; addY += 0.5) {
                     Vec3 mod = new Vec3(addX, addY, addZ);
-                    BlockHitResult r = e.level.clip(new ClipContext(from.add(mod), to.add(mod), ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, e));
+                    BlockHitResult r = e.level().clip(new ClipContext(from.add(mod), to.add(mod), ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, e));
                     if (r != null && r.getType() == HitResult.Type.BLOCK && !r.getLocation().equals(from.add(mod))) {
                         Vec3 hit = r.getLocation().subtract(mod);
                         switch (r.getDirection()) {
@@ -345,12 +346,12 @@ public class GeneralUtils {
                 new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.minZ),};
 
         for (int i = 0; i < viewerPoints.length; i++) {
-            if (viewer.level.clip(new ClipContext(viewerPoints[i], angelPoints[i], flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS) {
+            if (viewer.level().clip(new ClipContext(viewerPoints[i], angelPoints[i], flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS) {
                 return false;
             }
-            if (rayTraceBlocks(viewer, viewer.level, viewerPoints[i], angelPoints[i], pos -> {
-                BlockState state = viewer.level.getBlockState(pos);
-                return flimsy ? !state.getMaterial().isLiquid() : !canSeeThrough(state, viewer.level, pos);
+            if (rayTraceBlocks(viewer, viewer.level(), viewerPoints[i], angelPoints[i], pos -> {
+                BlockState state = viewer.level().getBlockState(pos);
+                return flimsy ? !state.liquid() : !canSeeThrough(state, viewer.level(), pos);
             }) == null) return false;
         }
 
@@ -506,7 +507,7 @@ public class GeneralUtils {
      * returns the BlockPos at the center of an AABB
      */
     public static BlockPos posFromAABB(AABB aabb) {
-        return new BlockPos((aabb.maxX + aabb.minX) / 2, (aabb.maxY + aabb.minY) / 2, (aabb.maxZ + aabb.minZ) / 2);
+        return new BlockPos((int) ((aabb.maxX + aabb.minX) / 2), (int) ((aabb.maxY + aabb.minY) / 2), (int) ((aabb.maxZ + aabb.minZ) / 2));
     }
 
 
@@ -695,16 +696,16 @@ public class GeneralUtils {
     }
 
     public static double getAttributeValueHandSensitive(LivingEntity e, Attribute a, InteractionHand h) {
-        if (e.getAttribute(a) == null) return 4;
+        final AttributeInstance instance = e.getAttribute(a);
+        if (instance == null) return 4;
         if (h == InteractionHand.MAIN_HAND) return getAttributeValueSafe(e, a);
         AttributeInstance mai = new AttributeInstance(a, (n) -> {
         });
+        mai.setBaseValue(instance.getBaseValue());
         Collection<AttributeModifier> ignore = e.getMainHandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).get(a);
-        apply:
-        for (AttributeModifier am : e.getAttribute(a).getModifiers()) {
-            for (AttributeModifier f : ignore) if (f.getId().equals(am.getId())) continue apply;
-            mai.addTransientModifier(am);
-        }
+        instance.getModifiers().forEach(am -> {
+            if (ignore.stream().noneMatch(b -> am.getId() == b.getId())) mai.addTransientModifier(am);
+        });
         for (AttributeModifier f : e.getOffhandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).get(a)) {
             mai.removeModifier(f.getId());
             mai.addTransientModifier(f);

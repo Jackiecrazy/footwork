@@ -2,16 +2,12 @@ package jackiecrazy.footwork.client.particle;
 
 import com.mojang.serialization.Codec;
 import jackiecrazy.footwork.Footwork;
-import net.minecraft.core.Registry;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class FootworkParticles {
@@ -32,14 +28,6 @@ public class FootworkParticles {
                 return ScalingParticleType.codec(this);
             }
         };
-    }
-
-    private static <T extends ParticleOptions> ParticleType<T> register(String p_235906_, boolean p_235907_, ParticleOptions.Deserializer<T> p_235908_, final Function<ParticleType<T>, Codec<T>> p_235909_) {
-        return Registry.register(Registry.PARTICLE_TYPE, p_235906_, new ParticleType<T>(p_235907_, p_235908_) {
-            public Codec<T> codec() {
-                return p_235909_.apply(this);
-            }
-        });
     }
 
 }

@@ -2,15 +2,13 @@ package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.event.EntityAwarenessEvent;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 
 public class StealthUtils {
@@ -37,13 +35,13 @@ public class StealthUtils {
     }
 
     public static boolean inWeb(LivingEntity e) {
-        if (!e.level.isAreaLoaded(e.blockPosition(), (int) Math.ceil(e.getBbWidth()))) return false;
+        if (!e.level().isAreaLoaded(e.blockPosition(), (int) Math.ceil(e.getBbWidth()))) return false;
         double minX = e.getX() - e.getBbWidth() / 2, minY = e.getY(), minZ = e.getZ() - e.getBbWidth() / 2;
         double maxX = e.getX() + e.getBbWidth() / 2, maxY = e.getY() + e.getBbHeight(), maxZ = e.getZ() + e.getBbWidth() / 2;
         for (double x = minX; x <= maxX; x++) {
             for (double y = minY; y <= maxY; y++) {
                 for (double z = minZ; z <= maxZ; z++) {
-                    if (e.level.getBlockState(e.blockPosition()).getMaterial().equals(Material.WEB))
+                    if (e.level().getBlockState(e.blockPosition()).is(Blocks.COBWEB))
                         return true;
                 }
             }

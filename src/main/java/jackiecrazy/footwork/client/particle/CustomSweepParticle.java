@@ -2,8 +2,7 @@ package jackiecrazy.footwork.client.particle;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
@@ -11,6 +10,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.awt.*;
 
@@ -53,20 +54,21 @@ public class CustomSweepParticle extends TextureSheetParticle {
         float f = (float) (Mth.lerp(p_107680_, this.xo, this.x) - vec3.x());
         float f1 = (float) (Mth.lerp(p_107680_, this.yo, this.y) - vec3.y());
         float f2 = (float) (Mth.lerp(p_107680_, this.zo, this.z) - vec3.z());
-        Quaternion quaternion;
+        Quaternionf quaternion;
         switch (type) {
             case FLAT -> {
-                quaternion = new Quaternion(0, 0, 0, 1);
-                quaternion.mul(Vector3f.YP.rotationDegrees(-yRot));
-                quaternion.mul(Vector3f.XP.rotationDegrees(xRot));
-                quaternion.mul(Vector3f.XP.rotation(1.4f));
+                quaternion = new Quaternionf(0, 0, 0, 1);
+                quaternion.mul(Axis.YP.rotationDegrees(-yRot));
+                quaternion.mul(Axis.XP.rotationDegrees(xRot));
+                quaternion.mul(Axis.XP.rotation(1.4f));
             }
-            case SUPERFLAT -> quaternion = new Quaternion(Vector3f.XP.rotation(Mth.PI / 2));
+            case SUPERFLAT -> quaternion = new Quaternionf(Axis.XP.rotation(Mth.PI / 2));
             default -> quaternion = camera.rotation();
         }
 
         Vector3f vector3f1 = new Vector3f(-1.0F, -1.0F, 0.0F);
-        vector3f1.transform(quaternion);
+        //quaternion.transform(vector3f1);///??????
+        vector3f1.rotate(quaternion);//TODO is this correct?
 
         Vector3f[] transforms = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F),
                 new Vector3f(-1.0F, 1.0F, 0.0F),
@@ -75,7 +77,7 @@ public class CustomSweepParticle extends TextureSheetParticle {
         for (int i = 0; i < 4; ++i) {
             Vector3f vector3f = transforms[i];
             vector3f.mul(xzScale, yScale, xzScale);
-            vector3f.transform(quaternion);
+            vector3f.rotate(quaternion);
             vector3f.add(f, f1, f2);
         }
 

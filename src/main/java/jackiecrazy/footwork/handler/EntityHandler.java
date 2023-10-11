@@ -1,21 +1,17 @@
 package jackiecrazy.footwork.handler;
 
-import com.mojang.math.Vector3f;
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.client.particle.FootworkParticles;
-import jackiecrazy.footwork.client.particle.ScalingParticleType;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import jackiecrazy.footwork.utils.EffectUtils;
 import jackiecrazy.footwork.utils.ParticleUtils;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -24,10 +20,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -85,7 +78,7 @@ public class EntityHandler {
         if (s instanceof CombatDamageSource cds) {
             return cds.getDamageTyping() == CombatDamageSource.TYPE.PHYSICAL;
         }
-        return !s.isExplosion() && !s.isFire() && !s.isMagic() && !s.isBypassArmor();
+        return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
     }
 
     static boolean isMeleeAttack(DamageSource s) {
@@ -93,7 +86,7 @@ public class EntityHandler {
             return ((CombatDamageSource) s).canProcAutoEffects();
         }
         //TODO does this break anything?
-        return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.isExplosion() && !s.isProjectile();//!s.isFire() && !s.isMagic() &&
+        return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -114,8 +107,8 @@ public class EntityHandler {
         }
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid2);
-        if (ds instanceof CombatDamageSource) {
-            float mult = -((CombatDamageSource) ds).getArmorReductionPercentage();
+        if (ds instanceof CombatDamageSource cds) {
+            float mult = -cds.getArmorReductionPercentage();
             if (mult != 0) {
                 AttributeModifier armor = new AttributeModifier(uuid2, "temporary armor multiplier", mult, AttributeModifier.Operation.MULTIPLY_TOTAL);
                 uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
@@ -166,7 +159,7 @@ public class EntityHandler {
                 }
             }
         }
-        if (e.getAmount() <= 0) e.setCanceled(true);
+        if (e.getAmount() < 0) e.setCanceled(true);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
@@ -179,6 +172,6 @@ public class EntityHandler {
             //true damage means true damage, dammit!
             e.setAmount(cds.getOriginalDamage());
         }
-        //ParticleUtils.playSweepParticle(FootworkParticles.CLEAVE.get(), uke, uke.getEyePosition(), 1, 1, Color.RED, 1);
+        //ParticleUtils.playSweepParticle(FootworkParticles.LINE.get(), uke, uke.getPosition(0.5f), 5, 1, Color.RED, 1);
     }
 }

@@ -2,9 +2,11 @@ package jackiecrazy.footwork.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ParalysisScreen extends Screen {
@@ -13,7 +15,7 @@ public class ParalysisScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack p_96562_, int p_96563_, int p_96564_, float p_96565_) {
+    public void render(@NotNull GuiGraphics gui, int p_96563_, int p_96564_, float p_96565_) {
         //nothing at all!
     }
 
@@ -23,17 +25,12 @@ public class ParalysisScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(PoseStack p_96557_) {
+    public void renderBackground(@NotNull GuiGraphics p_96557_) {
         //nope!
     }
 
     @Override
-    public void renderBackground(PoseStack p_96559_, int p_96560_) {
-        //nope!
-    }
-
-    @Override
-    public void renderDirtBackground(int p_96627_) {
+    public void renderDirtBackground(@NotNull GuiGraphics p_96559_) {
         //nope!
     }
 

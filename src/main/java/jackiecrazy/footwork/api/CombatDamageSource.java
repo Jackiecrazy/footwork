@@ -1,35 +1,55 @@
 package jackiecrazy.footwork.api;
 
 import jackiecrazy.footwork.move.Move;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
-public class CombatDamageSource extends EntityDamageSource {
-    private float original=0;
+public class CombatDamageSource extends DamageSource {
+    private static final List<TagKey<DamageType>> PHYSICAL = List.of(DamageTypeTags.BYPASSES_COOLDOWN);
+    private static final List<TagKey<DamageType>> MAGICAL = List.of(DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS);
+    private static final List<TagKey<DamageType>> TRUE = List.of(DamageTypeTags.BYPASSES_RESISTANCE, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_EFFECTS, DamageTypeTags.BYPASSES_ENCHANTMENTS, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS, DamageTypeTags.NO_IMPACT, DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS);
+    private float original = 0;
     private ItemStack damageDealer = ItemStack.EMPTY;
+    private Collection<TagKey<DamageType>> flags = new HashSet<>();
     private InteractionHand attackingHand = InteractionHand.MAIN_HAND;
     private Entity proxy = null;
     private Move skillUsed = null;
-    private boolean procNormalEffects = false;
-    private boolean procAttackEffects = false;
-    private boolean procSkillEffects = false;
     private boolean crit = false;
     private float cdmg = 1.5f;
     private float postureDamage = -1;
-    private float armor = 1f, knockback=1f, multiplier = 1f;
+    private float armor = 1f, knockback = 1f, multiplier = 1f;
     private TYPE damageTyping = TYPE.PHYSICAL;
 
-    public static CombatDamageSource causeSelfDamage(LivingEntity to){
-        return new CombatDamageSource("self", to);
+    public CombatDamageSource(@Nonnull Entity entity) {
+        super(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK));
+        /*
+        update note:
+        add basic damage types: physical (already covered), magical, true (magical explosion, decay, electric, ???)
+        refactor skills to use them
+
+         */
     }
 
-    public CombatDamageSource(String damageTypeIn, @Nullable Entity damageSourceEntityIn) {
-        super(damageTypeIn, damageSourceEntityIn);
+    public static CombatDamageSource causeSelfDamage(LivingEntity to) {
+        return new CombatDamageSource(to);
     }
 
     public float getCritDamage() {
@@ -87,6 +107,22 @@ public class CombatDamageSource extends EntityDamageSource {
         return this;
     }
 
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public Entity getDirectEntity() {
+        return proxy;
+    }
+
+    @Override
+    public boolean scalesWithDifficulty() {
+        return super.scalesWithDifficulty();
+    }
+
+    @Override
+    public boolean isIndirect() {
+        return proxy!=null;
+    }
+
     public Move getSkillUsed() {
         return skillUsed;
     }
@@ -97,47 +133,63 @@ public class CombatDamageSource extends EntityDamageSource {
     }
 
     public boolean canProcAutoEffects() {
-        return procNormalEffects;
+        return flags.contains(FootworkDamageTypeTags.AUTO);
     }
 
     public CombatDamageSource setProcNormalEffects(boolean procNormalEffects) {
-        this.procNormalEffects = procNormalEffects;
+        if (procNormalEffects)
+            flags.add(FootworkDamageTypeTags.AUTO);
+        else flags.remove(FootworkDamageTypeTags.AUTO);
         return this;
     }
 
     public boolean canProcAttackEffects() {
-        return procAttackEffects;
+        return flags.contains(FootworkDamageTypeTags.ATTACK);
     }
 
     public CombatDamageSource setProcAttackEffects(boolean procAttackEffects) {
-        this.procAttackEffects = procAttackEffects;
+        if (procAttackEffects)
+            flags.add(FootworkDamageTypeTags.ATTACK);
+        else flags.remove(FootworkDamageTypeTags.ATTACK);
         return this;
     }
 
     public boolean canProcSkillEffects() {
-        return procSkillEffects;
+        return flags.contains(FootworkDamageTypeTags.SKILL);
     }
 
     public CombatDamageSource setProcSkillEffects(boolean procSkillEffects) {
-        this.procSkillEffects = procSkillEffects;
+        if (procSkillEffects)
+            flags.add(FootworkDamageTypeTags.SKILL);
+        else flags.remove(FootworkDamageTypeTags.SKILL);
         return this;
     }
 
-    public float getArmorReductionPercentage(){
+    public CombatDamageSource flag(TagKey<DamageType> tag) {
+        flags.add(tag);
+        return this;
+    }
+
+    public CombatDamageSource unflag(TagKey<DamageType> tag) {
+        flags.remove(tag);
+        return this;
+    }
+
+    public float getArmorReductionPercentage() {
         return armor;
     }
 
-    public CombatDamageSource setArmorReductionPercentage(float armorReductionPercentage){
-        armor=armorReductionPercentage;
+    public CombatDamageSource setArmorReductionPercentage(float armorReductionPercentage) {
+        armor = armorReductionPercentage;
         return this;
     }
 
-    public float getKnockbackPercentage(){
+    public float getKnockbackPercentage() {
         return knockback;
     }
 
-    public CombatDamageSource setKnockbackPercentage(float perc){
-        knockback=perc;
+    public CombatDamageSource setKnockbackPercentage(float perc) {
+        knockback = perc;
         return this;
     }
 
@@ -167,10 +219,137 @@ public class CombatDamageSource extends EntityDamageSource {
         this.original = original;
         return this;
     }
+    float absorption;
+
+    public float getDockedAbsorption() {
+        return absorption;
+    }
+
+    public CombatDamageSource setDockedAbsorption(float absorption) {
+        this.absorption=absorption;
+        original-=Math.min(absorption, original);
+        return this;
+    }
+
+    @Override
+    public boolean is(@NotNull TagKey<DamageType> type) {
+        switch (damageTyping) {
+            case MAGICAL -> {
+                if (MAGICAL.contains(type)) return true;
+            }
+            case PHYSICAL -> {
+                if (PHYSICAL.contains(type)) return true;
+            }
+            case TRUE -> {
+                if (TRUE.contains(type)) return true;
+            }
+        }
+        if (flags.contains(type)) return true;
+        return super.is(type);
+    }
 
     public enum TYPE {
         PHYSICAL,//reduced by absorption, deflection, shatter, and armor
         MAGICAL,//reduced by resist
         TRUE//not reduced by anything
+    }
+
+    /**
+     * ye olde tags here
+     */
+
+    public boolean isProjectile() {
+        return is(DamageTypeTags.IS_PROJECTILE);
+    }
+
+    public DamageSource setProjectile() {
+        flag(DamageTypeTags.IS_PROJECTILE);
+        return this;
+    }
+
+    public boolean isExplosion() {
+        return is(DamageTypeTags.IS_PROJECTILE);
+    }
+
+    public DamageSource setExplosion() {
+        flag(DamageTypeTags.IS_EXPLOSION);
+        return this;
+    }
+
+    public boolean isBypassArmor() {
+        return is(DamageTypeTags.BYPASSES_ARMOR);
+    }
+
+    public boolean isBypassInvul() {
+        return is(DamageTypeTags.BYPASSES_INVULNERABILITY);
+    }
+
+    public boolean isBypassMagic() {
+        return is(DamageTypeTags.BYPASSES_RESISTANCE);
+    }
+
+    public boolean isBypassEnchantments() {
+        return is(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+    }
+
+    public DamageSource bypassArmor() {
+        flag(DamageTypeTags.BYPASSES_ARMOR);
+        return this;
+    }
+
+    public DamageSource bypassInvul() {
+        flag(DamageTypeTags.BYPASSES_INVULNERABILITY);
+        return this;
+    }
+
+    public DamageSource bypassMagic() {
+        flag(DamageTypeTags.BYPASSES_EFFECTS);
+        return this;
+    }
+
+    public DamageSource bypassEnchantments() {
+        flag(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+        return this;
+    }
+
+    public DamageSource setIsFire() {
+        flag(DamageTypeTags.IS_FIRE);
+        return this;
+    }
+
+    public DamageSource setNoAggro() {
+        flag(DamageTypeTags.NO_ANGER);
+        return this;
+    }
+
+    public boolean isFire() {
+        return is(DamageTypeTags.IS_FIRE);
+    }
+
+    public boolean isNoAggro() {
+        return is(DamageTypeTags.NO_ANGER);
+    }
+
+    public boolean isMagic() {
+        return is(DamageTypeTags.WITCH_RESISTANT_TO);
+    }
+
+    public DamageSource setMagic() {
+        flag(DamageTypeTags.WITCH_RESISTANT_TO);
+        return this;
+    }
+
+    public boolean isFall() {
+        return is(DamageTypeTags.IS_FALL);
+    }
+
+    public DamageSource setIsFall() {
+        flag(DamageTypeTags.IS_FALL);
+        return this;
+    }
+
+    public boolean isCreativePlayer() {
+        Entity entity = this.getEntity();
+        return entity instanceof Player && ((Player)entity).getAbilities().instabuild;
     }
 }

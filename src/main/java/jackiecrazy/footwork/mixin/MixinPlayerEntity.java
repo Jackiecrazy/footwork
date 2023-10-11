@@ -3,6 +3,7 @@ package jackiecrazy.footwork.mixin;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.event.MeleeKnockbackEvent;
+import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,14 +15,18 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(Player.class)
 public abstract class MixinPlayerEntity extends LivingEntity {
+
+    @Shadow public abstract void remove(RemovalReason p_150097_);
 
     private static boolean tempCrit;
     private static float tempCdmg;
@@ -47,9 +52,9 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     }
 
     @Redirect(method = "attack",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/DamageSource;playerAttack(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/damagesource/DamageSource;"))
-    private DamageSource customDamageSource(Player player) {
-        CombatDamageSource d = new CombatDamageSource("player", player).setDamageDealer(player.getMainHandItem()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).setCritDamage(tempCdmg).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/DamageSources;playerAttack(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/damagesource/DamageSource;"))
+    private DamageSource customDamageSource(DamageSources instance, Player player) {
+        CombatDamageSource d = new CombatDamageSource(player).setDamageDealer(player.getMainHandItem()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).setCritDamage(tempCdmg).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
         ds = d;
         return d;
     }
@@ -62,6 +67,13 @@ public abstract class MixinPlayerEntity extends LivingEntity {
             ((LivingEntity) targetEntity).hurtTime = ((LivingEntity) targetEntity).hurtDuration = 0;
         }
     }
+
+    /*@ModifyVariable(method = "actuallyHurt",
+            at = @At(value = "STORE"), name = "p_36313_")
+    private float absorption(float amount) {
+        //makes absorption block true damage
+        return amount;
+    }*/
 
     @Redirect(method = "attack",
             at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))

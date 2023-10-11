@@ -1,22 +1,18 @@
 package jackiecrazy.footwork.utils;
 
-import com.mojang.math.Vector3f;
 import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.particle.ScalingParticleType;
-import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 import java.awt.*;
 
 public class ParticleUtils {
-    public static final Vector3f gravel = new Vector3f(Vec3.fromRGB24(-8356741));
+    public static final Vector3f gravel = new Vector3f(Vec3.fromRGB24(-8356741).toVector3f());
 
     public static void playSweepParticle(ParticleType<ScalingParticleType> type, LivingEntity e, Vec3 vec, int angle, double size, Color c, double vertFromFoot) {
         double xSize = size, ySize = 1;
@@ -36,7 +32,7 @@ public class ParticleUtils {
         final float rotated = e.getYRot() + angle;
 //        double d0 = horDistScale * -Mth.sin(rotated * ((float) Math.PI / 180F));
 //        double d1 = horDistScale * Mth.cos(rotated * ((float) Math.PI / 180F));
-        if (e.level instanceof ServerLevel s) {
+        if (e.level() instanceof ServerLevel s) {
             s.sendParticles(new ScalingParticleType(type, xSize, ySize, time, c), vec.x, vec.y + vertFromFoot, vec.z, 0, e.getXRot(), e.getYRot(), 0, 1.0D);
         }
 
