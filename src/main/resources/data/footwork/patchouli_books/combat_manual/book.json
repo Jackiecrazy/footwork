@@ -1,5 +1,5 @@
 {
-  "name": "Combat Manual",
+  "name": "The Combatant's Companion",
   "model": "patchouli:book_gray",
   "book_texture": "patchouli:textures/gui/book_gray.png",
   "landing_text": "Documentation for all Footwork mods, revealed as they are installed.",

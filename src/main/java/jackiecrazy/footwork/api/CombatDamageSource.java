@@ -13,6 +13,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -39,13 +40,16 @@ public class CombatDamageSource extends DamageSource {
     private TYPE damageTyping = TYPE.PHYSICAL;
 
     public CombatDamageSource(@Nonnull Entity entity) {
-        super(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK));
-        /*
-        update note:
-        add basic damage types: physical (already covered), magical, true (magical explosion, decay, electric, ???)
-        refactor skills to use them
-
-         */
+        this(entity, null, entity.position());
+    }
+    public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy) {
+        this(entity, proxy, entity.position());
+    }
+    public CombatDamageSource(@Nonnull Entity entity, @Nullable Vec3 pos) {
+        this(entity, null, pos);
+    }
+    public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy, @Nullable Vec3 pos) {
+        super(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK), proxy, entity, pos);
     }
 
     public static CombatDamageSource causeSelfDamage(LivingEntity to) {
