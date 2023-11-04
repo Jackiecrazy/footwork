@@ -2,7 +2,6 @@ package jackiecrazy.footwork.api;
 
 import jackiecrazy.footwork.move.Move;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
@@ -18,18 +17,18 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class CombatDamageSource extends DamageSource {
     private static final List<TagKey<DamageType>> PHYSICAL = List.of(DamageTypeTags.BYPASSES_COOLDOWN);
     private static final List<TagKey<DamageType>> MAGICAL = List.of(DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS);
     private static final List<TagKey<DamageType>> TRUE = List.of(DamageTypeTags.BYPASSES_RESISTANCE, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_EFFECTS, DamageTypeTags.BYPASSES_ENCHANTMENTS, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS, DamageTypeTags.NO_IMPACT, DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS);
-    private float original = 0;
+    private float original = -1;
     private ItemStack damageDealer = ItemStack.EMPTY;
-    private Collection<TagKey<DamageType>> flags = new HashSet<>();
+    private final Collection<TagKey<DamageType>> flags = new HashSet<>();
     private InteractionHand attackingHand = InteractionHand.MAIN_HAND;
     private Entity proxy = null;
     private Move skillUsed = null;
@@ -266,7 +265,7 @@ public class CombatDamageSource extends DamageSource {
         return is(DamageTypeTags.IS_PROJECTILE);
     }
 
-    public DamageSource setProjectile() {
+    public CombatDamageSource setProjectile() {
         flag(DamageTypeTags.IS_PROJECTILE);
         return this;
     }
@@ -275,7 +274,7 @@ public class CombatDamageSource extends DamageSource {
         return is(DamageTypeTags.IS_PROJECTILE);
     }
 
-    public DamageSource setExplosion() {
+    public CombatDamageSource setExplosion() {
         flag(DamageTypeTags.IS_EXPLOSION);
         return this;
     }
@@ -296,32 +295,32 @@ public class CombatDamageSource extends DamageSource {
         return is(DamageTypeTags.BYPASSES_ENCHANTMENTS);
     }
 
-    public DamageSource bypassArmor() {
+    public CombatDamageSource bypassArmor() {
         flag(DamageTypeTags.BYPASSES_ARMOR);
         return this;
     }
 
-    public DamageSource bypassInvul() {
+    public CombatDamageSource bypassInvul() {
         flag(DamageTypeTags.BYPASSES_INVULNERABILITY);
         return this;
     }
 
-    public DamageSource bypassMagic() {
+    public CombatDamageSource bypassMagic() {
         flag(DamageTypeTags.BYPASSES_EFFECTS);
         return this;
     }
 
-    public DamageSource bypassEnchantments() {
+    public CombatDamageSource bypassEnchantments() {
         flag(DamageTypeTags.BYPASSES_ENCHANTMENTS);
         return this;
     }
 
-    public DamageSource setIsFire() {
+    public CombatDamageSource setIsFire() {
         flag(DamageTypeTags.IS_FIRE);
         return this;
     }
 
-    public DamageSource setNoAggro() {
+    public CombatDamageSource setNoAggro() {
         flag(DamageTypeTags.NO_ANGER);
         return this;
     }
@@ -338,7 +337,7 @@ public class CombatDamageSource extends DamageSource {
         return is(DamageTypeTags.WITCH_RESISTANT_TO);
     }
 
-    public DamageSource setMagic() {
+    public CombatDamageSource setMagic() {
         flag(DamageTypeTags.WITCH_RESISTANT_TO);
         return this;
     }
@@ -347,7 +346,7 @@ public class CombatDamageSource extends DamageSource {
         return is(DamageTypeTags.IS_FALL);
     }
 
-    public DamageSource setIsFall() {
+    public CombatDamageSource setIsFall() {
         flag(DamageTypeTags.IS_FALL);
         return this;
     }

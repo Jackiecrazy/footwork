@@ -91,7 +91,7 @@ public class EntityHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void save(LivingAttackEvent e) {
-        if (e.getSource() instanceof CombatDamageSource cds)
+        if (e.getSource() instanceof CombatDamageSource cds && cds.getOriginalDamage()<0)
             cds.setOriginalDamage(e.getAmount());
     }
 

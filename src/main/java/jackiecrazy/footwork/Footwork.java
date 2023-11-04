@@ -8,6 +8,7 @@ import jackiecrazy.footwork.client.particle.CustomSweepParticle;
 import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
+import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -23,6 +24,7 @@ import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
@@ -47,6 +49,7 @@ public class Footwork {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::attribute);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -79,6 +82,11 @@ public class Footwork {
 
     public void onClientSetup(FMLClientSetupEvent event) {
         EntityRenderers.register(FootworkEntities.DUMMY.get(), NothingRender::new);
+    }
+
+    private void processIMC(final InterModProcessEvent event) {
+        // some example code to receive and process InterModComms from other mods
+        FootworkCompat.checkCompatStatus();
     }
 
 
