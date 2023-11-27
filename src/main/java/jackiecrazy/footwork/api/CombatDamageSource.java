@@ -30,7 +30,7 @@ public class CombatDamageSource extends DamageSource {
     private ItemStack damageDealer = ItemStack.EMPTY;
     private final Collection<TagKey<DamageType>> flags = new HashSet<>();
     private InteractionHand attackingHand = InteractionHand.MAIN_HAND;
-    private Entity proxy = null;
+    private Entity proxy;
     private Move skillUsed = null;
     private boolean crit = false;
     private float cdmg = 1.5f;
@@ -39,7 +39,7 @@ public class CombatDamageSource extends DamageSource {
     private TYPE damageTyping = TYPE.PHYSICAL;
 
     public CombatDamageSource(@Nonnull Entity entity) {
-        this(entity, null, entity.position());
+        this(entity, entity, entity.position());
     }
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy) {
         this(entity, proxy, entity.position());
@@ -49,6 +49,7 @@ public class CombatDamageSource extends DamageSource {
     }
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy, @Nullable Vec3 pos) {
         super(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK), proxy, entity, pos);
+        this.proxy=proxy;
     }
 
     public static CombatDamageSource causeSelfDamage(LivingEntity to) {
