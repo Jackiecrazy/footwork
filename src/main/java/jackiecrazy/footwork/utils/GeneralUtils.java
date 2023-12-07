@@ -7,6 +7,7 @@ package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
 import net.minecraft.core.Vec3i;
+import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.DoorBlock;
@@ -686,6 +687,8 @@ public class GeneralUtils {
             ret = new ItemStack(Items.CREEPER_HEAD);
         else if (elb instanceof EnderDragon)
             ret = new ItemStack(Items.DRAGON_HEAD);
+        else if (elb instanceof Piglin)
+            ret = new ItemStack(Items.PIGLIN_HEAD);
         else if (elb instanceof Player) {
             Player p = (Player) elb;
             ret = new ItemStack(Items.PLAYER_HEAD);

@@ -39,7 +39,7 @@ public class CombatDamageSource extends DamageSource {
     private TYPE damageTyping = TYPE.PHYSICAL;
 
     public CombatDamageSource(@Nonnull Entity entity) {
-        this(entity, entity, entity.position());
+        this(entity, null, entity.position());
     }
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy) {
         this(entity, proxy, entity.position());
@@ -124,7 +124,7 @@ public class CombatDamageSource extends DamageSource {
 
     @Override
     public boolean isIndirect() {
-        return proxy!=null;
+        return getDirectEntity()!=getEntity();
     }
 
     public Move getSkillUsed() {

@@ -42,13 +42,12 @@ public class DashboardScreen extends Screen {
         }
         //move focus to center after setting
         if (clickOn != null) {
-            if(clickOn.getX()==width/2f-clickOn.getWidth()/2f) {
-                clickOn.yVelocity= clickOn.xVelocity=0;
+            if (clickOn.getX() == width / 2f - clickOn.getWidth() / 2f || disappearTime-- < 0) {
+                clickOn.yVelocity = clickOn.xVelocity = 0;
                 clickOn.alpha -= 0.1f;
-                if(clickOn.alpha<=0)
+                if (clickOn.alpha <= 0)
                     clickOn.onClick(0, 0);
-            }
-            else clickOn.alpha=Math.min(1, clickOn.alpha + 0.05f);
+            } else clickOn.alpha = Math.min(1, clickOn.alpha + 0.05f);
         }
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
@@ -85,10 +84,10 @@ public class DashboardScreen extends Screen {
     public boolean mouseClicked(double p_94695_, double p_94696_, int p_94697_) {
         if (this.focus != null && clickOn == null) {
             //start moving the focus to the center
-            float half=focus.getWidth()/2f;
-            focus.xVelocity = (width / 2f- half - (focus.getX()))/50;
-            focus.yVelocity = (height / 2f- half - (focus.getY()))/50;
-            focus.alpha=1;
+            float half = focus.getWidth() / 2f;
+            focus.xVelocity = (width / 2f - half - (focus.getX())) / 50;
+            focus.yVelocity = (height / 2f - half - (focus.getY())) / 50;
+            focus.alpha = 1;
             clickOn = focus;
         }
 
