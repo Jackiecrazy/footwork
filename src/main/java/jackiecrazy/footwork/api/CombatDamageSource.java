@@ -39,13 +39,13 @@ public class CombatDamageSource extends DamageSource {
     private TYPE damageTyping = TYPE.PHYSICAL;
 
     public CombatDamageSource(@Nonnull Entity entity) {
-        this(entity, null, entity.position());
+        this(entity, entity, entity.position());
     }
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy) {
         this(entity, proxy, entity.position());
     }
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Vec3 pos) {
-        this(entity, null, pos);
+        this(entity, entity, pos);
     }
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy, @Nullable Vec3 pos) {
         super(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK), proxy, entity, pos);

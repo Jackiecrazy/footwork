@@ -54,7 +54,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     @Redirect(method = "attack",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/DamageSources;playerAttack(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/damagesource/DamageSource;"))
     private DamageSource customDamageSource(DamageSources instance, Player player) {
-        CombatDamageSource d = new CombatDamageSource(player, (Entity) null).setDamageDealer(player.getMainHandItem()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).setCritDamage(tempCdmg).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
+        CombatDamageSource d = new CombatDamageSource(player).setDamageDealer(player.getMainHandItem()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).setCritDamage(tempCdmg).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
         ds = d;
         return d;
     }

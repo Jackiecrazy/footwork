@@ -118,6 +118,7 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:dummy-225738:4724732")
     runtimeOnly fg.deobf("curse.maven:placebo-283644:4879089")
     runtimeOnly fg.deobf("curse.maven:apothic-898963:4872467")
+    runtimeOnly fg.deobf("curse.maven:gog-228948:4780586")
     implementation fg.deobf("curse.maven:patchouli-306770:4636277")
     //compile fg.deobf("curse.maven:offhandcombat-417112:3203449")
 }
