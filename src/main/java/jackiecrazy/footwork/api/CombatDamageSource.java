@@ -35,7 +35,7 @@ public class CombatDamageSource extends DamageSource {
     private boolean crit = false;
     private float cdmg = 1.5f;
     private float postureDamage = -1;
-    private float armor = 1f, knockback = 1f, multiplier = 1f;
+    private float armorPierce = 0f, knockback = 1f, multiplier = 1f;
     private TYPE damageTyping = TYPE.PHYSICAL;
 
     public CombatDamageSource(@Nonnull Entity entity) {
@@ -180,11 +180,11 @@ public class CombatDamageSource extends DamageSource {
     }
 
     public float getArmorReductionPercentage() {
-        return armor;
+        return armorPierce;
     }
 
     public CombatDamageSource setArmorReductionPercentage(float armorReductionPercentage) {
-        armor = armorReductionPercentage;
+        armorPierce = armorReductionPercentage;
         return this;
     }
 
