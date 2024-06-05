@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -41,15 +42,18 @@ public class CombatDamageSource extends DamageSource {
     public CombatDamageSource(@Nonnull Entity entity) {
         this(entity, entity, entity.position());
     }
+
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy) {
         this(entity, proxy, entity.position());
     }
+
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Vec3 pos) {
         this(entity, entity, pos);
     }
+
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy, @Nullable Vec3 pos) {
         super(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK), proxy, entity, pos);
-        this.proxy=proxy;
+        this.proxy = proxy;
     }
 
     public static CombatDamageSource causeSelfDamage(LivingEntity to) {
@@ -124,7 +128,7 @@ public class CombatDamageSource extends DamageSource {
 
     @Override
     public boolean isIndirect() {
-        return getDirectEntity()!=getEntity();
+        return getDirectEntity() != getEntity();
     }
 
     public Move getSkillUsed() {
@@ -169,13 +173,14 @@ public class CombatDamageSource extends DamageSource {
         return this;
     }
 
-    public CombatDamageSource flag(TagKey<DamageType> tag) {
-        flags.add(tag);
+    public CombatDamageSource flag(TagKey<DamageType>... tags) {
+        flags.addAll(Arrays.asList(tags));
         return this;
     }
 
-    public CombatDamageSource unflag(TagKey<DamageType> tag) {
-        flags.remove(tag);
+    public CombatDamageSource unflag(TagKey<DamageType>... tags) {
+        for (TagKey<DamageType> tag : tags)
+            flags.remove(tag);
         return this;
     }
 
@@ -223,6 +228,7 @@ public class CombatDamageSource extends DamageSource {
         this.original = original;
         return this;
     }
+
     float absorption;
 
     public float getDockedAbsorption() {
@@ -230,8 +236,8 @@ public class CombatDamageSource extends DamageSource {
     }
 
     public CombatDamageSource setDockedAbsorption(float absorption) {
-        this.absorption=absorption;
-        original-=Math.min(absorption, original);
+        this.absorption = absorption;
+        original -= Math.min(absorption, original);
         return this;
     }
 
@@ -354,6 +360,6 @@ public class CombatDamageSource extends DamageSource {
 
     public boolean isCreativePlayer() {
         Entity entity = this.getEntity();
-        return entity instanceof Player && ((Player)entity).getAbilities().instabuild;
+        return entity instanceof Player && ((Player) entity).getAbilities().instabuild;
     }
 }
