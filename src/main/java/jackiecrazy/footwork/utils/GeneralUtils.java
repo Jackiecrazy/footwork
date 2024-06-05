@@ -601,6 +601,37 @@ public class GeneralUtils {
         return true;
     }
 
+    public static boolean isFacingEntity(Vec3 posVec, Vec3 lookVec, Entity entity2, int horAngle, int vertAngle) {
+        horAngle = Math.min(horAngle, 360);
+        vertAngle = Math.min(vertAngle, 360);
+        double xDiff = posVec.x - entity2.getX(), zDiff = posVec.z - entity2.getZ();
+        if (vertAngle != 360) {
+            //y calculations
+            double distIgnoreY = Math.sqrt(xDiff * xDiff + zDiff * zDiff);
+            double relativeHeadVec = entity2.getY() - posVec.y + entity2.getBbHeight();
+            double relativeFootVec = entity2.getY() - posVec.y;
+            double angleHead = -Mth.atan2(relativeHeadVec, distIgnoreY);
+            double angleFoot = -Mth.atan2(relativeFootVec, distIgnoreY);
+            //straight up is -90 and straight down is 90
+            float arccos= (float) Math.acos(lookVec.y/lookVec.length());
+            double maxRot = rad(arccos + vertAngle / 2f);
+            double minRot = rad(arccos - vertAngle / 2f);
+            if (angleHead > maxRot || angleFoot < minRot) return false;
+        }
+        if (horAngle != 360) {
+            //lookVec=new Vector3d(lookVec.x, 0, lookVec.z);
+            //bodyVec=new Vector3d(bodyVec.x, 0, bodyVec.z);
+            Vec3 relativePosVec = entity2.position().subtract(posVec);
+            double angleLook = Mth.atan2(lookVec.z, lookVec.x);
+            double anglePos = Mth.atan2(relativePosVec.z, relativePosVec.x);
+            angleLook += Math.PI;
+            anglePos += Math.PI;
+            double rad = rad(horAngle / 2f);
+            return !(Math.abs(angleLook - anglePos) > rad);
+        }
+        return true;
+    }
+
     public static boolean isBehindEntity(Entity entity, Entity reference, int horAngle, int vertAngle) {
         if (horAngle < 0) return isFacingEntity(reference, entity, -horAngle, Math.abs(vertAngle));
         Vec3 posVec = reference.position().add(0, reference.getEyeHeight(), 0);
