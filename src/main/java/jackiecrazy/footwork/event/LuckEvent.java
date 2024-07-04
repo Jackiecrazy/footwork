@@ -1,9 +1,8 @@
 package jackiecrazy.footwork.event;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingEvent;
-
-import net.minecraftforge.eventbus.api.Event.HasResult;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
 public class LuckEvent extends LivingEvent {
     private final float origChance;
@@ -16,9 +15,17 @@ public class LuckEvent extends LivingEvent {
     public float getOriginalChance() {
         return origChance;
     }
-    @HasResult
+
     public static class Pre extends LuckEvent{
         private float chance;
+        private TriState execute=TriState.DEFAULT;
+        public TriState getResult() {
+            return execute;
+        }
+
+        public void setResult(TriState execute) {
+            this.execute = execute;
+        }
 
         public Pre(LivingEntity entity, float chance) {
             super(entity, chance);

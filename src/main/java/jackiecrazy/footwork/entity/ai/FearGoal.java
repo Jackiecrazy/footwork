@@ -1,7 +1,9 @@
 package jackiecrazy.footwork.entity.ai;
 
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
+import jackiecrazy.footwork.entity.FootworkDataAttachments;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,10 +20,10 @@ public class FearGoal extends AvoidEntityGoal<LivingEntity> {
     }
 
     public boolean canUse() {
-        if (!mob.hasEffect(FootworkEffects.FEAR.get())) return false;
-        this.toAvoid = mob.getKillCredit();
-        final Optional<IGoalHelper> goal = GoalCapabilityProvider.getCap(mob).resolve();
-        goal.ifPresent(iGoalHelper -> toAvoid = iGoalHelper.getFearSource());
+        if (!mob.hasEffect(FootworkEffects.FEAR)) return false;
+        this.toAvoid = mob.getData(FootworkDataAttachments.FEAR_TARGET);
+        if (this.toAvoid == null)
+            this.toAvoid = mob.getKillCredit();
         if (this.toAvoid == null) {
             return false;
         } else {

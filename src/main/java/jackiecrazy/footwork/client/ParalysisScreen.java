@@ -25,13 +25,27 @@ public class ParalysisScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(@NotNull GuiGraphics p_96557_) {
-        //nope!
+    public void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
     }
 
     @Override
-    public void renderDirtBackground(@NotNull GuiGraphics p_96559_) {
-        //nope!
+    protected void renderBlurredBackground(float pPartialTick) {
+    }
+
+    @Override
+    protected void renderPanorama(GuiGraphics pGuiGraphics, float pPartialTick) {
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics pPartialTick) {
+    }
+
+    @Override
+    protected void renderMenuBackground(GuiGraphics pGuiGraphics, int pX, int pY, int pWidth, int pHeight) {
+    }
+
+    @Override
+    public void renderTransparentBackground(GuiGraphics pGuiGraphics) {
     }
 
     @Override

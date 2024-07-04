@@ -2,6 +2,8 @@ package jackiecrazy.footwork.entity.ai;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
+import jackiecrazy.footwork.entity.FootworkDataAttachments;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -15,11 +17,9 @@ public class CompelledVengeanceGoal extends NearestAttackableTargetGoal<LivingEn
 
     @Override
     protected void findTarget() {
-        mob.getCapability(GoalCapabilityProvider.CAP).ifPresent(a -> {
-            LivingEntity potential = a.getForcedTarget();
-            if (potential != null && mob.distanceToSqr(potential) < 100)
-                target = potential;
-        });
+        LivingEntity potential = mob.getData(FootworkDataAttachments.FEAR_TARGET);
+        if (potential != null && mob.distanceToSqr(potential) < 100)
+            target = potential;
     }
 
     @Override
@@ -31,14 +31,14 @@ public class CompelledVengeanceGoal extends NearestAttackableTargetGoal<LivingEn
     @Override
     public void start() {
         super.start();
-        compelledTicks = Footwork.rand.nextInt(100)+40;
+        compelledTicks = Footwork.rand.nextInt(100) + 40;
     }
 
     @Override
     public void stop() {
         super.stop();
-        target=null;
-        mob.getCapability(GoalCapabilityProvider.CAP).ifPresent(a -> a.setForcedTarget(null));
+        target = null;
+        mob.setData(FootworkDataAttachments.FEAR_TARGET, null);
     }
 
     @Override

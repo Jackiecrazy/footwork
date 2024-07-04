@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "footwork.refmap.json",
   "mixins": [
+    "EffectStartAccessor",
     "MixinAttackSpeed",
     "MixinPlayerEntity",
     "MixinTagEntry"

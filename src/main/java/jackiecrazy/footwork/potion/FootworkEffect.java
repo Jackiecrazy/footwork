@@ -1,6 +1,5 @@
 package jackiecrazy.footwork.potion;
 
-import jackiecrazy.footwork.capability.resources.CombatData;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.effect.MobEffect;
@@ -13,15 +12,16 @@ class FootworkEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity l, int amplifier) {
+    public boolean applyEffectTick(LivingEntity l, int amplifier) {
 
-        if (this == FootworkEffects.FEAR.get() && l.level() instanceof ServerLevel s) {
+        if (this == FootworkEffects.FEAR && l.level() instanceof ServerLevel s) {
             s.sendParticles(ParticleTypes.DRIPPING_WATER, l.getX(), l.getY() + l.getBbHeight() / 2, l.getZ(), 5, l.getBbWidth() / 4, l.getBbHeight() / 4, l.getBbWidth() / 4, 0.5f);
         }
+        return true;
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return duration % 20 == 1;
     }
 }

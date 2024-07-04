@@ -40,27 +40,25 @@ public class GuiComponent {
         RenderSystem.setShaderTexture(0, p_283461_);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         Matrix4f matrix4f = pose.last().pose();
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferbuilder.vertex(matrix4f, (float)p_281399_, (float)p_283615_, (float)p_281729_).uv(p_283247_, p_282883_).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)p_281399_, (float)p_283430_, (float)p_281729_).uv(p_283247_, p_283017_).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)p_283222_, (float)p_283430_, (float)p_281729_).uv(p_282598_, p_283017_).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)p_283222_, (float)p_283615_, (float)p_281729_).uv(p_282598_, p_282883_).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferbuilder.addVertex(matrix4f, (float)p_281399_, (float)p_283615_, (float)p_281729_).setUv(p_283247_, p_282883_);
+        bufferbuilder.addVertex(matrix4f, (float)p_281399_, (float)p_283430_, (float)p_281729_).setUv(p_283247_, p_283017_);
+        bufferbuilder.addVertex(matrix4f, (float)p_283222_, (float)p_283430_, (float)p_281729_).setUv(p_282598_, p_283017_);
+        bufferbuilder.addVertex(matrix4f, (float)p_283222_, (float)p_283615_, (float)p_281729_).setUv(p_282598_, p_282883_);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
     }
 
     public static void innerBlit(PoseStack pose, ResourceLocation p_283254_, int p_283092_, int p_281930_, int p_282113_, int p_281388_, int p_283583_, float p_281327_, float p_281676_, float p_283166_, float p_282630_, float p_282800_, float p_282850_, float p_282375_, float p_282754_) {
         RenderSystem.setShaderTexture(0, p_283254_);
-        RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.enableBlend();
         Matrix4f matrix4f = pose.last().pose();
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
-        bufferbuilder.vertex(matrix4f, (float)p_283092_, (float)p_282113_, (float)p_283583_).color(p_282800_, p_282850_, p_282375_, p_282754_).uv(p_281327_, p_283166_).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)p_283092_, (float)p_281388_, (float)p_283583_).color(p_282800_, p_282850_, p_282375_, p_282754_).uv(p_281327_, p_282630_).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)p_281930_, (float)p_281388_, (float)p_283583_).color(p_282800_, p_282850_, p_282375_, p_282754_).uv(p_281676_, p_282630_).endVertex();
-        bufferbuilder.vertex(matrix4f, (float)p_281930_, (float)p_282113_, (float)p_283583_).color(p_282800_, p_282850_, p_282375_, p_282754_).uv(p_281676_, p_283166_).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        bufferbuilder.addVertex(matrix4f, (float)p_283092_, (float)p_282113_, (float)p_283583_).setUv(p_281327_, p_283166_).setColor(p_282800_, p_282850_, p_282375_, p_282754_);
+        bufferbuilder.addVertex(matrix4f, (float)p_283092_, (float)p_281388_, (float)p_283583_).setUv(p_281327_, p_282630_).setColor(p_282800_, p_282850_, p_282375_, p_282754_);
+        bufferbuilder.addVertex(matrix4f, (float)p_281930_, (float)p_281388_, (float)p_283583_).setUv(p_281676_, p_282630_).setColor(p_282800_, p_282850_, p_282375_, p_282754_);
+        bufferbuilder.addVertex(matrix4f, (float)p_281930_, (float)p_282113_, (float)p_283583_).setUv(p_281676_, p_283166_).setColor(p_282800_, p_282850_, p_282375_, p_282754_);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
         RenderSystem.disableBlend();
     }
 }

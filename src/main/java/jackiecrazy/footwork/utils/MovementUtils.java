@@ -1,60 +1,37 @@
 package jackiecrazy.footwork.utils;
 
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
+
+import java.util.Iterator;
+import java.util.List;
+
 public class MovementUtils {
 
     /**
      * Checks the +x, -x, +y, -y, +z, -z, in that order
      */
-//    public static boolean willHitWall(Entity elb) {
-//        double allowance = 1;
-//        AxisAlignedBB aabb = elb.getBoundingBox();
-//        Vector3d motion=elb.getDeltaMovement();
-//        List<VoxelShape> boxes = elb.level.getCollisions(elb, aabb.expandTowards(motion.x,motion.y,motion.z)).collect(Collectors.toList());
-//        for (VoxelShape a : boxes) {
-//            if (aabb.(a, allowance) != allowance) return true;
-//            if (aabb.calculateXOffset(a, -allowance) != -allowance) return true;
-//            if (aabb.calculateZOffset(a, allowance) != allowance) return true;
-//            if (aabb.calculateZOffset(a, -allowance) != -allowance) return true;
-//            if (aabb.calculateYOffset(a, allowance) != allowance) return true;
-//        }
-//        return false;
-//    }
-//
-//    public static boolean willCollide(Entity elb) {
-//        double allowance = 1;
-//        //return willHitWall(elb) || collidingEntity(elb) != null;
-//        return elb.world.collidesWithAnyBlock(elb.getEntityBoundingBox().expand(elb.motionX * allowance, elb.motionY * allowance, elb.motionZ * allowance));// || collidingEntity(elb) != null;
-//    }
-//
-//    public static boolean willHitWallFrom(Entity elb, Entity from) {
-//        double allowance = 1;
-//        AxisAlignedBB aabb = elb.getEntityBoundingBox();
-//        Vec3d fromToElb = elb.getPositionVector().subtract(from.getPositionVector()).normalize();
-//        List<AxisAlignedBB> boxes = elb.world.getCollisionBoxes(elb, aabb.expand(fromToElb.x, fromToElb.y, fromToElb.z));
-//        for (AxisAlignedBB a : boxes) {
-//            if (aabb.calculateXOffset(a, allowance) != allowance) return true;
-//            if (aabb.calculateXOffset(a, -allowance) != -allowance) return true;
-//            if (aabb.calculateZOffset(a, allowance) != allowance) return true;
-//            if (aabb.calculateZOffset(a, -allowance) != -allowance) return true;
-//        }
-//        return false;
-//    }
-//
-//    public static boolean[] collisionStatusVelocitySensitive(LivingEntity elb) {
-//        double allowance = 1.1;
-//        boolean[] ret = {false, false, false, false, false, false};
-//        AxisAlignedBB aabb = elb.getEntityBoundingBox();
-//        List<AxisAlignedBB> boxes = elb.world.getCollisionBoxes(elb, aabb.expand(elb.motionX, elb.motionY, elb.motionZ));
-//        for (AxisAlignedBB a : boxes) {
-//            if (aabb.calculateXOffset(a, allowance) != allowance) ret[0] = true;
-//            if (aabb.calculateXOffset(a, -allowance) != -allowance) ret[1] = true;
-//            if (aabb.calculateYOffset(a, allowance) != allowance) ret[2] = true;
-//            if (aabb.calculateYOffset(a, -allowance) != -allowance) ret[3] = true;
-//            if (aabb.calculateZOffset(a, allowance) != allowance) ret[4] = true;
-//            if (aabb.calculateZOffset(a, -allowance) != -allowance) ret[5] = true;
-//        }
-//        return ret;
-//    }
+    public static boolean willHitWall(Entity elb) {
+        double allowance = 1;
+        AABB aabb = elb.getBoundingBox();
+        Vec3 motion=elb.getDeltaMovement();
+        return elb.level().collidesWithSuffocatingBlock(elb, aabb.expandTowards(motion.x,motion.y,motion.z));
+    }
+
+    public static boolean willCollide(Entity elb) {
+        double allowance = 1;
+        return willHitWall(elb) || collidingEntity(elb) != null;
+        //return elb.level().collidesWithSuffocatingBlock(elb.getBoundingBox().inflate(elb.motionX * allowance, elb.motionY * allowance, elb.motionZ * allowance));// || collidingEntity(elb) != null;
+    }
+
+    public static boolean willHitWallFrom(Entity elb, Entity from) {
+        double allowance = 1;
+        AABB aabb = elb.getBoundingBox();
+        Vec3 motion = elb.position().subtract(from.position()).normalize();
+        return elb.level().collidesWithSuffocatingBlock(elb, aabb.expandTowards(motion.x,motion.y,motion.z));
+    }
 
 
 //    public static boolean attemptJump(LivingEntity elb) {
@@ -128,26 +105,27 @@ public class MovementUtils {
 //        return cap.getRollCounter()<20+2*cap.getQi();
 //    }
 
-    //    /**
-//     * Checks the +x, -x, +y, -y, +z, -z, in that order
-//     *
-//     * @param elb
-//     * @return
-//     */
-//    public static Entity collidingEntity(Entity elb) {
-//        AxisAlignedBB aabb = elb.getEntityBoundingBox();
-//        List<Entity> entities = elb.world.getEntitiesInAABBexcluding(elb, aabb.expand(elb.motionX, elb.motionY * 6, elb.motionZ), VALID_TARGETS::test);
-//        double dist = 0;
-//        Entity pick = null;
-//        for (Entity e : entities) {
-//            if (e.getDistanceSq(elb) < dist || dist == 0) {
-//                pick = e;
-//                dist = e.getDistanceSq(elb);
-//            }
-//        }
-//        return pick;
-//    }
-//
+        /**
+     * Checks the +x, -x, +y, -y, +z, -z, in that order
+     *
+     * @param elb
+     * @return
+     */
+    public static Entity collidingEntity(Entity elb) {
+        AABB aabb = elb.getBoundingBox();
+        Vec3 motion = elb.getDeltaMovement();
+        List<Entity> entities = elb.level().getEntities(elb, aabb.expandTowards(motion.x, motion.y * 6, motion.z));
+        double dist = 0;
+        Entity pick = null;
+        for (Entity e : entities) {
+            if (e.distanceToSqr(elb) < dist || dist == 0) {
+                pick = e;
+                dist = e.distanceToSqr(elb);
+            }
+        }
+        return pick;
+    }
+
 //    public static void kick(LivingEntity elb, LivingEntity uke) {
 //        if (elb.isRiding()) return;
 //        uke.attackEntityFrom(DamageSource.FALLING_BLOCK, 1);
@@ -160,18 +138,20 @@ public class MovementUtils {
 //        }
 //        elb.world.playSound(null, uke.posX, uke.posY, uke.posZ, SoundEvents.ENTITY_ZOMBIE_ATTACK_DOOR_WOOD, SoundCategory.PLAYERS, 0.5f + Taoism.unirand.nextFloat() * 0.5f, 0.85f + Taoism.unirand.nextFloat() * 0.3f);
 //    }
-//
-//    public static boolean isTouchingWall(Entity elb) {
-//        boolean[] b = collisionStatus(elb);
-//        return !elb.onGround && !b[2] && !b[3] && ((b[0] || b[1]) || (b[4] || b[5]));
-//    }
-//
+
+    public static boolean isTouchingWall(Entity elb) {
+        AABB aabb = elb.getBoundingBox();
+        Iterator<VoxelShape> boxes = elb.level().getCollisions(elb, aabb.inflate(0.1)).iterator();
+        return boxes.hasNext();
+    }
+
 //    public static boolean[] collisionStatus(Entity elb) {
 //        double allowance = 0.1;
 //        boolean[] ret = {false, false, false, false, false, false};
-//        AxisAlignedBB aabb = elb.getEntityBoundingBox();
-//        List<AxisAlignedBB> boxes = elb.world.getCollisionBoxes(elb, aabb.grow(allowance / 2));
-//        for (AxisAlignedBB a : boxes) {
+//        AABB aabb = elb.getBoundingBox();
+//        Iterator<VoxelShape> boxes = elb.level().getCollisions(elb, aabb.inflate(allowance / 2)).iterator();
+//        while (boxes.hasNext()) {
+//            VoxelShape a = boxes.next();
 //            if (aabb.calculateXOffset(a, allowance) != allowance) ret[0] = true;
 //            if (aabb.calculateXOffset(a, -allowance) != -allowance) ret[1] = true;
 //            if (aabb.calculateYOffset(a, allowance) != allowance) ret[2] = true;

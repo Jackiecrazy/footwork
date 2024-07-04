@@ -8,8 +8,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -87,15 +87,15 @@ public class CustomSweepParticle extends TextureSheetParticle {
         float f6 = this.getV1();
         int j = this.getLightColor(p_107680_);
         RenderSystem.disableCull();
-        p_107678_.vertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.addVertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).setUv(f8, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).setUv(f8, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).setUv(f7, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).setUv(f7, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
 
-        p_107678_.vertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.addVertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).setUv(f8, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).setUv(f8, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).setUv(f7, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).setUv(f7, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
         RenderSystem.enableCull();
     }
 

@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import jackiecrazy.footwork.Footwork;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +21,7 @@ public class PonderingOrb extends ImageButton {
     private Component tip;
 
     public PonderingOrb(DashboardScreen parent, ResourceLocation interior, OnPress click, Component tooltip) {
-        super(1, 1, 16, 16, 0, 0, 0, interior, 256, 256, click);
+        super(1, 1, 16, 16, new WidgetSprites(interior, interior), click);
         tip=tooltip;
         this.interior = interior;
         this.parent = parent;

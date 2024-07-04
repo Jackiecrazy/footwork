@@ -16,7 +16,7 @@ public class TargetingUtils {
         if (of instanceof TamableAnimal && entity instanceof LivingEntity && ((TamableAnimal) of).isOwnedBy((LivingEntity) entity))
             return true;
         if (entity.isAlliedTo(of)) return true;
-        if (entity instanceof Player && of instanceof Player && entity.getServer() != null && entity.getServer().isPvpAllowed())
+        if (entity instanceof Player && of instanceof Player && entity.getServer() != null && !entity.getServer().isPvpAllowed())
             return true;
         return false;
     }
@@ -24,6 +24,8 @@ public class TargetingUtils {
     public static boolean isHostile(Entity entity, Entity to) {
         if (entity == null || to == null) return false;
         if (isAlly(entity, to)) return false;
+        if (entity instanceof Player && to instanceof Player && entity.getServer() != null && entity.getServer().isPvpAllowed())
+            return true;
         if (entity instanceof LivingEntity) {
             if (((LivingEntity) entity).getLastHurtByMob() != null) {
                 LivingEntity revenge = ((LivingEntity) entity).getLastHurtByMob();

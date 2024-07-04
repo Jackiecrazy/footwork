@@ -8,13 +8,13 @@ import jackiecrazy.footwork.event.DashboardEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Footwork.MODID)
+@EventBusSubscriber(value = Dist.CLIENT, modid = Footwork.MODID)
 public class DashboardEvents {
-    private static final ResourceLocation MANUAL = new ResourceLocation(Footwork.MODID, "textures/gui/manual.png");
+    private static final ResourceLocation MANUAL = ResourceLocation.fromNamespaceAndPath(Footwork.MODID, "textures/gui/manual.png");
     @SubscribeEvent
     public static void add(DashboardEvent e) {
         Player player = e.getPlayer();

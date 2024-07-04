@@ -21,9 +21,9 @@ public class ImpactParticle extends CustomSweepParticle {
 
     public void render(VertexConsumer p_107678_, Camera camera, float p_107680_) {
         Vec3 vec3 = camera.getPosition();
-        float f = (float) (Mth.lerp((double) p_107680_, this.xo, this.x) - vec3.x());
-        float f1 = (float) (Mth.lerp((double) p_107680_, this.yo, this.y) - vec3.y());
-        float f2 = (float) (Mth.lerp((double) p_107680_, this.zo, this.z) - vec3.z());
+        float f = (float) (Mth.lerp(p_107680_, this.xo, this.x) - vec3.x());
+        float f1 = (float) (Mth.lerp(p_107680_, this.yo, this.y) - vec3.y());
+        float f2 = (float) (Mth.lerp(p_107680_, this.zo, this.z) - vec3.z());
         Quaternionf quaternion = camera.rotation();
 
         Vector3f vector3f1 = new Vector3f(-1.0F, -1.0F, 0.0F);
@@ -46,15 +46,15 @@ public class ImpactParticle extends CustomSweepParticle {
         float f5 = this.getV0();
         float f6 = this.getV1();
         int j = this.getLightColor(p_107680_);
-        p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[3].x(), (double) transforms[3].y(), (double) transforms[3].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.addVertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).setUv(f8, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).setUv(f8, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).setUv(f7, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).setUv(f7, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
 
-        p_107678_.vertex((double) transforms[3].x(), (double) transforms[3].y(), (double) transforms[3].z()).uv(f8, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[2].x(), (double) transforms[2].y(), (double) transforms[2].z()).uv(f8, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[1].x(), (double) transforms[1].y(), (double) transforms[1].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        p_107678_.vertex((double) transforms[0].x(), (double) transforms[0].y(), (double) transforms[0].z()).uv(f7, f6).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        p_107678_.addVertex(transforms[3].x(), transforms[3].y(), transforms[3].z()).setUv(f8, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[2].x(), transforms[2].y(), transforms[2].z()).setUv(f8, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[1].x(), transforms[1].y(), transforms[1].z()).setUv(f7, f5).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
+        p_107678_.addVertex(transforms[0].x(), transforms[0].y(), transforms[0].z()).setUv(f7, f6).setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(j);
     }
 
     public void tick() {

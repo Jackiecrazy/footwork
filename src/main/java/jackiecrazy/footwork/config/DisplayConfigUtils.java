@@ -2,7 +2,7 @@ package jackiecrazy.footwork.config;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.Mth;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class DisplayConfigUtils {
     public enum AnchorPoint {
@@ -75,16 +75,16 @@ public class DisplayConfigUtils {
     }
 
     public static class DisplayData {
-        protected final ForgeConfigSpec.EnumValue<AnchorPoint> _anchor;
-        protected final ForgeConfigSpec.IntValue _numberX;
-        protected final ForgeConfigSpec.IntValue _numberY;
-        protected final ForgeConfigSpec.BooleanValue _display;
+        protected final ModConfigSpec.EnumValue<AnchorPoint> _anchor;
+        protected final ModConfigSpec.IntValue _numberX;
+        protected final ModConfigSpec.IntValue _numberY;
+        protected final ModConfigSpec.BooleanValue _display;
         public AnchorPoint anchorPoint;
         public int numberX;
         public int numberY;
         public boolean enabled;
 
-        public DisplayData(ForgeConfigSpec.Builder b, String s, AnchorPoint ap, int defX, int defY) {
+        public DisplayData(ModConfigSpec.Builder b, String s, AnchorPoint ap, int defX, int defY) {
             _display = b.translation("footwork.config." + s + "enabled").comment("enable displaying this feature").define("enable " + s, true);
             _anchor = b.translation("footwork.config." + s + "anchor").comment("the point from which offsets will calculate").defineEnum(s + " anchor point", ap);
             _numberX = b.translation("footwork.config." + s + "X").comment("where the center of the HUD element should be in relation to the anchor point").defineInRange(s + " x offset", defX, -Integer.MAX_VALUE, Integer.MAX_VALUE);

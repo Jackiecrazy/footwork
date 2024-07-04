@@ -5,12 +5,11 @@ import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
-import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import jackiecrazy.footwork.utils.ParticleUtils;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -21,20 +20,99 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber(modid = Footwork.MODID)
+@EventBusSubscriber(modid = Footwork.MODID)
 public class EntityHandler {
 
-    private static final UUID uuid = UUID.fromString("98c361c7-de32-4f40-b129-d7752bac3712");
-    private static final UUID uuid2 = UUID.fromString("98c361c8-de32-4f40-b129-d7752bac3722");
+    private static final ResourceLocation icic_armor_pierce = ResourceLocation.fromNamespaceAndPath(Footwork.MODID, "custom_armor_pierce");
+    private static final ResourceLocation ds_armor_pierce = ResourceLocation.fromNamespaceAndPath(Footwork.MODID, "temp_armor_remove");
+
+    @SubscribeEvent
+    public static void auxEffects(MobEffectEvent.Added e) {
+        if (e.getEffectInstance().getEffect() == FootworkEffects.CONFUSION) {
+            //accompanied by nausea
+            e.getEntity().addEffect(new MobEffectInstance(MobEffects.CONFUSION, e.getEffectInstance().getDuration(), e.getEffectInstance().getAmplifier()));
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void damageAmp(LivingDamageEvent.Pre e) {
+        DamageContainer dc = e.getContainer();
+        if (dc.getSource() instanceof CombatDamageSource cds) {
+            dc.setNewDamage(dc.getNewDamage() * cds.getMultiplier());
+        }
+    }
+
+    private static @Nullable ICombatItemCapability getCapability(ItemStack ukemain) {
+        return ukemain.getCapability(CombatManipulator.CAP);
+    }
+
+    static boolean isMeleeAttack(DamageSource s) {
+        if (s instanceof CombatDamageSource) {
+            return ((CombatDamageSource) s).canProcAutoEffects();
+        }
+        //TODO does this break anything?
+        return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
+    }
+
+    static boolean isPhysicalAttack(DamageSource s) {
+        if (s instanceof CombatDamageSource cds) {
+            return cds.getDamageTyping() == CombatDamageSource.TYPE.PHYSICAL;
+        }
+        return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void pain(LivingIncomingDamageEvent e) {
+        LivingEntity uke = e.getEntity();
+        LivingEntity kek = null;
+        DamageSource ds = e.getSource();
+        if (uke.hasEffect(FootworkEffects.VULNERABLE) && !isPhysicalAttack(ds))
+            e.setAmount(e.getAmount() + uke.getEffect(FootworkEffects.VULNERABLE).getAmplifier() + 1);
+        if (ds.getDirectEntity() instanceof LivingEntity) {
+            kek = (LivingEntity) ds.getDirectEntity();
+        }
+        uke.getAttribute(Attributes.ARMOR).removeModifier(icic_armor_pierce);
+        uke.getAttribute(Attributes.ARMOR).removeModifier(ds_armor_pierce);
+        if (ds instanceof CombatDamageSource cds) {
+            cds.setOriginalDamage(e.getOriginalAmount());
+            float mult = -cds.getArmorReductionPercentage();
+            if (mult != 0) {
+                AttributeModifier armor = new AttributeModifier(ds_armor_pierce, mult, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+                uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
+            }
+        }
+        ItemStack ukemain = uke.getMainHandItem();
+        ItemStack ukeoff = uke.getOffhandItem();
+        ICombatItemCapability mainCap = ukemain.getCapability(CombatManipulator.CAP);
+        if (mainCap != null) {
+            e.setAmount(mainCap.onBeingHurt(e.getContainer(), uke, ukemain));
+        }
+        ICombatItemCapability offCap = ukeoff.getCapability(CombatManipulator.CAP);
+        if (offCap != null) {
+            e.setAmount(offCap.onBeingHurt(e.getContainer(), uke, ukeoff));
+        }
+        if (ds.getEntity() instanceof LivingEntity seme) {
+            ICombatItemCapability semCap = seme.getMainHandItem().getCapability(CombatManipulator.CAP);
+            if (semCap != null) {
+                e.setAmount(semCap.hurtStart(e.getContainer(), seme, uke, seme.getMainHandItem()) * semCap.damageMultiplier(seme, uke, seme.getMainHandItem()));
+                AttributeModifier armor = new AttributeModifier(icic_armor_pierce, -semCap.armorIgnoreAmount(e.getContainer(), seme, uke, seme.getMainHandItem()), AttributeModifier.Operation.ADD_VALUE);
+                uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
+            }
+        }
+    }
 
     @SubscribeEvent
     public static void takeThis(EntityJoinLevelEvent e) {
@@ -49,128 +127,53 @@ public class EntityHandler {
         }
     }
 
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void tanky(LivingDamageEvent.Pre ent) {
+        final LivingEntity uke = ent.getEntity();
+        uke.getAttribute(Attributes.ARMOR).removeModifier(icic_armor_pierce);
+        uke.getAttribute(Attributes.ARMOR).removeModifier(ds_armor_pierce);
+        DamageContainer e = ent.getContainer();
+        if (e.getSource().getEntity() instanceof LivingEntity) {
+            LivingEntity seme = ((LivingEntity) e.getSource().getEntity());
+            if (isMeleeAttack(e.getSource())) {
+                ItemStack sememain = seme.getMainHandItem();
+                if (sememain.getCapability(CombatManipulator.CAP)!=null) {
+                    ICombatItemCapability icic = sememain.getCapability(CombatManipulator.CAP);
+                    e.setNewDamage(icic.damageStart(e, seme, uke, sememain));
+                }
+                ItemStack ukemain = uke.getMainHandItem();
+                ItemStack ukeoff = uke.getOffhandItem();
+                if (ukemain.getCapability(CombatManipulator.CAP)!=null) {
+                    ICombatItemCapability icic = ukemain.getCapability(CombatManipulator.CAP);
+                    e.setNewDamage(icic.onBeingDamaged(e, uke, ukemain));
+                }
+                if (ukeoff.getCapability(CombatManipulator.CAP)!=null) {
+                    ICombatItemCapability icic = ukeoff.getCapability(CombatManipulator.CAP);
+                    e.setNewDamage(icic.onBeingDamaged(e, uke, ukeoff));
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
-    public static void tickMobs(LivingEvent.LivingTickEvent e) {
-        LivingEntity elb = e.getEntity();
-        if (CombatData.getCap(elb).isVulnerable() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
+    public static void tickMobs(EntityTickEvent e) {
+        if (!(e.getEntity() instanceof LivingEntity elb)) return;
+        if (CombatData.getCap(elb).isVulnerable() || elb.hasEffect(FootworkEffects.PETRIFY) || elb.hasEffect(FootworkEffects.SLEEP) || elb.hasEffect(FootworkEffects.PARALYSIS)) {
             elb.setXRot(elb.xRotO);
             elb.setYRot(elb.yRotO);
             elb.yHeadRot = elb.yHeadRotO;
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void damageAmp(LivingDamageEvent e) {
-        if (e.getSource() instanceof CombatDamageSource cds) {
-            e.setAmount(e.getAmount() * cds.getMultiplier());
-        }
-    }
-
-    @SubscribeEvent
-    public static void auxEffects(MobEffectEvent.Added e) {
-        if (e.getEffectInstance().getEffect() == FootworkEffects.CONFUSION.get()) {
-            //accompanied by nausea
-            e.getEntity().addEffect(new MobEffectInstance(MobEffects.CONFUSION, e.getEffectInstance().getDuration(), e.getEffectInstance().getAmplifier()));
-        }
-    }
-
-    static boolean isPhysicalAttack(DamageSource s) {
-        if (s instanceof CombatDamageSource cds) {
-            return cds.getDamageTyping() == CombatDamageSource.TYPE.PHYSICAL;
-        }
-        return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
-    }
-
-    static boolean isMeleeAttack(DamageSource s) {
-        if (s instanceof CombatDamageSource) {
-            return ((CombatDamageSource) s).canProcAutoEffects();
-        }
-        //TODO does this break anything?
-        return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void save(LivingAttackEvent e) {
-        if (e.getSource() instanceof CombatDamageSource cds && cds.getOriginalDamage()<0)
-            cds.setOriginalDamage(e.getAmount());
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void pain(LivingHurtEvent e) {
-        LivingEntity uke = e.getEntity();
-        LivingEntity kek = null;
-        DamageSource ds = e.getSource();
-        if (uke.hasEffect(FootworkEffects.VULNERABLE.get()) && !isPhysicalAttack(ds))
-            e.setAmount(e.getAmount() + uke.getEffect(FootworkEffects.VULNERABLE.get()).getAmplifier() + 1);
-        if (ds.getDirectEntity() instanceof LivingEntity) {
-            kek = (LivingEntity) ds.getDirectEntity();
-        }
-        uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
-        uke.getAttribute(Attributes.ARMOR).removeModifier(uuid2);
-        if (ds instanceof CombatDamageSource cds) {
-            float mult = -cds.getArmorReductionPercentage();
-            if (mult != 0) {
-                AttributeModifier armor = new AttributeModifier(uuid2, "temporary armor multiplier", mult, AttributeModifier.Operation.MULTIPLY_TOTAL);
-                uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
-            }
-        }
-        ItemStack ukemain = uke.getMainHandItem();
-        ItemStack ukeoff = uke.getOffhandItem();
-        if (ukemain.getCapability(CombatManipulator.CAP).isPresent()) {
-            ICombatItemCapability icic = ukemain.getCapability(CombatManipulator.CAP).resolve().get();
-            e.setAmount(icic.onBeingHurt(e.getSource(), uke, ukemain, e.getAmount()));
-        }
-        if (ukeoff.getCapability(CombatManipulator.CAP).isPresent()) {
-            ICombatItemCapability icic = ukeoff.getCapability(CombatManipulator.CAP).resolve().get();
-            e.setAmount(icic.onBeingHurt(e.getSource(), uke, ukeoff, e.getAmount()));
-        }
-        if (ds.getEntity() instanceof LivingEntity seme) {
-            if (seme.getMainHandItem().getCapability(CombatManipulator.CAP).isPresent()) {
-                ICombatItemCapability icic = seme.getMainHandItem().getCapability(CombatManipulator.CAP).resolve().get();
-                e.setAmount(icic.hurtStart(e.getSource(), seme, uke, seme.getMainHandItem(), e.getAmount()) * icic.damageMultiplier(seme, uke, seme.getMainHandItem()));
-                AttributeModifier armor = new AttributeModifier(uuid, "temporary armor removal", -icic.armorIgnoreAmount(e.getSource(), seme, uke, seme.getMainHandItem(), e.getAmount()), AttributeModifier.Operation.ADDITION);
-                uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
-            }
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void tanky(LivingDamageEvent e) {
-        final LivingEntity uke = e.getEntity();
-        uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
-        uke.getAttribute(Attributes.ARMOR).removeModifier(uuid2);
-        if (e.getSource().getEntity() instanceof LivingEntity) {
-            LivingEntity seme = ((LivingEntity) e.getSource().getEntity());
-            if (isMeleeAttack(e.getSource())) {
-                ItemStack sememain = seme.getMainHandItem();
-                if (sememain.getCapability(CombatManipulator.CAP).isPresent()) {
-                    ICombatItemCapability icic = sememain.getCapability(CombatManipulator.CAP).resolve().get();
-                    e.setAmount(icic.damageStart(e.getSource(), seme, uke, sememain, e.getAmount()));
-                }
-                ItemStack ukemain = uke.getMainHandItem();
-                ItemStack ukeoff = uke.getOffhandItem();
-                if (ukemain.getCapability(CombatManipulator.CAP).isPresent()) {
-                    ICombatItemCapability icic = ukemain.getCapability(CombatManipulator.CAP).resolve().get();
-                    e.setAmount(icic.onBeingDamaged(e.getSource(), uke, ukemain, e.getAmount()));
-                }
-                if (ukeoff.getCapability(CombatManipulator.CAP).isPresent()) {
-                    ICombatItemCapability icic = ukeoff.getCapability(CombatManipulator.CAP).resolve().get();
-                    e.setAmount(icic.onBeingDamaged(e.getSource(), uke, ukeoff, e.getAmount()));
-                }
-            }
-        }
-        if (e.getAmount() < 0) e.setCanceled(true);
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void udedlol(LivingDamageEvent e) {
+    public static void udedlol(LivingDamageEvent.Pre e) {
         LivingEntity uke = e.getEntity();
-        uke.removeEffect(FootworkEffects.DISTRACTION.get());
-        uke.removeEffect(FootworkEffects.FEAR.get());
-        uke.removeEffect(FootworkEffects.SLEEP.get());
-        if (e.getSource() instanceof CombatDamageSource cds && cds.getDamageTyping() == CombatDamageSource.TYPE.TRUE) {
+        uke.removeEffect(FootworkEffects.DISTRACTION);
+        uke.removeEffect(FootworkEffects.FEAR);
+        uke.removeEffect(FootworkEffects.SLEEP);
+        if (e.getContainer().getSource() instanceof CombatDamageSource cds && cds.getDamageTyping() == CombatDamageSource.TYPE.TRUE) {
             //true damage means true damage, dammit!
-            e.setAmount(cds.getOriginalDamage());
+            e.getContainer().setNewDamage(cds.getOriginalDamage());
         }
         //ParticleUtils.playSweepParticle(FootworkParticles.LINE.get(), uke, uke.getPosition(0.5f), 5, 1, Color.RED, 1);
     }

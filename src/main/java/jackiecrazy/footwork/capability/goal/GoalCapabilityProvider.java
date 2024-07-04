@@ -1,43 +1,23 @@
 package jackiecrazy.footwork.capability.goal;
 
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import jackiecrazy.footwork.Footwork;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.util.LazyOptional;
+import net.neoforged.neoforge.capabilities.EntityCapability;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+public class GoalCapabilityProvider {
 
-public class GoalCapabilityProvider implements ICapabilitySerializable<Tag> {
+    public static final EntityCapability<IGoalHelper, Void> CAP =
+            EntityCapability.createVoid(
+                    // Provide a name to uniquely identify the capability.
+                    ResourceLocation.fromNamespaceAndPath(Footwork.MODID, "goal_provider"),
+                    // Provide the queried type. Here, we want to look up `IItemHandler` instances.
+                    IGoalHelper.class);
+    private static final IGoalHelper DUMMY = new GoalCapability();
 
-    public static Capability<IGoalHelper> CAP = CapabilityManager.get(new CapabilityToken<>() {
-    });
-
-    public static LazyOptional<IGoalHelper> getCap(LivingEntity le) {
-        return le.getCapability(CAP);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
-    }
-
-
-    private IGoalHelper instance = new GoalCapability();
-
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        return CAP.orEmpty(cap, LazyOptional.of(()->instance));
-    }
-
-    @Override
-    public Tag serializeNBT() {
-        return new CompoundTag();
-    }
-
-    @Override
-    public void deserializeNBT(Tag nbt) {
-
+    public static IGoalHelper getCap(LivingEntity le) {
+        IGoalHelper ret = le.getCapability(CAP);
+        if (ret != null) return ret;
+        return DUMMY;
     }
 }

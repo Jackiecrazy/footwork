@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -16,14 +15,13 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.io.*;
-import java.nio.file.Files;
 
 public class AttributizeCommand {
 
@@ -74,7 +72,7 @@ public class AttributizeCommand {
     }
 
     private static int attributize(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        Entity player = ctx.getSource().getPlayer();
+        ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) throw EntitySelectorOptions.ERROR_INAPPLICABLE_OPTION.create("sender");
         String str = StringArgumentType.getString(ctx, "as");
         File path = new File("attributized" + File.separatorChar + str + ".json");
@@ -87,7 +85,7 @@ public class AttributizeCommand {
             double mult = spread[index];
             if (s) uglyJson.append(",");
             s = true;
-            uglyJson.append("\"").append(ForgeRegistries.ITEMS.getKey(is.getItem())).append("\":[");
+            uglyJson.append("\"").append(BuiltInRegistries.ITEM.getKey(is.getItem())).append("\":[");
             boolean started = false;
             for (String key : vals) {
                 double val = DoubleArgumentType.getDouble(ctx, key)*mult;

@@ -127,8 +127,8 @@ public class CombatDamageSource extends DamageSource {
     }
 
     @Override
-    public boolean isIndirect() {
-        return getDirectEntity() != getEntity();
+    public boolean isDirect() {
+        return getDirectEntity() == getEntity();
     }
 
     public Move getSkillUsed() {

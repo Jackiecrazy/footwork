@@ -25,14 +25,10 @@ public class TerrorEffect extends FootworkEffect{
     }
 
     @Override
-    public void applyEffectTick(LivingEntity l, int amplifier) {
-        l.removeEffect(this);
+    public boolean applyEffectTick(LivingEntity l, int amplifier) {
+        l.removeEffect(FootworkEffects.TERROR);
         EffectUtils.causeFear(l, l.getKillCredit(), amplifier*20);
-    }
-
-    @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        return true;
+        return false;
     }
 
 

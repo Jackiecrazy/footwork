@@ -1,11 +1,10 @@
 package jackiecrazy.footwork.compat;
 
 import net.minecraft.resources.ResourceLocation;
-import vazkii.patchouli.api.PatchouliAPI;
 
 public class PatchouliCompat {
-    private static final ResourceLocation MANUAL = new ResourceLocation("footwork:combat_manual");
+    private static final ResourceLocation MANUAL = ResourceLocation.parse("footwork:combat_manual");
     public static void openManualClient(){
-        PatchouliAPI.get().openBookGUI(MANUAL);
+        //PatchouliAPI.get().openBookGUI(MANUAL); TODO reenable when patchouli updates
     }
 }

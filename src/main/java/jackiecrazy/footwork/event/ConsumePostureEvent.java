@@ -1,21 +1,20 @@
 package jackiecrazy.footwork.event;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
-@Event.HasResult
-@Cancelable
 /**
  * default for... default, allow to bypass config hard cap
  */
-public class ConsumePostureEvent extends LivingEvent {
+public class ConsumePostureEvent extends LivingEvent implements ICancellableEvent {
     private final float original;
     private final LivingEntity attacker;
     private final float above;
     private float amount;
     private boolean resetCooldown;
+    private TriState execute = TriState.DEFAULT;
 
     public ConsumePostureEvent(LivingEntity entity, LivingEntity attacker, float amnt, float above) {
         super(entity);
@@ -51,5 +50,13 @@ public class ConsumePostureEvent extends LivingEvent {
 
     public void setResetCooldown(boolean reset) {
         resetCooldown = reset;
+    }
+
+    public TriState shouldExecute() {
+        return execute;
+    }
+
+    public void setCanExecute(TriState execute) {
+        this.execute = execute;
     }
 }
