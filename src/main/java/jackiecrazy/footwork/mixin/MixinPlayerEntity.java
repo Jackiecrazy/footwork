@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.event.MeleeKnockbackEvent;
@@ -25,10 +27,6 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 @Mixin(Player.class)
 public abstract class MixinPlayerEntity extends LivingEntity {
 
-    @Shadow public abstract void remove(RemovalReason p_150097_);
-
-    private static boolean tempCrit;
-    private static float tempCdmg;
     private static DamageSource ds;
 
     protected MixinPlayerEntity(EntityType<? extends LivingEntity> type, Level worldIn) {
@@ -41,21 +39,24 @@ public abstract class MixinPlayerEntity extends LivingEntity {
 //        CombatData.getCap(this).setCachedCooldown(f2);
 //    } //Mohist why
 
-
-
-    @Inject(method = "attack", locals = LocalCapture.CAPTURE_FAILSOFT,
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getDeltaMovement()Lnet/minecraft/world/phys/Vec3;"))
-    private void store(Entity pTarget, CallbackInfo ci, float f, ItemStack itemstack, DamageSource damagesource, float f1, float f2, boolean flag4, boolean flag, boolean flag1, CriticalHitEvent hitResult, float f3, boolean flag2, double d0, float f6, LivingEntity var16) {
-        tempCrit = flag2;
-        tempCdmg = hitResult == null ? 1 : hitResult.getDamageMultiplier();
-    }
-
     @Redirect(method = "attack",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/DamageSources;playerAttack(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/damagesource/DamageSource;"))
     private DamageSource customDamageSource(DamageSources instance, Player player) {
-        CombatDamageSource d = new CombatDamageSource(player).setDamageDealer(player.getMainHandItem()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).setCritDamage(tempCdmg).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
+        CombatDamageSource d = new CombatDamageSource(player).setDamageDealer(player.getMainHandItem()).setAttackingHand(CombatData.getCap(player).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setDamageTyping(CombatDamageSource.TYPE.PHYSICAL);
         ds = d;
         return d;
+    }
+
+    @ModifyExpressionValue(
+            method = "attack",
+            at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/common/CommonHooks;fireCriticalHit(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;ZF)Lnet/neoforged/neoforge/event/entity/player/CriticalHitEvent;")
+    )
+    private CriticalHitEvent storeCritResult(CriticalHitEvent original, @Local DamageSource source) {
+        if(source instanceof CombatDamageSource cds){
+            cds.setCrit(original.isCriticalHit());
+            cds.setCritDamage(original.getDamageMultiplier());
+        }
+        return original;
     }
 
     @Inject(method = "attack",
@@ -66,13 +67,6 @@ public abstract class MixinPlayerEntity extends LivingEntity {
             ((LivingEntity) targetEntity).hurtTime = ((LivingEntity) targetEntity).hurtDuration = 0;
         }
     }
-
-    /*@ModifyVariable(method = "actuallyHurt",
-            at = @At(value = "STORE"), name = "p_36313_")
-    private float absorption(float amount) {
-        //makes absorption block true damage
-        return amount;
-    }*/
 
     @Redirect(method = "attack",
             at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))

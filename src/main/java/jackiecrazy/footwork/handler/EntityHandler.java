@@ -5,10 +5,12 @@ import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
+import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
+import jackiecrazy.footwork.utils.ParticleUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -31,6 +33,7 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.UUID;
 
 @EventBusSubscriber(modid = Footwork.MODID)
@@ -156,7 +159,7 @@ public class EntityHandler {
     }
 
     @SubscribeEvent
-    public static void tickMobs(EntityTickEvent e) {
+    public static void tickMobs(EntityTickEvent.Pre e) {
         if (!(e.getEntity() instanceof LivingEntity elb)) return;
         if (CombatData.getCap(elb).isVulnerable() || elb.hasEffect(FootworkEffects.PETRIFY) || elb.hasEffect(FootworkEffects.SLEEP) || elb.hasEffect(FootworkEffects.PARALYSIS)) {
             elb.setXRot(elb.xRotO);

@@ -13,7 +13,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 public class ClientEvents {
     public static boolean paralysis=false;
     @SubscribeEvent
-    public static void paralyze(ClientTickEvent e) {
+    public static void paralyze(ClientTickEvent.Pre e) {
         final Minecraft minecraft = Minecraft.getInstance();
         AbstractClientPlayer p = minecraft.player;
         if (p == null) return;

@@ -13,6 +13,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -26,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.util.Random;
 
-// The value here should match an entry in the META-INF/mods.toml file
+// The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod("footwork")
 public class Footwork {
 
@@ -42,7 +43,6 @@ public class Footwork {
         bus.addListener(this::processIMC);
 
         // Register ourselves for server and other game events we are interested in
-        NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.addListener(this::commands);
         FootworkAttributes.ATTRIBUTES.register(bus);
         FootworkEffects.EFFECTS.register(bus);

@@ -19,7 +19,7 @@ import org.lwjgl.glfw.GLFW;
 public class Keybinds {
     public static final KeyMapping SELECT = new KeyMapping("footwork.trance", KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, "key.categories.wardance");
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void handleInputEvent(InputEvent event) {
+    public static void handleInputEvent(InputEvent.Key event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
         ICombatCapability itsc = CombatData.getCap(mc.player);
