@@ -37,25 +37,10 @@ public class EntityHandler {
     private static final UUID uuid2 = UUID.fromString("98c361c8-de32-4f40-b129-d7752bac3722");
 
     @SubscribeEvent
-    public static void takeThis(EntityJoinLevelEvent e) {
-        if (e.getEntity() instanceof Mob mob) {
-            mob.goalSelector.addGoal(-1, new NoGoal(mob));
-            mob.targetSelector.addGoal(-1, new NoGoal(mob));
-            if (e.getEntity() instanceof PathfinderMob) {
-                PathfinderMob creature = (PathfinderMob) e.getEntity();
-                mob.targetSelector.addGoal(0, new CompelledVengeanceGoal(creature));
-                mob.targetSelector.addGoal(0, new FearGoal(creature));
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public static void tickMobs(LivingEvent.LivingTickEvent e) {
-        LivingEntity elb = e.getEntity();
-        if (CombatData.getCap(elb).isVulnerable() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
-            elb.setXRot(elb.xRotO);
-            elb.setYRot(elb.yRotO);
-            elb.yHeadRot = elb.yHeadRotO;
+    public static void auxEffects(MobEffectEvent.Added e) {
+        if (e.getEffectInstance().getEffect() == FootworkEffects.CONFUSION.get()) {
+            //accompanied by nausea
+            e.getEntity().addEffect(new MobEffectInstance(MobEffects.CONFUSION, e.getEffectInstance().getDuration(), e.getEffectInstance().getAmplifier()));
         }
     }
 
@@ -66,21 +51,6 @@ public class EntityHandler {
         }
     }
 
-    @SubscribeEvent
-    public static void auxEffects(MobEffectEvent.Added e) {
-        if (e.getEffectInstance().getEffect() == FootworkEffects.CONFUSION.get()) {
-            //accompanied by nausea
-            e.getEntity().addEffect(new MobEffectInstance(MobEffects.CONFUSION, e.getEffectInstance().getDuration(), e.getEffectInstance().getAmplifier()));
-        }
-    }
-
-    static boolean isPhysicalAttack(DamageSource s) {
-        if (s instanceof CombatDamageSource cds) {
-            return cds.getDamageTyping() == CombatDamageSource.TYPE.PHYSICAL;
-        }
-        return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
-    }
-
     static boolean isMeleeAttack(DamageSource s) {
         if (s instanceof CombatDamageSource) {
             return ((CombatDamageSource) s).canProcAutoEffects();
@@ -89,10 +59,11 @@ public class EntityHandler {
         return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void save(LivingAttackEvent e) {
-        if (e.getSource() instanceof CombatDamageSource cds && cds.getOriginalDamage()<0)
-            cds.setOriginalDamage(e.getAmount());
+    static boolean isPhysicalAttack(DamageSource s) {
+        if (s instanceof CombatDamageSource cds) {
+            return cds.getDamageTyping() == CombatDamageSource.TYPE.PHYSICAL;
+        }
+        return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -135,6 +106,25 @@ public class EntityHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void save(LivingAttackEvent e) {
+        if (e.getSource() instanceof CombatDamageSource cds && cds.getOriginalDamage() < 0)
+            cds.setOriginalDamage(e.getAmount());
+    }
+
+    @SubscribeEvent
+    public static void takeThis(EntityJoinLevelEvent e) {
+        if (e.getEntity() instanceof Mob mob) {
+            mob.goalSelector.addGoal(-1, new NoGoal(mob));
+            mob.targetSelector.addGoal(-1, new NoGoal(mob));
+            if (e.getEntity() instanceof PathfinderMob) {
+                PathfinderMob creature = (PathfinderMob) e.getEntity();
+                mob.targetSelector.addGoal(0, new CompelledVengeanceGoal(creature));
+                mob.targetSelector.addGoal(0, new FearGoal(creature));
+            }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void tanky(LivingDamageEvent e) {
         final LivingEntity uke = e.getEntity();
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
@@ -162,15 +152,27 @@ public class EntityHandler {
         if (e.getAmount() < 0) e.setCanceled(true);
     }
 
+    @SubscribeEvent
+    public static void tickMobs(LivingEvent.LivingTickEvent e) {
+        LivingEntity elb = e.getEntity();
+        if (CombatData.getCap(elb).isVulnerable() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
+            elb.setXRot(elb.xRotO);
+            elb.setYRot(elb.yRotO);
+            elb.yHeadRot = elb.yHeadRotO;
+        }
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public static void udedlol(LivingDamageEvent e) {
         LivingEntity uke = e.getEntity();
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
-        if (e.getSource() instanceof CombatDamageSource cds && cds.getDamageTyping() == CombatDamageSource.TYPE.TRUE) {
-            //true damage means true damage, dammit!
-            e.setAmount(cds.getOriginalDamage());
+        if (e.getSource() instanceof CombatDamageSource cds) {
+            if (cds.getDamageTyping() == CombatDamageSource.TYPE.TRUE)
+                //true damage means true damage, dammit!
+                e.setAmount(cds.getOriginalDamage());
+            cds.setFinalDamage(e.isCanceled() ? 0 : e.getAmount());
         }
         //ParticleUtils.playSweepParticle(FootworkParticles.LINE.get(), uke, uke.getPosition(0.5f), 5, 1, Color.RED, 1);
     }
