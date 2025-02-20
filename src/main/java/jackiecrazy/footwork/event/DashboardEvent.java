@@ -3,7 +3,6 @@ package jackiecrazy.footwork.event;
 import jackiecrazy.footwork.client.screen.dashboard.DashboardScreen;
 import jackiecrazy.footwork.client.screen.dashboard.PonderingOrb;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.eventbus.api.Event;
 
 import java.util.ArrayList;
 

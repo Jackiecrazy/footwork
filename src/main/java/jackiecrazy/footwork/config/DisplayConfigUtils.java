@@ -2,7 +2,6 @@ package jackiecrazy.footwork.config;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.Mth;
-import net.minecraftforge.common.ForgeConfigSpec;
 
 public class DisplayConfigUtils {
     public enum AnchorPoint {

@@ -1,12 +1,8 @@
 package jackiecrazy.footwork.event;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
-@Event.HasResult
-@Cancelable
 /**
  * default for... default, allow to bypass config hard cap
  */

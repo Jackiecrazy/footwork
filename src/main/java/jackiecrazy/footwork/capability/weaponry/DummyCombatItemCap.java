@@ -1,16 +1,9 @@
 package jackiecrazy.footwork.capability.weaponry;
 
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.core.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.eventbus.api.Event;
-
-import javax.annotation.Nullable;
 
 public class DummyCombatItemCap implements ICombatItemCapability {
 

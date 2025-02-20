@@ -1,10 +1,10 @@
 package jackiecrazy.footwork.api;
 
 import jackiecrazy.footwork.utils.GeneralUtils;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 

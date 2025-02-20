@@ -11,6 +11,6 @@ public class FootworkDamageTypeTags {
     public static final TagKey<DamageType> SKILL = create("skill");
 
     private static TagKey<DamageType> create(String tag) {
-        return TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(tag));
+        return TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.parse(tag));
     }
 }

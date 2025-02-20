@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.compat;
 
-import net.minecraftforge.fml.ModList;
+
+import net.neoforged.fml.ModList;
 
 public class FootworkCompat {
     public static boolean patchouli;

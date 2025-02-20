@@ -3,9 +3,7 @@ package jackiecrazy.footwork.client.particle;
 import com.mojang.serialization.Codec;
 import jackiecrazy.footwork.Footwork;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;

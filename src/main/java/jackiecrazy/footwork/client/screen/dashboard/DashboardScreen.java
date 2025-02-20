@@ -3,12 +3,10 @@ package jackiecrazy.footwork.client.screen.dashboard;
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.event.DashboardEvent;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.MinecraftForge;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

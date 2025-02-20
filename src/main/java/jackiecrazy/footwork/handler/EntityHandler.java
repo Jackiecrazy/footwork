@@ -2,16 +2,15 @@ package jackiecrazy.footwork.handler;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
+import jackiecrazy.footwork.api.FootworkDamageArchetype;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
-import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
+import jackiecrazy.footwork.mixin.CombatDamageSourceMixin;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import jackiecrazy.footwork.utils.ParticleUtils;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -21,13 +20,12 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
-import java.awt.*;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Footwork.MODID)
@@ -46,24 +44,20 @@ public class EntityHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void damageAmp(LivingDamageEvent e) {
-        if (e.getSource() instanceof CombatDamageSource cds) {
+        if (e.getSource() instanceof CombatDamageSourceMixin cds) {
             e.setAmount(e.getAmount() * cds.getMultiplier());
         }
     }
 
     static boolean isMeleeAttack(DamageSource s) {
-        if (s instanceof CombatDamageSource) {
-            return ((CombatDamageSource) s).canProcAutoEffects();
-        }
+        return ((CombatDamageSource) s).canProcAutoEffects();
         //TODO does this break anything?
-        return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
+        //return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
     }
 
     static boolean isPhysicalAttack(DamageSource s) {
-        if (s instanceof CombatDamageSource cds) {
-            return cds.getDamageTyping() == CombatDamageSource.TYPE.PHYSICAL;
-        }
-        return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
+        return ((CombatDamageSource) s).getDamageTyping() == FootworkDamageArchetype.PHYSICAL;
+        //return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -78,7 +72,7 @@ public class EntityHandler {
         }
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid2);
-        if (ds instanceof CombatDamageSource cds) {
+        if (ds instanceof CombatDamageSourceMixin cds) {
             float mult = -cds.getArmorReductionPercentage();
             if (mult != 0) {
                 AttributeModifier armor = new AttributeModifier(uuid2, "temporary armor multiplier", mult, AttributeModifier.Operation.MULTIPLY_TOTAL);
@@ -107,7 +101,7 @@ public class EntityHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void save(LivingAttackEvent e) {
-        if (e.getSource() instanceof CombatDamageSource cds && cds.getOriginalDamage() < 0)
+        if (e.getSource() instanceof CombatDamageSourceMixin cds && cds.getOriginalDamage() < 0)
             cds.setOriginalDamage(e.getAmount());
     }
 
@@ -163,13 +157,13 @@ public class EntityHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void udedlol(LivingDamageEvent e) {
+    public static void udedlol(LivingDamageEvent.Pre e) {
         LivingEntity uke = e.getEntity();
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
         if (e.getSource() instanceof CombatDamageSource cds) {
-            if (cds.getDamageTyping() == CombatDamageSource.TYPE.TRUE)
+            if (cds.getDamageTyping() == FootworkDamageArchetype.TRUE)
                 //true damage means true damage, dammit!
                 e.setAmount(cds.getOriginalDamage());
             cds.setFinalDamage(e.isCanceled() ? 0 : e.getAmount());

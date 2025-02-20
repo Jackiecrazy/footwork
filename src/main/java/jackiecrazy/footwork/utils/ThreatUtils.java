@@ -1,10 +1,6 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.api.FootworkAttributes;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
 public class ThreatUtils {

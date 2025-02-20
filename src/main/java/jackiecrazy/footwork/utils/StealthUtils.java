@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.MinecraftForge;
 
 public class StealthUtils {
     public static StealthUtils INSTANCE = new StealthUtils();//this will be usurped by the stealth one when appropriate

@@ -2,21 +2,10 @@ package jackiecrazy.footwork.client;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.KeyboardInput;
-import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-
-import java.awt.event.MouseEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
 
 @Mod.EventBusSubscriber(modid = Footwork.MODID, value = Dist.CLIENT)
 public class ClientEvents {

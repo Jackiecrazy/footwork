@@ -1,8 +1,6 @@
 package jackiecrazy.footwork.capability.weaponry;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 
 public class CombatManipulator {
 

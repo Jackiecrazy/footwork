@@ -1,10 +1,8 @@
 package jackiecrazy.footwork.event;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.Cancelable;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
-@Cancelable
 public class DodgeEvent extends LivingEvent {
     private double force;
     private Direction side;
