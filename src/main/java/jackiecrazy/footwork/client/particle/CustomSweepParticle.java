@@ -120,7 +120,7 @@ public class CustomSweepParticle extends TextureSheetParticle {
     }
 
     public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_LIT;
+        return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
     }
 
     public int getLightColor(float p_105562_) {
@@ -148,7 +148,7 @@ public class CustomSweepParticle extends TextureSheetParticle {
         }
 
         public Particle createParticle(ScalingParticleType type, ClientLevel world, double posX, double posY, double posZ, double dirX, double dirY, double dirZ) {
-            if (type.getType() == FootworkParticles.IMPACT.get())
+            if (type.getType() == FootworkParticles.IMPACT)
                 return new ImpactParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize(), type.getColor());
             return new CustomSweepParticle(world, posX, posY, posZ, dirX, dirY, dirZ, this.sprites, flat, type.getXSize(), type.getYSize(), type.getLife(), type.getColor());
         }
