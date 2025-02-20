@@ -159,13 +159,14 @@ public class EntityHandler {
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public static void udedlol(LivingDamageEvent.Pre e) {
         LivingEntity uke = e.getEntity();
-        uke.removeEffect(FootworkEffects.DISTRACTION.get());
+        uke.removeEffect(FootworkEffects.DISTRACTION);
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
         if (e.getSource() instanceof CombatDamageSource cds) {
             if (cds.getDamageTyping() == FootworkDamageArchetype.TRUE)
                 //true damage means true damage, dammit!
-                e.setAmount(cds.getOriginalDamage());
+                e.setNewDamage(cds.getOriginalDamage());
+            if()
             cds.setFinalDamage(e.isCanceled() ? 0 : e.getAmount());
         }
         //ParticleUtils.playSweepParticle(FootworkParticles.LINE.get(), uke, uke.getPosition(0.5f), 5, 1, Color.RED, 1);
