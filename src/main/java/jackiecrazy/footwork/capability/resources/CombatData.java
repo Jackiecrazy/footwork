@@ -1,23 +1,45 @@
 package jackiecrazy.footwork.capability.resources;
 
-import jackiecrazy.footwork.Footwork;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.neoforge.capabilities.EntityCapability;
 
-public class CombatData {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class CombatData implements ICapabilitySerializable<CompoundTag> {
     private static ICombatCapability OHNO = new DummyCombatCap();
 
-    public static final EntityCapability<ICombatCapability, Void> CAP =
-            EntityCapability.createVoid(
-                    // Provide a name to uniquely identify the capability.
-                    ResourceLocation.fromNamespaceAndPath(Footwork.MODID, "combat_data"),
-                    // Provide the queried type. Here, we want to look up `IItemHandler` instances.
-                    ICombatCapability.class);
+    public static Capability<ICombatCapability> CAP = CapabilityManager.get(new CapabilityToken<>() {
+    });
 
     public static ICombatCapability getCap(LivingEntity le) {
-        ICombatCapability ret = le.getCapability(CAP);
-        if (ret != null) return ret;
-        return OHNO;
+        return le.getCapability(CAP).orElse(OHNO);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
+    }
+
+    protected final ICombatCapability instance;
+
+    public CombatData() {
+        this(new DummyCombatCap());
+    }
+
+    public CombatData(ICombatCapability cap) {
+        instance = cap;
+    }
+
+    @Nonnull
+    @Override
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
+        return CAP.orEmpty(cap, LazyOptional.of(() -> instance));
+    }
+
+    @Override
+    public CompoundTag serializeNBT() {
+        return instance.write();
+    }
+
+    @Override
+    public void deserializeNBT(CompoundTag nbt) {
+        instance.read(nbt);
     }
 }

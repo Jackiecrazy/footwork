@@ -6,18 +6,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-@EventBusSubscriber(modid = Footwork.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = Footwork.MODID, value = Dist.CLIENT)
 public class ClientEvents {
     public static boolean paralysis=false;
     @SubscribeEvent
-    public static void paralyze(ClientTickEvent.Pre e) {
+    public static void paralyze(TickEvent.ClientTickEvent e) {
         final Minecraft minecraft = Minecraft.getInstance();
         AbstractClientPlayer p = minecraft.player;
         if (p == null) return;
-        if (p.hasEffect(FootworkEffects.PARALYSIS) || p.hasEffect(FootworkEffects.SLEEP) || p.hasEffect(FootworkEffects.PETRIFY)) {
+        if (p.hasEffect(FootworkEffects.PARALYSIS.get()) || p.hasEffect(FootworkEffects.SLEEP.get()) || p.hasEffect(FootworkEffects.PETRIFY.get())) {
             //the big three!
             paralysis=true;
             if (!(minecraft.screen instanceof ParalysisScreen)) {

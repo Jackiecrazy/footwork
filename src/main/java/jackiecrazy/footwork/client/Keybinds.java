@@ -10,16 +10,14 @@ import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.lwjgl.glfw.GLFW;
 
-@EventBusSubscriber(value = Dist.CLIENT, modid = Footwork.MODID)
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Footwork.MODID)
 public class Keybinds {
     public static final KeyMapping SELECT = new KeyMapping("footwork.trance", KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, "key.categories.wardance");
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void handleInputEvent(InputEvent.Key event) {
+    public static void handleInputEvent(InputEvent event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
         ICombatCapability itsc = CombatData.getCap(mc.player);

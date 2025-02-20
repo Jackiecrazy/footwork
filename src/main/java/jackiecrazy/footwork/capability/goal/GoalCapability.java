@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.capability.goal;
 
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
 
 public class GoalCapability implements IGoalHelper {
     private BlockPos p = BlockPos.ZERO.below(100);

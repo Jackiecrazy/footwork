@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.common.NeoForge;
 
 public class StealthUtils {
     public static StealthUtils INSTANCE = new StealthUtils();//this will be usurped by the stealth one when appropriate
@@ -20,13 +19,13 @@ public class StealthUtils {
                 return Awareness.ALERT;
             } else {
                 StealthUtils.Awareness a = Awareness.ALERT;
-                if (target.hasEffect(FootworkEffects.SLEEP) || target.hasEffect(FootworkEffects.PARALYSIS) || target.hasEffect(FootworkEffects.PETRIFY)) {
+                if (target.hasEffect(FootworkEffects.SLEEP.get()) || target.hasEffect(FootworkEffects.PARALYSIS.get()) || target.hasEffect(FootworkEffects.PETRIFY.get())) {
                     a = Awareness.UNAWARE;
-                } else if (target.hasEffect(FootworkEffects.DISTRACTION) || target.hasEffect(FootworkEffects.CONFUSION)) {
+                } else if (target.hasEffect(FootworkEffects.DISTRACTION.get()) || target.hasEffect(FootworkEffects.CONFUSION.get())) {
                     a = Awareness.DISTRACTED;
                 }
                 EntityAwarenessEvent eae = new EntityAwarenessEvent(target, attacker, a);
-                NeoForge.EVENT_BUS.post(eae);
+                MinecraftForge.EVENT_BUS.post(eae);
                 return eae.getAwareness();
             }
         } else {

@@ -1,10 +1,9 @@
 package jackiecrazy.footwork.capability.weaponry;
 
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.damagesource.DamageSource;
-import net.neoforged.neoforge.common.damagesource.DamageContainer;
 
 public interface ICombatItemCapability {
 
@@ -26,7 +25,7 @@ public interface ICombatItemCapability {
     /**
      * called on CriticalHitEvent to determine whether the hit is critical
      */
-    boolean critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit);
+    Event.Result critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit);
 
     /**
      * this is called on CriticalHitEvent to determine crit multiplier
@@ -57,35 +56,35 @@ public interface ICombatItemCapability {
      *
      * @return a new damage if necessary
      */
-    float hurtStart(DamageContainer ds, LivingEntity attacker, LivingEntity target, ItemStack item);
+    float hurtStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingDamageEvent, after armor, absorption, and all other reductions
      *
      * @return a new damage if necessary
      */
-    float damageStart(DamageContainer ds, LivingEntity attacker, LivingEntity target, ItemStack item);
+    float damageStart(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingHurtEvent to apply armor down for the particular attack only
      *
      * @return how much armor to ignore
      */
-    int armorIgnoreAmount(DamageContainer ds, LivingEntity attacker, LivingEntity target, ItemStack item);
+    int armorIgnoreAmount(DamageSource ds, LivingEntity attacker, LivingEntity target, ItemStack item, double orig);
 
     /**
      * this is called on LivingHurtEvent, after hurtStart, but before downed damage multipliers have been applied
      *
      * @return a new damage if necessary
      */
-    float onBeingHurt(DamageContainer ds, LivingEntity defender, ItemStack item);
+    float onBeingHurt(DamageSource ds, LivingEntity defender, ItemStack item, double amount);
 
     /**
      * this is called on LivingDamageEvent, after damageStart
      *
      * @return a new damage if necessary
      */
-    float onBeingDamaged(DamageContainer ds, LivingEntity defender, ItemStack item);
+    float onBeingDamaged(DamageSource ds, LivingEntity defender, ItemStack item, double amount);
 
     /**
      * this is called during LivingAttackEvent to determine whether this item can parry

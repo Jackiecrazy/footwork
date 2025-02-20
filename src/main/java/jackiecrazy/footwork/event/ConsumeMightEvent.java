@@ -1,17 +1,15 @@
 package jackiecrazy.footwork.event;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.bus.api.ICancellableEvent;
-import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
 /**
- * cancel to not consume might
- * allow to permit subsequent execution, deny to prevent. Default is if there's enough might.
- * if not canceled and denied, the might will be consumed but will never execute.
- * if not canceled and allowed, the might will be consumed to the limit, but will always execute.
+ * cancel to not consume spirit
+ * allow to return true, deny to return false
+ * if not canceled and denied, the might will be consumed but will return false.
+ * if not canceled and allowed, the might will be consumed to the limit, but will always return true.
  */
-public class ConsumeMightEvent extends LivingEvent implements ICancellableEvent {
+public class ConsumeMightEvent extends LivingEvent {
     private final float original;
     private float amount;
     private final float above;
@@ -35,14 +33,5 @@ public class ConsumeMightEvent extends LivingEvent implements ICancellableEvent 
 
     public void setAmount(float amount){
         this.amount=amount;
-    }
-
-    private TriState execute=TriState.DEFAULT;
-    public TriState shouldExecute() {
-        return execute;
-    }
-
-    public void setCanExecute(TriState execute) {
-        this.execute = execute;
     }
 }

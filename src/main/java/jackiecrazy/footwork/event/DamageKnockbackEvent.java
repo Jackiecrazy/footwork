@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.event;
 
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 
 public class DamageKnockbackEvent extends LivingEvent {
