@@ -32,6 +32,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
@@ -115,6 +116,35 @@ public class GeneralUtils {
         look = attacker.getLookAngle().scale(range);
         end = start.add(look);
         HitResult rtr = world.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null));
+        if (rtr != null) {
+            return rtr;
+        }
+        return BlockHitResult.miss(end, Direction.UP, BlockPos.containing(end.x, end.y, end.z));
+    }
+
+    @Nonnull
+    public static HitResult raytraceAnything(Level world, Vec3 start, Vec3 direction, double distance, boolean doEntities, ClipContext.Block block, ClipContext.Fluid fluid) {
+        Vec3 end = start.add(direction);
+        if (doEntities) {
+            Entity entity = null;
+            List<Entity> list = world.getEntities((Entity) null, new AABB(start, end).inflate(1.0D), EntitySelector.ENTITY_STILL_ALIVE);
+            double d0 = 0.0D;
+
+            for (Entity entity1 : list) {
+                AABB axisalignedbb = entity1.getBoundingBox();
+                Optional<Vec3> raytraceresult = axisalignedbb.clip(start, end);
+                if (raytraceresult.isPresent()) {
+                    double d1 = getDistSqCompensated(entity1, start);
+
+                    if ((d1 < d0 || d0 == 0.0D) && d1 < distance * distance) {
+                        entity = entity1;
+                        d0 = d1;
+                    }
+                }
+            }
+            if (entity != null) return new EntityHitResult(entity);
+        }
+        HitResult rtr = world.clip(new ClipContext(start, end, block, fluid, null));
         if (rtr != null) {
             return rtr;
         }
@@ -324,7 +354,7 @@ public class GeneralUtils {
     /**
      * @author Suff/Swirtzly
      */
-    public static boolean viewBlocked(LivingEntity viewer, LivingEntity viewed, boolean flimsy) {
+    public static boolean viewBlocked(Entity viewer, Entity viewed, boolean flimsy) {
         if (viewer.distanceToSqr(viewed) > 1000) return true;//what
         AABB viewerBoundBox = viewer.getBoundingBox();
         AABB angelBoundingBox = viewed.getBoundingBox();
@@ -363,7 +393,7 @@ public class GeneralUtils {
      * @author Suff/Swirtzly
      */
     @Nullable
-    private static HitResult rayTraceBlocks(LivingEntity livingEntity, Level world, Vec3 vec31, Vec3 vec32, Predicate<BlockPos> stopOn) {
+    private static HitResult rayTraceBlocks(Entity livingEntity, Level world, Vec3 vec31, Vec3 vec32, Predicate<BlockPos> stopOn) {
         if (!Double.isNaN(vec31.x) && !Double.isNaN(vec31.y) && !Double.isNaN(vec31.z)) {
             if (!Double.isNaN(vec32.x) && !Double.isNaN(vec32.y) && !Double.isNaN(vec32.z)) {
                 int i = Mth.floor(vec32.x);
