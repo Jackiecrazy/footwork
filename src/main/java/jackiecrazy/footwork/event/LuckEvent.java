@@ -14,9 +14,9 @@ public class LuckEvent extends LivingEvent {
     public float getOriginalChance() {
         return origChance;
     }
-    @HasResult
     public static class Pre extends LuckEvent{
         private float chance;
+
 
         public Pre(LivingEntity entity, float chance) {
             super(entity, chance);

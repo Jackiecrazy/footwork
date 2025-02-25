@@ -1,20 +1,25 @@
 package jackiecrazy.footwork.entity;
 
 import jackiecrazy.footwork.Footwork;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 @EventBusSubscriber(modid = Footwork.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class FootworkEntities {
-    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, Footwork.MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, Footwork.MODID);
 
-    public static final RegistryObject<EntityType<DummyEntity>> DUMMY = ENTITIES.register("dummy", () -> EntityType.Builder
+    public static final DeferredHolder<EntityType<?>, EntityType<DummyEntity>> DUMMY = ENTITIES.register("dummy", () -> EntityType.Builder
             .of(DummyEntity::new, MobCategory.MISC)
             .sized(0.5F, 0.5F)
-            .build("dummy"));
+            .build(ResourceKey.create(BuiltInRegistries.ENTITY_TYPE.key(), ResourceLocation.fromNamespaceAndPath(Footwork.MODID, "dummy"))));
 
     @SubscribeEvent
     public static void attribute(EntityAttributeCreationEvent e){

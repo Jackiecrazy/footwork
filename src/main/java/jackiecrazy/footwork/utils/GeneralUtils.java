@@ -8,23 +8,26 @@ package jackiecrazy.footwork.utils;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.WitherSkeleton;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.piglin.Piglin;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -32,12 +35,12 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.*;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -55,28 +58,29 @@ public class GeneralUtils {
 
     @Nullable
     public static EntityType getEntityTypeFromResourceLocation(ResourceLocation rl) {
-        if (ForgeRegistries.ENTITY_TYPES.containsKey(rl))
-            return ForgeRegistries.ENTITY_TYPES.getValue(rl);
+        if (BuiltInRegistries.ENTITY_TYPE.containsKey(rl))
+            return BuiltInRegistries.ENTITY_TYPE.getValue(rl);
         return null;
     }
 
     @Nullable
     public static ResourceLocation getResourceLocationFromEntityType(EntityType et) {
-        if (ForgeRegistries.ENTITY_TYPES.containsValue(et))
-            return ForgeRegistries.ENTITY_TYPES.getKey(et);
+        if (BuiltInRegistries.ENTITY_TYPE.containsValue(et))
+            return BuiltInRegistries.ENTITY_TYPE.getKey(et);
         return null;
     }
 
     @Nullable
     public static ResourceLocation getResourceLocationFromEntity(Entity et) {
         final EntityType<?> type = et.getType();
-        if (ForgeRegistries.ENTITY_TYPES.containsValue(type)) {
-            final ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(type);
+        if (BuiltInRegistries.ENTITY_TYPE.containsValue(type)) {
+            final ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
             return key;
         }
         return null;
     }
 
+    //fixme why is this a different function???
     @Nonnull
     public static HitResult raytraceAnything(Level world, LivingEntity attacker, double range) {
         Vec3 start = attacker.getEyePosition(0.5f);
@@ -103,7 +107,7 @@ public class GeneralUtils {
         if (entity != null) return new EntityHitResult(entity);
         look = attacker.getLookAngle().scale(range);
         end = start.add(look);
-        HitResult rtr = world.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null));
+        HitResult rtr = world.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.of(attacker)));
         if (rtr != null) {
             return rtr;
         }
@@ -132,7 +136,7 @@ public class GeneralUtils {
             }
             if (entity != null) return new EntityHitResult(entity);
         }
-        HitResult rtr = world.clip(new ClipContext(start, end, block, fluid, null));
+        HitResult rtr = world.clip(new ClipContext(start, end, block, fluid, CollisionContext.empty()));
         if (rtr != null) {
             return rtr;
         }
@@ -508,7 +512,7 @@ public class GeneralUtils {
     public static boolean canSeeThrough(BlockState blockState, Level world, BlockPos pos) {
 
         // Covers all Block, Material and Tag checks :D
-        if (!blockState.canOcclude() || !blockState.isSolidRender(world, pos)) {
+        if (!blockState.canOcclude() || !blockState.isSolidRender()) {
             return true;
         }
 
@@ -738,40 +742,36 @@ public class GeneralUtils {
             ret = new ItemStack(Items.DRAGON_HEAD);
         else if (elb instanceof Piglin)
             ret = new ItemStack(Items.PIGLIN_HEAD);
-        else if (elb instanceof Player) {
-            Player p = (Player) elb;
-            ret = new ItemStack(Items.PLAYER_HEAD);
-            ret.setTag(new CompoundTag());
-            ret.getTag().putString("SkullOwner", p.getName().getString());
-        }
+//        else if (elb instanceof Player) {
+//            Player p = (Player) elb;
+//            ret = new ItemStack(Items.PLAYER_HEAD);
+//            //ret.set(DataComponents.PROFILE, p.getGameProfile());
+//        }
         return ret;
     }
 
-    public static double getAttributeValueHandSensitive(LivingEntity e, Attribute a, InteractionHand h) {
+    public static double getAttributeValueHandSensitive(LivingEntity e, Holder<Attribute> a, InteractionHand h) {
         final AttributeInstance instance = e.getAttribute(a);
         if (instance == null) return 4;
         if (h == InteractionHand.MAIN_HAND) return getAttributeValueSafe(e, a);
         AttributeInstance mai = new AttributeInstance(a, (n) -> {
         });
         mai.setBaseValue(instance.getBaseValue());
-        Collection<AttributeModifier> ignore = e.getMainHandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).get(a);
+        List<ItemAttributeModifiers.Entry> ignore = e.getMainHandItem().getAttributeModifiers().modifiers();
         instance.getModifiers().forEach(am -> {
-            if (ignore.stream().noneMatch(b -> am.getId() == b.getId())) mai.addTransientModifier(am);
+            if (ignore.stream().noneMatch(b -> am.id() == b.modifier().id())) mai.addTransientModifier(am);
         });
-        for (AttributeModifier f : e.getOffhandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).get(a)) {
-            mai.removeModifier(f.getId());
-            mai.addTransientModifier(f);
+        for (ItemAttributeModifiers.Entry f : e.getOffhandItem().getAttributeModifiers().modifiers()) {
+            if(f.attribute()==a) {
+                mai.removeModifier(f.modifier().id());
+                mai.addTransientModifier(f.modifier());
+            }
         }
         return mai.getValue();
     }
 
-    public static double getAttributeValueSafe(LivingEntity e, Attribute a) {
+    public static double getAttributeValueSafe(LivingEntity e, Holder<Attribute> a) {
         if (e.getAttribute(a) != null) return e.getAttributeValue(a);
-        return a.getDefaultValue();
-    }
-
-    public static boolean isKitMain(ItemStack is) {
-        //if (is.getItem() == Items.IRON_AXE) return true;
-        return is.getTag() != null && is.getTag().getBoolean("kit");
+        return a.value().getDefaultValue();
     }
 }
