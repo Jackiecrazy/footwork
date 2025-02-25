@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.common.NeoForge;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -47,12 +48,12 @@ public class DashboardScreen extends Screen {
                     clickOn.onClick(0, 0);
             } else clickOn.alpha = Math.min(1, clickOn.alpha + 0.05f);
         }
-        this.renderBackground(matrixStack);
+        this.renderBackground(matrixStack, mouseX, mouseY, partialTicks);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         int i = width / 2;
         int j = height + 100;
         matrixStack.pose().translate(0, 0, 100);
-        InventoryScreen.renderEntityInInventoryFollowsMouse(matrixStack, i, j, 90, (float) (i) - mouseX, (float) (j - 150) - mouseY, this.minecraft.player);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(matrixStack, i-25, j-35, i+25, i+35, 90, 0.0625F, mouseX, mouseY, this.minecraft.player);
         matrixStack.pose().translate(0, 0, -100);
     }
 
@@ -60,7 +61,7 @@ public class DashboardScreen extends Screen {
     protected void init() {
         //collect all pondering orbs
         final DashboardEvent ds = new DashboardEvent(p, this);
-        MinecraftForge.EVENT_BUS.post(ds);
+        NeoForge.EVENT_BUS.post(ds);
         orbs = ds.getThoughts();
         //figure out how big each orb should be
         int orbSize = 64;

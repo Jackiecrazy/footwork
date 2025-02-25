@@ -4,6 +4,8 @@ import com.mojang.serialization.MapCodec;
 import jackiecrazy.footwork.Footwork;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +28,11 @@ public class FootworkParticles {
             @Override
             public MapCodec<ScalingParticleType> codec() {
                 return ScalingParticleType.codec(this);
+            }
+
+            @Override
+            public StreamCodec<? super RegistryFriendlyByteBuf, ScalingParticleType> streamCodec() {
+                return;
             }
         };
     }

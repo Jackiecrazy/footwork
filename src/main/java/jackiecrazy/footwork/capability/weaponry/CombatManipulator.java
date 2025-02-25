@@ -1,12 +1,10 @@
 package jackiecrazy.footwork.capability.weaponry;
 
-import net.minecraft.world.item.ItemStack;
+import jackiecrazy.footwork.Footwork;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.capabilities.ItemCapability;
 
 public class CombatManipulator {
 
-    public static Capability<ICombatItemCapability> CAP = null;
-
-    public static LazyOptional<ICombatItemCapability> getCap(ItemStack le) {
-        return le.getCapability(CAP);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
-    }
+    public static ItemCapability<ICombatItemCapability, Void> CAP = ItemCapability.createVoid(ResourceLocation.fromNamespaceAndPath(Footwork.MODID, "combat_capability"), ICombatItemCapability.class);
 }

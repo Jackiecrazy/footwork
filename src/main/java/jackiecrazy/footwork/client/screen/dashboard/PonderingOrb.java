@@ -6,7 +6,8 @@ import jackiecrazy.footwork.Footwork;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -50,13 +51,13 @@ public class PonderingOrb extends ImageButton {
     public void renderWidget(@Nonnull GuiGraphics matrixStack, int mouseX, int mouseY, float partialTicks) {
         //move around slowly unless you're hovering over it
         //may need to be in parent instead to handle collisions
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShader(CoreShaders.POSITION_TEX);//fixme weird warning
         RenderSystem.setShaderTexture(0, this.interior);
         RenderSystem.enableBlend();
         RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
         RenderSystem.setShaderColor(1, 1f, 1, alpha);
         RenderSystem.enableDepthTest();
-        matrixStack.blit(interior, getX(), getY(), 0, 0, this.width + 1, this.height + 1, this.width, this.height);
+        matrixStack.blit(RenderType.GUI_TEXTURED, interior, getX(), getY(), 0, 0, this.width + 1, this.height + 1, this.width, this.height);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();

@@ -224,41 +224,6 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
         return this;
     }
 
-    @Override
-    public float getOriginalDamage() {
-        return original;
-    }
-
-    @Override
-    public CombatDamageSourceMixin setOriginalDamage(float original) {
-        this.original = original;
-        return this;
-    }
-
-    @Override
-    public void setFinalDamage(float fin) {
-        finalized = fin;
-    }
-
-    @Override
-    public float getFinalDamage() {
-        return finalized;
-    }
-
-    float absorption;
-
-    @Override
-    public float getDockedAbsorption() {
-        return absorption;
-    }
-
-    @Override
-    public CombatDamageSourceMixin setDockedAbsorption(float absorption) {
-        this.absorption = absorption;
-        original -= Math.min(absorption, original);
-        return this;
-    }
-
     @Inject(method = "is(Lnet/minecraft/tags/TagKey;)Z", at = @At("RETURN"), cancellable = true)
     public void is(TagKey<DamageType> type, CallbackInfoReturnable<Boolean> cir) {
         switch (damageTyping) {

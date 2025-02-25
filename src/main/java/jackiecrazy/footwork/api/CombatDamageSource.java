@@ -71,18 +71,6 @@ public interface CombatDamageSource {
 
     CombatDamageSource setMultiplier(float multiplier);
 
-    float getOriginalDamage();
-
-    CombatDamageSource setOriginalDamage(float original);
-
-    void setFinalDamage(float fin);
-
-    float getFinalDamage();
-
-    float getDockedAbsorption();
-
-    CombatDamageSource setDockedAbsorption(float absorption);
-
     boolean isProjectile();
 
     CombatDamageSource setProjectile();

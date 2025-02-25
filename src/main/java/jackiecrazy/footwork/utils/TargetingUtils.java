@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.utils;
 
+import jackiecrazy.footwork.entity.FootworkDataAttachments;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -37,5 +39,17 @@ public class TargetingUtils {
             }
         }
         return false;
+    }
+
+    public static void setInvestigatePosition(LivingEntity e, BlockPos position){
+        e.setData(FootworkDataAttachments.SOUND_LOCATION, position);
+    }
+
+    public static void setForcedAttack(LivingEntity e, LivingEntity target){
+        e.setData(FootworkDataAttachments.FORCE_TARGET, target);
+    }
+
+    public static void setFearTarget(LivingEntity e, LivingEntity target){
+        e.setData(FootworkDataAttachments.FEAR_TARGET, target);
     }
 }

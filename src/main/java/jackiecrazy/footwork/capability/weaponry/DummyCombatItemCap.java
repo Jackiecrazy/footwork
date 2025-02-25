@@ -24,7 +24,7 @@ public class DummyCombatItemCap implements ICombatItemCapability {
     }
 
     @Override
-    public Event.Result critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit) {
+    public boolean critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit) {
         return Event.Result.DEFAULT;
     }
 

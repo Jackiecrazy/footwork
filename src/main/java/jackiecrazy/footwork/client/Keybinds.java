@@ -13,7 +13,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.lwjgl.glfw.GLFW;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Footwork.MODID)
+@EventBusSubscriber(value = Dist.CLIENT, modid = Footwork.MODID)
 public class Keybinds {
     public static final KeyMapping SELECT = new KeyMapping("footwork.trance", KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, "key.categories.wardance");
     @SubscribeEvent(priority = EventPriority.HIGHEST)

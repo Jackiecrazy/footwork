@@ -1,9 +1,7 @@
 package jackiecrazy.footwork.entity.ai;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
 import jackiecrazy.footwork.entity.FootworkDataAttachments;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -17,7 +15,7 @@ public class CompelledVengeanceGoal extends NearestAttackableTargetGoal<LivingEn
 
     @Override
     protected void findTarget() {
-        LivingEntity potential = mob.getData(FootworkDataAttachments.FEAR_TARGET);
+        LivingEntity potential = mob.getData(FootworkDataAttachments.FORCE_TARGET);
         if (potential != null && mob.distanceToSqr(potential) < 100)
             target = potential;
     }
@@ -38,7 +36,7 @@ public class CompelledVengeanceGoal extends NearestAttackableTargetGoal<LivingEn
     public void stop() {
         super.stop();
         target = null;
-        mob.setData(FootworkDataAttachments.FEAR_TARGET, null);
+        mob.setData(FootworkDataAttachments.FORCE_TARGET, null);
     }
 
     @Override

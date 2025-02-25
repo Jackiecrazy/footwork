@@ -25,7 +25,7 @@ public interface ICombatItemCapability {
     /**
      * called on CriticalHitEvent to determine whether the hit is critical
      */
-    Event.Result critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit);
+    boolean critCheck(LivingEntity attacker, LivingEntity target, ItemStack item, double crit, boolean vanCrit);
 
     /**
      * this is called on CriticalHitEvent to determine crit multiplier

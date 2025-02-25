@@ -6,16 +6,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-@Mod.EventBusSubscriber(modid = Footwork.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Footwork.MODID, value = Dist.CLIENT)
 public class ClientEvents {
     public static boolean paralysis=false;
     @SubscribeEvent
-    public static void paralyze(TickEvent.ClientTickEvent e) {
+    public static void paralyze(ClientTickEvent e) {
         final Minecraft minecraft = Minecraft.getInstance();
         AbstractClientPlayer p = minecraft.player;
         if (p == null) return;
-        if (p.hasEffect(FootworkEffects.PARALYSIS.get()) || p.hasEffect(FootworkEffects.SLEEP.get()) || p.hasEffect(FootworkEffects.PETRIFY.get())) {
+        if (p.hasEffect(FootworkEffects.PARALYSIS) || p.hasEffect(FootworkEffects.SLEEP) || p.hasEffect(FootworkEffects.PETRIFY)) {
             //the big three!
             paralysis=true;
             if (!(minecraft.screen instanceof ParalysisScreen)) {
@@ -24,10 +26,11 @@ public class ClientEvents {
             }
         } else {
             paralysis=false;
+            //todo does this still work
             if (minecraft.screen instanceof ParalysisScreen) {
                 minecraft.setScreen(null);
                 minecraft.keyboardHandler.tick();
-                minecraft.player.input.tick(false, 0);
+                minecraft.player.input.tick();
             }
         }
     }
