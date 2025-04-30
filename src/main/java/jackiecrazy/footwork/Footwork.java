@@ -57,7 +57,7 @@ public class Footwork {
     }
 
     private void setup(final RegisterCapabilitiesEvent event) {
-        event.register(ICombatCapability.class);
+        event.registerEntity(ICombatCapability.class);
         event.register(ICombatItemCapability.class);
         event.register(IGoalHelper.class);
     }
