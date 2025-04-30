@@ -2,15 +2,14 @@ package jackiecrazy.footwork.handler;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
+import jackiecrazy.footwork.api.FootworkDamageArchetype;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
-import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import jackiecrazy.footwork.utils.ParticleUtils;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -22,12 +21,14 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.awt.*;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Footwork.MODID)
@@ -61,7 +62,7 @@ public class EntityHandler {
 
     static boolean isPhysicalAttack(DamageSource s) {
         if (s instanceof CombatDamageSource cds) {
-            return cds.getDamageTyping() == CombatDamageSource.TYPE.PHYSICAL;
+            return cds.getDamageTyping() == FootworkDamageArchetype.PHYSICAL;
         }
         return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
     }
@@ -103,12 +104,6 @@ public class EntityHandler {
                 uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
             }
         }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void save(LivingAttackEvent e) {
-        if (e.getSource() instanceof CombatDamageSource cds && cds.getOriginalDamage() < 0)
-            cds.setOriginalDamage(e.getAmount());
     }
 
     @SubscribeEvent
@@ -168,12 +163,5 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
-        if (e.getSource() instanceof CombatDamageSource cds) {
-            if (cds.getDamageTyping() == CombatDamageSource.TYPE.TRUE)
-                //true damage means true damage, dammit!
-                e.setAmount(cds.getOriginalDamage());
-            cds.setFinalDamage(e.isCanceled() ? 0 : e.getAmount());
-        }
-        //ParticleUtils.playSweepParticle(FootworkParticles.LINE.get(), uke, uke.getPosition(0.5f), 5, 1, Color.RED, 1);
     }
 }
