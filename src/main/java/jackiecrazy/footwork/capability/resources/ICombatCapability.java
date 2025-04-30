@@ -11,13 +11,16 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public interface ICombatCapability {
-    //might, spirit, posture, combo
-    //might cooldown, spirit cooldown, posture cooldown, combo grace period
-    //stagger timer, stagger counter for downed attacks
-    //offhand cooldown, shield parry time, sidestep/roll timer
+    //adrenaline, spirit (int), posture, combo, rally
+    //global out of combat cooldown, spirit cooldown, rally timer, combo grace period
+    //knockdown timer, stun timer. Don't need to be separate. Use one boolean to store whether the timer is for stunned or knocked down.
+    //offhand cooldown, shield parry time, dodge timer, dodge cooldown
     //set, get, increment/decrement, consume (resource only)
     //is offhand attack, combat mode
-    //shatter, shatter cooldown
+
+    //rally gets set after posture is consumed with a flag to rally (all external sources of damage).
+    // It stays at max for half a second, then loses max(1, 1/(10*rally duration)) of its value per tick until it rounds to the true value.
+
     void updateDefenselessStatus();
 
     float getMaxMight();
