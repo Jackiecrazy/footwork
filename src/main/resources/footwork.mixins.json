@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "footwork.refmap.json",
   "mixins": [
+    "CombatDamageSourceMixin",
     "MixinAttackSpeed",
     "MixinPlayerEntity",
     "MixinTagEntry"

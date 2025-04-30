@@ -10,12 +10,16 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.UUID;
 
 public class FootworkAttributes {
-    public static final UUID[] MODIFIERS = {
-            UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553da"),
-            UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553db"),
-            UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553dc"),
-            UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553dd")
-    };
+    //adrenaline, spirit (int), posture, combo, rally
+    //global out of combat cooldown, spirit cooldown, rally timer, combo grace period
+    //knockdown timer, stun timer. Don't need to be separate. Use one boolean to store whether the timer is for stunned or knocked down.
+    //offhand cooldown, shield parry time, dodge timer, dodge cooldown
+    //set, get, increment/decrement, consume (resource only)
+    //is offhand attack, combat mode
+
+    //rally gets set after posture is consumed with a flag to rally. It stays at max for half a second, then loses 1/(3*rally duration) of its value per tick until it rounds to the true value.
+
+    public static final UUID[] MODIFIERS = {UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553da"), UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553db"), UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553dc"), UUID.fromString("a516026a-bee2-4014-bcb6-b6a5775553dd")};
     public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, Footwork.MODID);
     public static final RegistryObject<Attribute> STEALTH = ATTRIBUTES.register("stealth", () -> new RangedAttribute(Footwork.MODID + ".stealth", 0d, -1024, 1024).setSyncable(true));
     public static final RegistryObject<Attribute> ENCIRCLEMENT_DISTANCE = ATTRIBUTES.register("encirclement_distance", () -> new RangedAttribute(Footwork.MODID + ".encirclement_distance", 0d, 0, 1024).setSyncable(true));
