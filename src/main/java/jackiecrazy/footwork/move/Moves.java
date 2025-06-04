@@ -2,7 +2,7 @@ package jackiecrazy.footwork.move;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import jackiecrazy.footwork.CombatCircle;
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.utils.JsonAdapters;
 import net.minecraft.resources.ResourceLocation;
@@ -31,12 +31,12 @@ public class Moves extends SimpleJsonResourceReloadListener {
         moves.clear();
         object.forEach((key, value) -> {
             JsonArray file = value.getAsJsonArray();
-            CombatCircle.LOGGER.debug("loading move definition found under {}", key);
+            Footwork.LOGGER.debug("loading move definition found under {}", key);
             try {
                 a=JsonAdapters.gson.fromJson(file, Action[].class)[0];
                 moves.put(key, file);
             } catch (Exception e) {
-                CombatCircle.LOGGER.error("{} is an invalid moveset, it will not be registered!", key);
+                Footwork.LOGGER.error("{} is an invalid moveset, it will not be registered!", key);
                 e.printStackTrace();
             }
         });

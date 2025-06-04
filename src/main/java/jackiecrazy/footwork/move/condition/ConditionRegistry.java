@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.CombatCircle;
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.argument.ArgumentType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.DeferredRegister;
@@ -10,9 +10,9 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.function.Supplier;
 
 public class ConditionRegistry {
-    public static ResourceLocation REGISTRY_NAME = new ResourceLocation(CombatCircle.MODID, "conditions");
+    public static ResourceLocation REGISTRY_NAME = new ResourceLocation(Footwork.MODID, "conditions");
     public static Supplier<IForgeRegistry<ArgumentType<Boolean>>> SUPPLIER;
-    public static DeferredRegister<ArgumentType<Boolean>> CONDITIONS = DeferredRegister.create(REGISTRY_NAME, CombatCircle.MODID);
+    public static DeferredRegister<ArgumentType<Boolean>> CONDITIONS = DeferredRegister.create(REGISTRY_NAME, Footwork.MODID);
 
     //logical//
     public static final RegistryObject<SingletonConditionType> TRUE = CONDITIONS.register("true", () -> new SingletonConditionType(TrueCondition.class, TrueCondition.INSTANCE));

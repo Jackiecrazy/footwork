@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.capability.resources;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -115,4 +116,9 @@ public interface ICombatCapability {
 
     int getHandBind(InteractionHand hand);
     void setHandBind(InteractionHand hand, int time);
+
+    CompoundTag write();
+    void read(CompoundTag from);
+
+    boolean isOffhandAttack();
 }

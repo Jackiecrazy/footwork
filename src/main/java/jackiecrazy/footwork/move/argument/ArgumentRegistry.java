@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument;
 
-import jackiecrazy.footwork.CombatCircle;
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.entity.EntityArgument;
 import jackiecrazy.footwork.move.argument.entity.SelectorEntityArgument;
@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ArgumentRegistry {
-    public static ResourceLocation REGISTRY_NAME = new ResourceLocation(CombatCircle.MODID, "arguments");
+    public static ResourceLocation REGISTRY_NAME = new ResourceLocation(Footwork.MODID, "arguments");
     public static Supplier<IForgeRegistry<ArgumentType<?>>> SUPPLIER;
-    public static DeferredRegister<ArgumentType<?>> ARGUMENTS = DeferredRegister.create(REGISTRY_NAME, CombatCircle.MODID);
+    public static DeferredRegister<ArgumentType<?>> ARGUMENTS = DeferredRegister.create(REGISTRY_NAME, Footwork.MODID);
 
     //entity//
     public static final RegistryObject<ArgumentType<Entity>> CASTER = ARGUMENTS.register("caster", () -> new SingletonArgumentType<>(CasterEntityArgument.class, CasterEntityArgument.INSTANCE));

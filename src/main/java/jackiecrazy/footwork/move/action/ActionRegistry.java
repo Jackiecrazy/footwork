@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.CombatCircle;
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.action.timer.AddVelocityAction;
 import jackiecrazy.footwork.move.action.timer.MoveToAction;
 import jackiecrazy.footwork.move.action.timer.ProjectHitboxAction;
@@ -19,9 +19,9 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.function.Supplier;
 
 public class ActionRegistry {
-    public static ResourceLocation REGISTRY_NAME = new ResourceLocation(CombatCircle.MODID, "actions");
+    public static ResourceLocation REGISTRY_NAME = new ResourceLocation(Footwork.MODID, "actions");
     public static Supplier<IForgeRegistry<ActionType>> SUPPLIER;
-    public static DeferredRegister<ActionType> ACTIONS = DeferredRegister.create(REGISTRY_NAME, CombatCircle.MODID);
+    public static DeferredRegister<ActionType> ACTIONS = DeferredRegister.create(REGISTRY_NAME, Footwork.MODID);
 
     //Timer Actions//
     public static final RegistryObject<ActionType> WAIT = ACTIONS.register("wait", () -> (a) -> JsonAdapters.gson.fromJson(a, WaitAction.class));

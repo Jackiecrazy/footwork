@@ -10,106 +10,109 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 
 public interface CombatDamageSource {
-    float getCritDamage();
+    float footwork$getCritDamage();
 
-    CombatDamageSource setCritDamage(float cdmg);
+    CombatDamageSource footwork$setCritDamage(float cdmg);
 
-    FootworkDamageArchetype getDamageTyping();
+    FootworkDamageArchetype footwork$getDamageTyping();
 
-    CombatDamageSource setDamageTyping(FootworkDamageArchetype damageTyping);
+    CombatDamageSource footwork$setDamageTyping(FootworkDamageArchetype damageTyping);
 
-    boolean isCrit();
+    boolean footwork$isCrit();
 
-    CombatDamageSource setCrit(boolean crit);
+    CombatDamageSource footwork$setCrit(boolean crit);
 
-    ItemStack getDamageDealer();
+    ItemStack footwork$getDamageDealer();
 
-    CombatDamageSource setDamageDealer(ItemStack damageDealer);
+    CombatDamageSource footwork$setDamageDealer(ItemStack damageDealer);
 
     @Nullable
-    InteractionHand getAttackingHand();
+    InteractionHand footwork$getAttackingHand();
 
-    CombatDamageSource setAttackingHand(InteractionHand attackingHand);
+    CombatDamageSource footwork$setAttackingHand(InteractionHand attackingHand);
 
-    Entity getProxy();
+    Entity footwork$getProxy();
 
-    CombatDamageSource setProxy(Entity proxy);
+    CombatDamageSource footwork$setProxy(Entity proxy);
 
-    Move getSkillUsed();
+    Move footwork$getSkillUsed();
 
-    CombatDamageSource setSkillUsed(Move skillUsed);
+    CombatDamageSource footwork$setSkillUsed(Move skillUsed);
 
-    boolean canProcAutoEffects();
+    boolean footwork$canProcAutoEffects();
 
-    CombatDamageSource setProcNormalEffects(boolean procNormalEffects);
+    CombatDamageSource footwork$setProcNormalEffects(boolean procNormalEffects);
 
-    boolean canProcAttackEffects();
+    boolean footwork$canProcAttackEffects();
 
-    CombatDamageSource setProcAttackEffects(boolean procAttackEffects);
+    CombatDamageSource footwork$setProcAttackEffects(boolean procAttackEffects);
 
-    boolean canProcSkillEffects();
+    boolean footwork$canProcSkillEffects();
 
-    CombatDamageSource setProcSkillEffects(boolean procSkillEffects);
+    CombatDamageSource footwork$setProcSkillEffects(boolean procSkillEffects);
 
-    CombatDamageSource flag(TagKey<DamageType>... tags);
+    CombatDamageSource footwork$flag(TagKey<DamageType>... tags);
 
-    CombatDamageSource unflag(TagKey<DamageType>... tags);
+    CombatDamageSource footwork$unflag(TagKey<DamageType>... tags);
 
-    float getArmorReductionPercentage();
+    float footwork$getArmorReductionPercentage();
 
-    CombatDamageSource setArmorReductionPercentage(float armorReductionPercentage);
+    CombatDamageSource footwork$setArmorReductionPercentage(float armorReductionPercentage);
 
-    float getKnockbackPercentage();
+    float footwork$getKnockbackPercentage();
 
-    CombatDamageSource setKnockbackPercentage(float perc);
+    CombatDamageSource footwork$setKnockbackPercentage(float perc);
 
-    float getPostureDamage();
+    float footwork$getPostureDamage();
 
-    CombatDamageSource setPostureDamage(float postureDamage);
+    CombatDamageSource footwork$setPostureDamage(float postureDamage);
 
-    float getMultiplier();
+    float footwork$getMultiplier();
 
-    CombatDamageSource setMultiplier(float multiplier);
+    CombatDamageSource footwork$setMultiplier(float multiplier);
 
-    boolean isProjectile();
+    boolean footwork$isProjectile();
 
-    CombatDamageSource setProjectile();
+    CombatDamageSource footwork$setProjectile();
 
-    boolean isExplosion();
+    boolean footwork$isExplosion();
 
-    CombatDamageSource setExplosion();
+    CombatDamageSource footwork$setExplosion();
 
-    boolean isBypassArmor();
+    boolean footwork$isBypassArmor();
 
-    boolean isBypassInvul();
+    boolean footwork$isBypassInvul();
 
-    boolean isBypassMagic();
+    boolean footwork$isBypassMagic();
 
-    boolean isBypassEnchantments();
+    boolean footwork$isBypassEnchantments();
 
-    CombatDamageSource bypassArmor();
+    CombatDamageSource footwork$bypassArmor();
 
-    CombatDamageSource bypassInvul();
+    CombatDamageSource footwork$bypassInvul();
 
-    CombatDamageSource bypassMagic();
+    CombatDamageSource footwork$bypassMagic();
 
-    CombatDamageSource bypassEnchantments();
+    CombatDamageSource footwork$bypassEnchantments();
 
-    CombatDamageSource setIsFire();
+    CombatDamageSource footwork$setIsFire();
 
-    CombatDamageSource setNoAggro();
+    CombatDamageSource footwork$setNoAggro();
 
-    boolean isFire();
+    boolean footwork$isFire();
 
-    boolean isNoAggro();
+    boolean footwork$isNoAggro();
 
-    boolean isMagic();
+    boolean footwork$isMagic();
 
-    CombatDamageSource setMagic();
+    CombatDamageSource footwork$setMagic();
 
-    boolean isFall();
+    boolean footwork$isFall();
 
-    CombatDamageSource setIsFall();
+    CombatDamageSource footwork$setIsFall();
 
-    boolean isCreativePlayer();
+    boolean footwork$isCreativePlayer();
+
+    void footwork$setFinalizedDamage(double amount);
+    double footwork$getFinalizedDamage();
 }

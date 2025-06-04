@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.CombatCircle;
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.MovesetWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
@@ -42,7 +42,7 @@ public class SpawnEntityAction extends Action {
         Level level = performer.level();
         if (level instanceof ServerLevel serverlevel) {
             for (int x = 0; x < toSpawn; x++) {
-                Vec3 rand = new Vec3((CombatCircle.rand.nextDouble()) * deviation, (CombatCircle.rand.nextDouble()) * deviation, (CombatCircle.rand.nextDouble()) * deviation);
+                Vec3 rand = new Vec3((Footwork.rand.nextDouble()) * deviation, (Footwork.rand.nextDouble()) * deviation, (Footwork.rand.nextDouble()) * deviation);
                 final Vec3 pos = vec.add(rand);
                 CompoundTag compoundtag = tag == null ? new CompoundTag() : tag.copy();
                 compoundtag.putString("id", entity.resolve(wrapper, parent, performer, target).toString());

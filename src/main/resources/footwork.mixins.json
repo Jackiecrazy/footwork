@@ -5,6 +5,7 @@
   "refmap": "footwork.refmap.json",
   "mixins": [
     "CombatDamageSourceMixin",
+    "EffectStartAccessor",
     "MixinAttackSpeed",
     "MixinPlayerEntity",
     "MixinTagEntry"

@@ -25,7 +25,7 @@ public class DealDamageAction extends Action {
         DamageSource baked = damage_source.resolve(wrapper, parent, performer, target);
         boolean success = target.hurt(baked, amount.resolve(wrapper, parent, performer, target).floatValue());
         if (baked instanceof CombatDamageSource cds)
-            performer.getPersistentData().putFloat("combatcircle:finalized_damage", cds.getFinalDamage());
+            performer.getPersistentData().putDouble("footwork:finalized_damage", cds.footwork$getFinalizedDamage());
         int ret = runActions(wrapper, parent, on_hit, performer, target);
         if (success) {
             if (!target.isAlive()) {
@@ -35,6 +35,7 @@ public class DealDamageAction extends Action {
             int damageRet = runActions(wrapper, parent, on_damage, performer, target);
             if (damageRet != 0) ret = damageRet;
         }
+        performer.getPersistentData().remove("footwork:finalized_damage");
         return ret;
     }
 }

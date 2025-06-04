@@ -48,13 +48,13 @@ public class EntityHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void damageAmp(LivingDamageEvent e) {
         if (e.getSource() instanceof CombatDamageSource cds) {
-            e.setAmount(e.getAmount() * cds.getMultiplier());
+            e.setAmount(e.getAmount() * cds.footwork$getMultiplier());
         }
     }
 
     static boolean isMeleeAttack(DamageSource s) {
         if (s instanceof CombatDamageSource) {
-            return ((CombatDamageSource) s).canProcAutoEffects();
+            return ((CombatDamageSource) s).footwork$canProcAutoEffects();
         }
         //TODO does this break anything?
         return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
@@ -62,7 +62,7 @@ public class EntityHandler {
 
     static boolean isPhysicalAttack(DamageSource s) {
         if (s instanceof CombatDamageSource cds) {
-            return cds.getDamageTyping() == FootworkDamageArchetype.PHYSICAL;
+            return cds.footwork$getDamageTyping() == FootworkDamageArchetype.PHYSICAL;
         }
         return !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_FIRE) && !s.is(DamageTypeTags.WITCH_RESISTANT_TO) && !s.is(DamageTypeTags.BYPASSES_ARMOR);
     }
@@ -80,7 +80,7 @@ public class EntityHandler {
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid2);
         if (ds instanceof CombatDamageSource cds) {
-            float mult = -cds.getArmorReductionPercentage();
+            float mult = -cds.footwork$getArmorReductionPercentage();
             if (mult != 0) {
                 AttributeModifier armor = new AttributeModifier(uuid2, "temporary armor multiplier", mult, AttributeModifier.Operation.MULTIPLY_TOTAL);
                 uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
@@ -157,11 +157,16 @@ public class EntityHandler {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
-    public static void udedlol(LivingDamageEvent e) {
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void clearEffects(LivingDamageEvent e) {
         LivingEntity uke = e.getEntity();
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
+    public static void updateDamage(LivingDamageEvent e) {
+        if (e.getSource() instanceof CombatDamageSource cds) cds.footwork$setFinalizedDamage(e.getAmount());
     }
 }

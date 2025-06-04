@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.capability.MovesetData;
+import jackiecrazy.footwork.capability.action.ActionData;
 import jackiecrazy.footwork.move.Moves;
 import jackiecrazy.footwork.move.MovesetWrapper;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
@@ -23,7 +23,7 @@ public class AttachActionAction extends Action {
     @Override
     public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity perform, Entity target) {
         ArrayList<TimerAction> timers = new ArrayList<>(List.of(JsonAdapters.gson.fromJson(Moves.moves.get(effect.resolve(wrapper, parent, perform, target)), TimerAction[].class)));
-        MovesetData.getCap(recipient.resolve(wrapper, parent, perform, target)).mark(performer.resolve(wrapper, parent, perform, target), new MovesetWrapper(timers));
+        ActionData.getCap(recipient.resolve(wrapper, parent, perform, target)).mark(performer.resolve(wrapper, parent, perform, target), new MovesetWrapper(timers));
         return 0;
     }
 }

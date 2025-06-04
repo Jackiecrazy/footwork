@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.capability.resources;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -255,5 +256,20 @@ public class DummyCombatCap implements ICombatCapability {
     @Override
     public void setHandBind(InteractionHand hand, int time) {
 
+    }
+
+    @Override
+    public CompoundTag write() {
+        return null;
+    }
+
+    @Override
+    public void read(CompoundTag from) {
+
+    }
+
+    @Override
+    public boolean isOffhandAttack() {
+        return false;
     }
 }
