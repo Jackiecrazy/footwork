@@ -1,0 +1,45 @@
+package jackiecrazy.footwork.move.action.timer;
+
+import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.action.Action;
+import jackiecrazy.footwork.move.argument.Argument;
+import net.minecraft.world.entity.Entity;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+public class ProjectHitboxAction extends TimerAction {
+    /**
+     * 0 for once only, other hitboxes repeat every x ticks.
+     */
+    private int hit_cooldown;
+    private Argument<List<Entity>> selector;
+    private List<Action> actions = new ArrayList<>();
+
+    @Override
+    public void start(MovesetWrapper wrapper, Entity performer, Entity target) {
+        wrapper.setData(this, new HashMap<>());
+    }
+
+    @Override
+    public int tick(MovesetWrapper wrapper, Entity performer, Entity target) {
+        HashMap<Entity, Long> lastHit = wrapper.getData(this);
+        for (Entity e : selector.resolve(wrapper, this, performer, target)) {
+            if (hit_cooldown == 0 && lastHit.containsKey(e)) continue;
+            if (lastHit.containsKey(e) && lastHit.get(e) < e.level().getGameTime() + hit_cooldown) continue;
+            int childRet = runActions(wrapper, this, actions, performer, e);
+            if (childRet != 0) return childRet;
+            lastHit.put(e, e.level().getGameTime());
+        }
+        return super.tick(wrapper, performer, target);
+    }
+
+    public void stop(MovesetWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+        if (recursive) {
+            actions.forEach(a -> a.stop(wrapper, performer, target, true));
+        }
+        super.stop(wrapper, performer, target, recursive);
+    }
+
+}

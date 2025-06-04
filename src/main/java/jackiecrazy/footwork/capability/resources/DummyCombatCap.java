@@ -1,19 +1,11 @@
 package jackiecrazy.footwork.capability.resources;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
 
 public class DummyCombatCap implements ICombatCapability {
-
 
     @Override
     public void updateDefenselessStatus() {
@@ -21,81 +13,44 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public float getMaxMight() {
+    public float getAdrenaline() {
         return 0;
     }
 
     @Override
-    public float getMight() {
+    public void setAdrenaline(float to) {
+
+    }
+
+    @Override
+    public float addAdrenaline(float amount) {
         return 0;
     }
 
     @Override
-    public void setMight(float amount) {
-
-    }
-
-    @Override
-    public float addMight(float amount) {
+    public int getSpirit() {
         return 0;
     }
 
     @Override
-    public boolean consumeMight(float amount, float above) {
+    public void setSpirit(float spirit) {
+
+    }
+
+    @Override
+    public boolean consumeSpirit(int amount) {
         return false;
     }
 
     @Override
-    public int getMightGrace() {
+    public int addSpirit(int amount) {
         return 0;
     }
 
     @Override
-    public void setMightGrace(int amount) {
-
-    }
-
-
-    @Override
-    public float getMaxSpirit() {
+    public int getMaxSpirit() {
         return 0;
     }
-
-    @Override
-    public float getSpirit() {
-        return 0;
-    }
-
-    @Override
-    public void setSpirit(float amount) {
-
-    }
-
-    @Override
-    public float addSpirit(float amount) {
-        return 0;
-    }
-
-    @Override
-    public boolean consumeSpirit(float amount, float above) {
-        return false;
-    }
-
-    @Override
-    public int getSpiritGrace() {
-        return 0;
-    }
-
-    @Override
-    public void setSpiritGrace(int amount) {
-
-    }
-
-    @Override
-    public float getMaxPosture() {
-        return 0;
-    }
-
 
     @Override
     public float getPosture() {
@@ -103,7 +58,7 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void setPosture(float amount) {
+    public void setPosture(float posture) {
 
     }
 
@@ -113,20 +68,29 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public float consumePosture(LivingEntity assailant, float amount, float above, boolean force) {
+    public float consumePosture(LivingEntity assailant, float amount, boolean breach) {
         return 0;
     }
 
     @Override
-    public int getPostureGrace() {
+    public float getRally() {
         return 0;
     }
 
     @Override
-    public void setPostureGrace(int amount) {
+    public void setRally(float rally) {
 
     }
 
+    @Override
+    public float addRally(float amount) {
+        return 0;
+    }
+
+    @Override
+    public void convertRally(float quantity) {
+
+    }
 
     @Override
     public int getMaxStunTime() {
@@ -139,206 +103,27 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void stun(int time) {
+    public void stun(LivingEntity assailant, int time) {
 
     }
 
     @Override
-    public int getMaxKnockdownTime() {
-        return 0;
-    }
-
-    @Override
-    public int getKnockdownTime() {
-        return 0;
-    }
-
-    @Override
-    public void knockdown(int time) {
-
-    }
-
-    @Override
-    public boolean isStunned() {
+    public boolean isKnockdown() {
         return false;
     }
 
     @Override
-    public boolean isKnockedDown() {
-        return false;
-    }
-
-
-    @Override
-    public int getFractureCount() {
-        return 0;
-    }
-
-    @Override
-    public int getFractureCount(LivingEntity appliedBy) {
-        return 0;
-    }
-
-    HashMap<UUID, Integer> EMPTY=new HashMap<>();
-
-    @Override
-    public HashMap<UUID, Integer> getFractureList() {
-        return EMPTY;
-    }
-
-    @Override
-    public boolean addFracture(@Nullable LivingEntity source, int amount) {
-        return true;
-    }
-
-    @Override
-    public void clearFracture(@Nullable LivingEntity of, boolean clearInvalid) {
+    public void knockdown(LivingEntity assailant, int time) {
 
     }
 
     @Override
-    public float getMaxFracture() {
-        return 0;
+    public Vec3 getMotionConsistently() {
+        return null;
     }
 
     @Override
-    public int getMaxExposeTime() {
-        return 0;
-    }
-
-    @Override
-    public int getExposeTime() {
-        return 0;
-    }
-
-    @Override
-    public void expose(int time) {
-
-    }
-
-    @Override
-    public boolean isExposed() {
-        return false;
-    }
-
-
-    @Override
-    public float getRank() {
-        return 0;
-    }
-
-    @Override
-    public void setRank(float amount) {
-
-    }
-
-    @Override
-    public void setAdrenalineCooldown(int amount) {
-
-    }
-
-    @Override
-    public boolean halvedAdrenaline() {
-        return false;
-    }
-
-    @Override
-    public float addRank(float amount) {
-        return 0;
-    }
-
-    @Override
-    public boolean consumeRank(float amount, float above) {
-        return false;
-    }
-
-    @Override
-    public int getOffhandCooldown() {
-        return 0;
-    }
-
-    @Override
-    public void setOffhandCooldown(int amount) {
-
-    }
-
-    @Override
-    public int getRollTime() {
-        return 0;
-    }
-
-    @Override
-    public void setRollTime(int amount) {
-
-    }
-
-    @Override
-    public void decrementRollTime(int amount) {
-
-    }
-
-    @Override
-    public boolean isOffhandAttack() {
-        return false;
-    }
-
-    @Override
-    public void setOffhandAttack(boolean off) {
-
-    }
-
-    @Override
-    public boolean isCombatMode() {
-        return false;
-    }
-
-    @Override
-    public void toggleCombatMode(boolean on) {
-
-    }
-
-    @Override
-    public int getHandBind(InteractionHand h) {
-        return 0;
-    }
-
-    @Override
-    public void setHandBind(InteractionHand h, int amount) {
-
-    }
-
-    @Override
-    public boolean consumeEvade() {
-        return false;
-    }
-
-    @Override
-    public int getEvade() {
-        return 0;
-    }
-
-    @Override
-    public void setEvade(int value) {
-
-    }
-
-    @Override
-    public float getCachedCooldown() {
-        return 0;
-    }
-
-    @Override
-    public void setCachedCooldown(float value) {
-
-    }
-
-    @Override
-    public int getForcedSweep() {
-        return 0;
-    }
-
-    @Override
-    public void setForcedSweep(int angle) {
+    public void serverTick() {
 
     }
 
@@ -348,82 +133,127 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void serverTick() {
-
-    }
-
-    @Override
-    public void sync() {
-
-    }
-
-    @Override
-    public ItemStack getTempItemStack() {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public void setTempItemStack(ItemStack is) {
-
-    }
-
-    @Override
-    public void read(CompoundTag tag) {
-
-    }
-
-    @Override
-    public int getParryingTick() {
+    public int getOffhandCooldown() {
         return 0;
     }
 
     @Override
-    public void setParryingTick(int parrying) {
+    public void setOffhandCooldown(int cool) {
 
     }
 
     @Override
-    public int getSweepTick() {
-        return 0;
-    }
-
-    @Override
-    public void setSweepTick(int tick) {
-
-    }
-
-    @Override
-    public boolean isValid() {
+    public boolean isDodging() {
         return false;
     }
 
     @Override
-    public Vec3 getMotionConsistently() {
-        return Vec3.ZERO;
-    }
-
-    @Override
-    public CompoundTag write() {
-        return new CompoundTag();
-    }
-
-    @Override
-    public void addRangedMight(boolean pass) {
-
-    }
-
-    @Override
-    public boolean isStaggeringStrike() {
+    public boolean canDodge() {
         return false;
     }
 
     @Override
-    public int getRetina() {
+    public int getDodgeTime() {
         return 0;
     }
 
     @Override
-    public float visionRange() {
+    public void setDodgeTime(int time) {
+
+    }
+
+    @Override
+    public boolean isParrying() {
+        return false;
+    }
+
+    @Override
+    public boolean canParry() {
+        return false;
+    }
+
+    @Override
+    public int getParryTime() {
         return 0;
+    }
+
+    @Override
+    public void setParryTime(int time) {
+
+    }
+
+    @Override
+    public boolean isBlocking() {
+        return false;
+    }
+
+    @Override
+    public boolean canBlock() {
+        return false;
+    }
+
+    @Override
+    public int getGuardTime() {
+        return 0;
+    }
+
+    @Override
+    public void setGuardTime(int time) {
+
+    }
+
+    @Override
+    public boolean isIframe() {
+        return false;
+    }
+
+    @Override
+    public int getIframe() {
+        return 0;
+    }
+
+    @Override
+    public void setIframe(int time) {
+
+    }
+
+    @Override
+    public int getDamageRecordTime() {
+        return 0;
+    }
+
+    @Override
+    public float getRecordedDamage() {
+        return 0;
+    }
+
+    @Override
+    public void recordDamage(LivingEntity recorder, float amount) {
+
+    }
+
+    @Override
+    public void stopRecording(DamageSource countAs) {
+
+    }
+
+    @Override
+    public int getPinTime() {
+        return 0;
+    }
+
+    @Override
+    public void pin(int time) {
+
+    }
+
+    @Override
+    public int getHandBind(InteractionHand hand) {
+        return 0;
+    }
+
+    @Override
+    public void setHandBind(InteractionHand hand, int time) {
+
     }
 }

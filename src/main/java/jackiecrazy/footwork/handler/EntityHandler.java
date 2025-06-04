@@ -150,7 +150,7 @@ public class EntityHandler {
     @SubscribeEvent
     public static void tickMobs(LivingEvent.LivingTickEvent e) {
         LivingEntity elb = e.getEntity();
-        if (CombatData.getCap(elb).isVulnerable() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
+        if (CombatData.getCap(elb).isKnockdown() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
             elb.setXRot(elb.xRotO);
             elb.setYRot(elb.yRotO);
             elb.yHeadRot = elb.yHeadRotO;

@@ -1,241 +1,118 @@
 package jackiecrazy.footwork.capability.resources;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.UUID;
-
 public interface ICombatCapability {
-    //adrenaline, spirit (int), posture, combo, rally
+    //adrenaline, spirit (int), posture, rally, trigger bar counter
     //global out of combat cooldown, spirit cooldown, rally timer, combo grace period
     //knockdown timer, stun timer. Don't need to be separate. Use one boolean to store whether the timer is for stunned or knocked down.
     //offhand cooldown, shield parry time, dodge timer, dodge cooldown
     //set, get, increment/decrement, consume (resource only)
     //is offhand attack, combat mode
+    //recording time, recorded damage, recorder
 
+
+    //adrenaline is generated the same way as might, but at a bigger discount because the hard cap is 1.
+    //spirit is an int, remember to +1 on roll and refill on iframes.
+    //posture is the good ol' posture except it only regenerates on mobs. It's about mid sized.
+    //have consume posture not have an above/below flag or any of that crap, only a can_breach that's flagged false if it's a non-trigger player attack
+    //while posture is not empty incoming damage is reduced by posture??? How to calculate damage <> posture?
+    //on taking a breaching hit to posture, flag stun, which interrupts all AI, cancels all knockback, and records damage?
+    //on taking a breaching hit while stunned, flag knockdown, greatly knockback, make entity invulnerable until end.
+    //posture is not consumed and regens at a fixed rate when flagged in either condition, but it becomes gray until it's cleared.
+    //it takes about 6s to get back to full.
+    //on receiving jump input as player, perform circle sweep with knockback and return to mobility at current posture percentage.
     //rally gets set after posture is consumed with a flag to rally (all external sources of damage).
     // It stays at max for half a second, then loses max(1, 1/(10*rally duration)) of its value per tick until it rounds to the true value.
+    //split guard frames, dodge frames, iframes, and parry frames.
+    //Guard frames are set to a number and decrement, you are considered guarding while it's active. Guarding against an attack flinches the attacker, and counts as an attack for filling trigger.
+    //upon releasing sneak, set parry frames for a set number of ticks. Successful parrying creates a shockwave that deals light posture damage, adds 1 second iframe, and adds a trigger charge.
+    //upon dodging, set dodge frames for a set number of ticks. Successful dodging slows local time and refills spirit, and counts as an attack for filling trigger.
+    //Ticks keep falling under 0, and a configurable number less than 0 serves as the parry cooldown for sneak release.
+    //iframes are iframes. Nothing happens on an iframe.
+    //priority is iframe>dodge>parry>guard for resolution.
 
     void updateDefenselessStatus();
 
-    float getMaxMight();
+    float getAdrenaline();
+    void setAdrenaline(float to);
+    float addAdrenaline(float amount);
 
-    float getMight();
-
-    void setMight(float amount);
-
-    float addMight(float amount);
-
-    default boolean consumeMight(float amount) {
-        return consumeMight(amount, 0);
-    }
-
-    boolean consumeMight(float amount, float above);
-
-    int getMightGrace();
-
-    void setMightGrace(int amount);
-
-    float getMaxSpirit();
-
-    float getSpirit();
-
-    void setSpirit(float amount);
-
-    float addSpirit(float amount);
-
-    default boolean consumeSpirit(float amount) {
-        return consumeSpirit(amount, 0);
-    }
-
-    boolean consumeSpirit(float amount, float above);
-
-    int getSpiritGrace();
-
-    void setSpiritGrace(int amount);
-
-    float getMaxPosture();
+    int getSpirit();
+    void setSpirit(float spirit);
+    boolean consumeSpirit(int amount);
+    int addSpirit(int amount);
+    int getMaxSpirit();
 
     float getPosture();
-
-    void setPosture(float amount);
-
+    void setPosture(float posture);
     float addPosture(float amount);
-
-    default boolean doConsumePosture(float amount) {
-        return consumePosture(amount, 0) == 0;
+    float consumePosture(LivingEntity assailant, float amount, boolean breach);
+    default float consumePosture(LivingEntity assailant, float amount){
+        return consumePosture(assailant, amount, true);
+    }
+    default float consumePosture(float amount){
+        return consumePosture(null, amount);
     }
 
-    default float consumePosture(float amount) {
-        return consumePosture(amount, 0);
-    }
-
-    default float consumePosture(LivingEntity attacker, float amount) {
-        return consumePosture(attacker, amount, 0);
-    }
-
-    default float consumePosture(float amount, float above) {
-        return consumePosture(null, amount, above, false);
-    }
-
-    default float consumePosture(LivingEntity attacker, float amount, float above) {
-        return consumePosture(attacker, amount, above, false);
-    }
-
-    float consumePosture(LivingEntity assailant, float amount, float above, boolean force);
-
-    int getPostureGrace();
-
-    void setPostureGrace(int amount);
+    float getRally();
+    void setRally(float rally);
+    float addRally(float amount);
+    void convertRally(float quantity);
 
     int getMaxStunTime();
-
     int getStunTime();
-
-    void stun(int time);
-
-    default boolean isVulnerable() {
-        return isStunned() || isKnockedDown() || isExposed();
+    void stun(LivingEntity assailant, int time);
+    default void stun(int time){
+        stun(null, time);
+    }
+    boolean isKnockdown();//immune to damage
+    void knockdown(LivingEntity assailant, int time);
+    default void knockdown(int time){
+        knockdown(null, time);
     }
 
-    int getMaxKnockdownTime();
-
-    int getKnockdownTime();
-
-    void knockdown(int time);
-
-    boolean isStunned();
-
-    boolean isKnockedDown();
-
-    int getFractureCount();
-
-    int getFractureCount(LivingEntity appliedBy);
-
-    /**
-     * @return the entity id-fracture marks inflicted by it
-     * edge case behavior: revenge killing an entity will clear all invalid fracture marks, for dimension reasons
-     */
-    HashMap<UUID, Integer> getFractureList();
-
-    boolean addFracture(@Nullable LivingEntity source, int amount);
-
-    void clearFracture(@Nullable LivingEntity of, boolean clearInvalid);
-
-    float getMaxFracture();
-
-    int getMaxExposeTime();
-
-    int getExposeTime();
-
-    void expose(int time);
-
-    boolean isExposed();
-
-    float getRank();
-
-    void setRank(float amount);
-
-    default int getComboRank() {
-        float workingCombo = getRank();
-        if (workingCombo >= 9)
-            return 7;//SSStylish!
-        if (workingCombo >= 6) {
-            return 6;//SShowtime!
-        }
-        if (workingCombo >= 4) {
-            return 5;//Sweet!
-        }
-        return (int) workingCombo;//all other ranks
-    }
-
-    void setAdrenalineCooldown(int amount);
-
-    boolean halvedAdrenaline();
-
-    float addRank(float amount);
-
-    default boolean consumeRank(float amount) {
-        return consumeRank(amount, 0);
-    }
-
-    boolean consumeRank(float amount, float above);
-
-    int getOffhandCooldown();
-
-    void setOffhandCooldown(int amount);
-
-    /**
-     * for the sake of convenience, positive is subject to cooldown and negatives are free
-     */
-    int getRollTime();
-
-    void setRollTime(int amount);
-
-    void decrementRollTime(int amount);
-
-    boolean isOffhandAttack();
-
-    void setOffhandAttack(boolean off);
-
-    boolean isCombatMode();
-
-    void toggleCombatMode(boolean on);
-
-    int getHandBind(InteractionHand h);
-
-    void setHandBind(InteractionHand h, int amount);
-
-    boolean consumeEvade();
-
-    int getEvade();
-
-    void setEvade(int value);
-
-    float getCachedCooldown();
-
-    void setCachedCooldown(float value);
-
-    int getForcedSweep();
-
-    void setForcedSweep(int angle);
-
-    void clientTick();
+    Vec3 getMotionConsistently();
 
     void serverTick();
+    void clientTick();
 
-    void sync();
+    int getOffhandCooldown();
+    void setOffhandCooldown(int cool);
 
-    ItemStack getTempItemStack();
+    boolean isDodging();
+    boolean canDodge();
+    int getDodgeTime();
+    void setDodgeTime(int time);
 
-    void setTempItemStack(ItemStack is);
+    boolean isParrying();
+    boolean canParry();
+    int getParryTime();
+    void setParryTime(int time);
 
-    int getParryingTick();//hey, it's useful for future "smart" entities as well.
+    boolean isBlocking();
+    boolean canBlock();
+    int getGuardTime();//special implementation on players
+    void setGuardTime(int time);
 
-    void setParryingTick(int parrying);
+    boolean isIframe();
+    int getIframe();
+    void setIframe(int time);
 
-    int getSweepTick();
+    int getDamageRecordTime();
+    float getRecordedDamage();
+    void recordDamage(LivingEntity recorder, float amount);
+    void stopRecording(DamageSource countAs);
 
-    void setSweepTick(int tick);
+    int getPinTime();
+    default boolean isPinned(){
+        return getPinTime()>0;
+    }
+    void pin(int time);
 
-    boolean isValid();
-
-    Vec3 getMotionConsistently();//I can't believe I have to do this.
-
-    CompoundTag write();
-
-    void read(CompoundTag tag);
-
-    void addRangedMight(boolean pass);
-
-    boolean isStaggeringStrike();
-
-    int getRetina();
-
-    float visionRange();
+    int getHandBind(InteractionHand hand);
+    void setHandBind(InteractionHand hand, int time);
 }
