@@ -38,10 +38,6 @@ public interface ICombatCapability {
 
     void updateDefenselessStatus();
 
-    float getAdrenaline();
-    void setAdrenaline(float to);
-    float addAdrenaline(float amount);
-
     int getSpirit();
     void setSpirit(float spirit);
     boolean consumeSpirit(int amount);

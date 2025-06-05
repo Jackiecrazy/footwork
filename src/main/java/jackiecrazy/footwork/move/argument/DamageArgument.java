@@ -15,9 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -48,22 +46,21 @@ public class DamageArgument implements Argument<DamageSource> {
             dtags = tags.stream().map(a -> TagKey.create(Registries.DAMAGE_TYPE, a)).collect(Collectors.toSet());
         }
         Entity entity = source.resolve(wrapper, parent, caster, target);
-        DamageSource ret = new DamageSource(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK));
-        CombatDamageSource casted = (CombatDamageSource)ret;
-        casted
-                .footwork$setDamageDealer(equip.resolve(wrapper, parent, caster, target))
-                .footwork$setProxy(proxy.resolve(wrapper, parent, caster, target))
-                .footwork$setDamageTyping(typing)
-                .footwork$setProcAttackEffects(proc_attack.resolve(wrapper, parent, caster, target))
-                .footwork$setProcSkillEffects(proc_skill.resolve(wrapper, parent, caster, target))
-                .footwork$setProcNormalEffects(proc_normal.resolve(wrapper, parent, caster, target))
-                .footwork$setCrit(crit.resolve(wrapper, parent, caster, target))
-                .footwork$setCritDamage(crit_damage.resolve(wrapper, parent, caster, target).floatValue())
-                .footwork$setArmorReductionPercentage(armor_pierce_percentage.resolve(wrapper, parent, caster, target).floatValue())
-                .footwork$setKnockbackPercentage(knockback_percentage.resolve(wrapper, parent, caster, target).floatValue())
-                .footwork$setMultiplier(damage_multiplier.resolve(wrapper, parent, caster, target).floatValue())
-                .footwork$setPostureDamage(posture_damage.resolve(wrapper, parent, caster, target).floatValue());
-        dtags.forEach(casted::footwork$flag);
+        CombatDamageSource ret = new CombatDamageSource(entity);//DamageSource(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK));
+        ret
+                .setDamageDealer(equip.resolve(wrapper, parent, caster, target))
+                .setProxy(proxy.resolve(wrapper, parent, caster, target))
+                .setDamageTyping(typing)
+                .setProcAttackEffects(proc_attack.resolve(wrapper, parent, caster, target))
+                .setProcSkillEffects(proc_skill.resolve(wrapper, parent, caster, target))
+                .setProcNormalEffects(proc_normal.resolve(wrapper, parent, caster, target))
+                .setCrit(crit.resolve(wrapper, parent, caster, target))
+                .setCritDamage(crit_damage.resolve(wrapper, parent, caster, target).floatValue())
+                .setArmorReductionPercentage(armor_pierce_percentage.resolve(wrapper, parent, caster, target).floatValue())
+                .setKnockbackPercentage(knockback_percentage.resolve(wrapper, parent, caster, target).floatValue())
+                .setMultiplier(damage_multiplier.resolve(wrapper, parent, caster, target).floatValue())
+                .setPostureDamage(posture_damage.resolve(wrapper, parent, caster, target).floatValue());
+        dtags.forEach(ret::flag);
         return ret;
     }
 }

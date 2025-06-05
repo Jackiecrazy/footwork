@@ -14,21 +14,6 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public float getAdrenaline() {
-        return 0;
-    }
-
-    @Override
-    public void setAdrenaline(float to) {
-
-    }
-
-    @Override
-    public float addAdrenaline(float amount) {
-        return 0;
-    }
-
-    @Override
     public int getSpirit() {
         return 0;
     }

@@ -3,6 +3,7 @@ package jackiecrazy.footwork;
 import jackiecrazy.footwork.api.FootworkAttributes;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
+import jackiecrazy.footwork.capability.stylish.IStyleCapability;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.render.NothingRender;
@@ -61,6 +62,7 @@ public class Footwork {
 
     private void setup(final RegisterCapabilitiesEvent event) {
         event.register(ICombatCapability.class);
+        event.register(IStyleCapability.class);
         event.register(ICombatItemCapability.class);
         event.register(IGoalHelper.class);
     }
