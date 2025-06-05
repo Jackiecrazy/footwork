@@ -71,7 +71,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setCritDamage(float cdmg) {
+    public CombatDamageSource footwork$setCritDamage(float cdmg) {
         this.cdmg = cdmg;
         return this;
     }
@@ -82,7 +82,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setDamageTyping(FootworkDamageArchetype damageTyping) {
+    public CombatDamageSource footwork$setDamageTyping(FootworkDamageArchetype damageTyping) {
         this.damageTyping = damageTyping;
         return this;
     }
@@ -93,7 +93,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setCrit(boolean crit) {
+    public CombatDamageSource footwork$setCrit(boolean crit) {
         this.crit = crit;
         return this;
     }
@@ -104,7 +104,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setDamageDealer(ItemStack damageDealer) {
+    public CombatDamageSource footwork$setDamageDealer(ItemStack damageDealer) {
         this.damageDealer = damageDealer;
         return this;
     }
@@ -116,7 +116,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setAttackingHand(InteractionHand attackingHand) {
+    public CombatDamageSource footwork$setAttackingHand(InteractionHand attackingHand) {
         this.attackingHand = attackingHand;
         return this;
     }
@@ -127,7 +127,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setProxy(Entity proxy) {
+    public CombatDamageSource footwork$setProxy(Entity proxy) {
         this.proxy = proxy;
         return this;
     }
@@ -138,7 +138,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setSkillUsed(Move skillUsed) {
+    public CombatDamageSource footwork$setSkillUsed(Move skillUsed) {
         this.skillUsed = skillUsed;
         return this;
     }
@@ -149,7 +149,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setProcNormalEffects(boolean procNormalEffects) {
+    public CombatDamageSource footwork$setProcNormalEffects(boolean procNormalEffects) {
         if (procNormalEffects) flags.add(FootworkDamageTypeTags.AUTO);
         else flags.remove(FootworkDamageTypeTags.AUTO);
         return this;
@@ -161,7 +161,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setProcAttackEffects(boolean procAttackEffects) {
+    public CombatDamageSource footwork$setProcAttackEffects(boolean procAttackEffects) {
         if (procAttackEffects) flags.add(FootworkDamageTypeTags.ATTACK);
         else flags.remove(FootworkDamageTypeTags.ATTACK);
         return this;
@@ -173,7 +173,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setProcSkillEffects(boolean procSkillEffects) {
+    public CombatDamageSource footwork$setProcSkillEffects(boolean procSkillEffects) {
         if (procSkillEffects) flags.add(FootworkDamageTypeTags.SKILL);
         else flags.remove(FootworkDamageTypeTags.SKILL);
         return this;
@@ -181,14 +181,14 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
 
     @SafeVarargs
     @Override
-    public final CombatDamageSourceMixin footwork$flag(TagKey<DamageType>... tags) {
+    public final CombatDamageSource footwork$flag(TagKey<DamageType>... tags) {
         flags.addAll(Arrays.asList(tags));
         return this;
     }
 
     @SafeVarargs
     @Override
-    public final CombatDamageSourceMixin footwork$unflag(TagKey<DamageType>... tags) {
+    public final CombatDamageSource footwork$unflag(TagKey<DamageType>... tags) {
         for (TagKey<DamageType> tag : tags)
             flags.remove(tag);
         return this;
@@ -200,7 +200,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setArmorReductionPercentage(float armorReductionPercentage) {
+    public CombatDamageSource footwork$setArmorReductionPercentage(float armorReductionPercentage) {
         armorPierce = armorReductionPercentage;
         return this;
     }
@@ -211,7 +211,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setKnockbackPercentage(float perc) {
+    public CombatDamageSource footwork$setKnockbackPercentage(float perc) {
         knockback = perc;
         return this;
     }
@@ -222,7 +222,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setPostureDamage(float postureDamage) {
+    public CombatDamageSource footwork$setPostureDamage(float postureDamage) {
         this.postureDamage = postureDamage;
         return this;
     }
@@ -233,7 +233,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setMultiplier(float multiplier) {
+    public CombatDamageSource footwork$setMultiplier(float multiplier) {
         this.multiplier = multiplier;
         return this;
     }
@@ -265,7 +265,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setProjectile() {
+    public CombatDamageSource footwork$setProjectile() {
         footwork$flag(DamageTypeTags.IS_PROJECTILE);
         return this;
     }
@@ -276,7 +276,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setExplosion() {
+    public CombatDamageSource footwork$setExplosion() {
         footwork$flag(DamageTypeTags.IS_EXPLOSION);
         return this;
     }
@@ -302,37 +302,37 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$bypassArmor() {
+    public CombatDamageSource footwork$bypassArmor() {
         footwork$flag(DamageTypeTags.BYPASSES_ARMOR);
         return this;
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$bypassInvul() {
+    public CombatDamageSource footwork$bypassInvul() {
         footwork$flag(DamageTypeTags.BYPASSES_INVULNERABILITY);
         return this;
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$bypassMagic() {
+    public CombatDamageSource footwork$bypassMagic() {
         footwork$flag(DamageTypeTags.BYPASSES_EFFECTS);
         return this;
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$bypassEnchantments() {
+    public CombatDamageSource footwork$bypassEnchantments() {
         footwork$flag(DamageTypeTags.BYPASSES_ENCHANTMENTS);
         return this;
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setIsFire() {
+    public CombatDamageSource footwork$setIsFire() {
         footwork$flag(DamageTypeTags.IS_FIRE);
         return this;
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setNoAggro() {
+    public CombatDamageSource footwork$setNoAggro() {
         footwork$flag(DamageTypeTags.NO_ANGER);
         return this;
     }
@@ -353,7 +353,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setMagic() {
+    public CombatDamageSource footwork$setMagic() {
         footwork$flag(DamageTypeTags.WITCH_RESISTANT_TO);
         return this;
     }
@@ -364,7 +364,7 @@ public abstract class CombatDamageSourceMixin implements CombatDamageSource {
     }
 
     @Override
-    public CombatDamageSourceMixin footwork$setIsFall() {
+    public CombatDamageSource footwork$setIsFall() {
         footwork$flag(DamageTypeTags.IS_FALL);
         return this;
     }
