@@ -13,20 +13,14 @@ import net.minecraftforge.eventbus.api.Event;
 public class ConsumePostureEvent extends LivingEvent {
     private final float original;
     private final LivingEntity attacker;
-    private final float above;
     private float amount;
     private boolean resetCooldown;
 
-    public ConsumePostureEvent(LivingEntity entity, LivingEntity attacker, float amnt, float above) {
+    public ConsumePostureEvent(LivingEntity entity, LivingEntity attacker, float amnt) {
         super(entity);
         amount = original = amnt;
-        this.above = above;
         this.attacker = attacker;
         resetCooldown = true;
-    }
-
-    public float getAbove() {
-        return above;
     }
 
     public float getAmount() {

@@ -9,7 +9,7 @@ import net.minecraft.world.phys.Vec3;
 public class DummyCombatCap implements ICombatCapability {
 
     @Override
-    public void updateDefenselessStatus() {
+    public void resetPosture() {
 
     }
 
@@ -19,7 +19,7 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void setSpirit(float spirit) {
+    public void setSpirit(int spirit) {
 
     }
 
@@ -35,6 +35,11 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public int getMaxSpirit() {
+        return 0;
+    }
+
+    @Override
+    public float getMaxPosture() {
         return 0;
     }
 
@@ -69,13 +74,18 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public float addRally(float amount) {
-        return 0;
+    public void rally(float quantity) {
+
     }
 
     @Override
-    public void convertRally(float quantity) {
+    public void tickProc(String key, double ticks) {
 
+    }
+
+    @Override
+    public double getProc(String key) {
+        return 0;
     }
 
     @Override
@@ -105,7 +115,7 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public Vec3 getMotionConsistently() {
-        return null;
+        return Vec3.ZERO;
     }
 
     @Override
@@ -214,7 +224,12 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public void recordDamage(LivingEntity recorder, float amount) {
+    public void startRecordingDamage(int time) {
+
+    }
+
+    @Override
+    public void recordDamage(float amount) {
 
     }
 
@@ -250,6 +265,11 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public void read(CompoundTag from) {
+
+    }
+
+    @Override
+    public void setOffhandAttack(boolean offhandAttack) {
 
     }
 

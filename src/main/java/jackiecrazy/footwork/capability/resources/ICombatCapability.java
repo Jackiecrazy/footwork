@@ -36,85 +36,143 @@ public interface ICombatCapability {
     //iframes are iframes. Nothing happens on an iframe.
     //priority is iframe>dodge>parry>guard for resolution.
 
-    void updateDefenselessStatus();
+    void resetPosture();
 
     int getSpirit();
-    void setSpirit(float spirit);
+
+    void setSpirit(int spirit);
+
     boolean consumeSpirit(int amount);
+
     int addSpirit(int amount);
+
     int getMaxSpirit();
 
+    float getMaxPosture();
+
     float getPosture();
+
     void setPosture(float posture);
+
     float addPosture(float amount);
+
     float consumePosture(LivingEntity assailant, float amount, boolean breach);
-    default float consumePosture(LivingEntity assailant, float amount){
+
+    default float consumePosture(LivingEntity assailant, float amount) {
         return consumePosture(assailant, amount, true);
     }
-    default float consumePosture(float amount){
+
+    default float consumePosture(float amount) {
         return consumePosture(null, amount);
     }
 
     float getRally();
+
     void setRally(float rally);
-    float addRally(float amount);
-    void convertRally(float quantity);
+
+    void rally(float quantity);
+
+    void tickProc(String key, double stat);
+
+    default void tickProc(String key) {
+        tickProc(key, 1);
+    }
+
+    double getProc(String key);
+
+    default boolean alreadyProc(String key) {
+        return getProc(key) > 0;
+    }
+
+    default boolean isStunned() {
+        return getMaxStunTime() > 0;
+    }
 
     int getMaxStunTime();
+
     int getStunTime();
+
     void stun(LivingEntity assailant, int time);
-    default void stun(int time){
+
+    default void stun(int time) {
         stun(null, time);
     }
+
     boolean isKnockdown();//immune to damage
+
     void knockdown(LivingEntity assailant, int time);
-    default void knockdown(int time){
+
+    default void knockdown(int time) {
         knockdown(null, time);
     }
 
     Vec3 getMotionConsistently();
 
     void serverTick();
+
     void clientTick();
 
     int getOffhandCooldown();
+
     void setOffhandCooldown(int cool);
 
     boolean isDodging();
+
     boolean canDodge();
+
     int getDodgeTime();
+
     void setDodgeTime(int time);
 
     boolean isParrying();
+
     boolean canParry();
+
     int getParryTime();
+
     void setParryTime(int time);
 
     boolean isBlocking();
+
     boolean canBlock();
+
     int getGuardTime();//special implementation on players
+
     void setGuardTime(int time);
 
     boolean isIframe();
+
     int getIframe();
+
     void setIframe(int time);
 
     int getDamageRecordTime();
+
     float getRecordedDamage();
-    void recordDamage(LivingEntity recorder, float amount);
+
+    void startRecordingDamage(int time);
+
+    void recordDamage(float amount);
+
     void stopRecording(DamageSource countAs);
 
     int getPinTime();
-    default boolean isPinned(){
-        return getPinTime()>0;
+
+    default boolean isPinned() {
+        return getPinTime() > 0;
     }
+
     void pin(int time);
 
     int getHandBind(InteractionHand hand);
+
     void setHandBind(InteractionHand hand, int time);
 
     CompoundTag write();
+
     void read(CompoundTag from);
+
+    void setOffhandAttack(boolean offhandAttack);
 
     boolean isOffhandAttack();
 }

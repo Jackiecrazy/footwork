@@ -13,29 +13,8 @@ import net.minecraftforge.eventbus.api.Event;
  * if not canceled and denied, the might will be consumed but will return false.
  * if not canceled and allowed, the might will be consumed to the limit, but will always return true.
  */
-public class ConsumeMightEvent extends LivingEvent {
-    private final float original;
-    private float amount;
-    private final float above;
-    public ConsumeMightEvent(LivingEntity entity, float amnt, float above) {
+public class AdrenalineBurstEvent extends LivingEvent {
+    public AdrenalineBurstEvent(LivingEntity entity) {
         super(entity);
-        amount=original=amnt;
-        this.above=above;
-    }
-
-    public float getAbove(){
-        return above;
-    }
-
-    public float getAmount(){
-        return amount;
-    }
-
-    public float getOriginal() {
-        return original;
-    }
-
-    public void setAmount(float amount){
-        this.amount=amount;
     }
 }

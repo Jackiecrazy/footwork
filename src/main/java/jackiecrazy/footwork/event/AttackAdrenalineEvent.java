@@ -3,11 +3,17 @@ package jackiecrazy.footwork.event;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
-public class GainMightEvent extends LivingEvent {
+public class AttackAdrenalineEvent extends LivingEvent {
+    private final LivingEntity attacker;
     private float quantity;
-    public GainMightEvent(LivingEntity subject, float amount) {
-        super(subject);
+    public AttackAdrenalineEvent(LivingEntity attacker, LivingEntity defender, float amount) {
+        super(defender);
+        this.attacker=attacker;
         quantity=amount;
+    }
+
+    public LivingEntity getAttacker(){
+        return attacker;
     }
 
     public float getQuantity() {

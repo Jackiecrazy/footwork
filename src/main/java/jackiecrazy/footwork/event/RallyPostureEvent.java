@@ -3,9 +3,9 @@ package jackiecrazy.footwork.event;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
-public class RegenSpiritEvent extends LivingEvent {
+public class RallyPostureEvent extends LivingEvent {
     private float quantity;
-    public RegenSpiritEvent(LivingEntity subject, float amount) {
+    public RallyPostureEvent(LivingEntity subject, float amount) {
         super(subject);
         quantity=amount;
     }

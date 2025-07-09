@@ -12,6 +12,9 @@ public interface IStyleCapability {
     //if trigger bar is at 10, next attack is a trigger attack. Trigger attack code is handled by pwd.
     //also track orbs here. There can be one orb of each color, so just hold a hash set of colors.
 
+    boolean isCombatMode();
+    void toggleCombatMode(boolean on);
+
     float getAdrenaline();
     void setAdrenaline(float to);
     float addAdrenaline(float amount);
@@ -20,13 +23,18 @@ public interface IStyleCapability {
 
     void processAttack(boolean melee);
 
+    float getCombo();
+    void addCombo(float amount, String source);
+    //how freshness?
+    void resetCombo();
+
     int getTriggerTime(boolean melee);
     void setTriggerTime(int time, boolean melee);
     void addTriggerTime(int time, boolean melee);
 
     int getTriggerBar();
     void setTriggerBar(int amnt);
-    void rsetTriggerBar();
+    void resetTriggerBar();
     void addTriggerBar(int amnt);
     boolean canTrigger();
 

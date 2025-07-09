@@ -14,20 +14,14 @@ import net.minecraftforge.eventbus.api.Event;
  * if not canceled and allowed, the spirit will be consumed to the limit, but will always return true.
  */
 public class ConsumeSpiritEvent extends LivingEvent {
-    private final float original;
-    private float amount;
-    private final float above;
-    public ConsumeSpiritEvent(LivingEntity entity, float amnt, float above) {
+    private final int original;
+    private int amount;
+    public ConsumeSpiritEvent(LivingEntity entity, int amnt) {
         super(entity);
         amount=original=amnt;
-        this.above=above;
     }
 
-    public float getAbove(){
-        return above;
-    }
-
-    public float getAmount(){
+    public int getAmount(){
         return amount;
     }
 
@@ -35,7 +29,7 @@ public class ConsumeSpiritEvent extends LivingEvent {
         return original;
     }
 
-    public void setAmount(float amount){
+    public void setAmount(int amount){
         this.amount=amount;
     }
 }

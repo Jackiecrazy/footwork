@@ -8,6 +8,16 @@ public class NoStyleCap implements IStyleCapability {
 
 
     @Override
+    public boolean isCombatMode() {
+        return true;
+    }
+
+    @Override
+    public void toggleCombatMode(boolean on) {
+
+    }
+
+    @Override
     public float getAdrenaline() {
         return 0;
     }
@@ -29,6 +39,21 @@ public class NoStyleCap implements IStyleCapability {
 
     @Override
     public void processAttack(boolean melee) {
+
+    }
+
+    @Override
+    public float getCombo() {
+        return 0;
+    }
+
+    @Override
+    public void addCombo(float amnt, String source) {
+
+    }
+
+    @Override
+    public void resetCombo() {
 
     }
 
@@ -58,7 +83,7 @@ public class NoStyleCap implements IStyleCapability {
     }
 
     @Override
-    public void rsetTriggerBar() {
+    public void resetTriggerBar() {
 
     }
 
