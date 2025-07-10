@@ -7,13 +7,17 @@
     "EffectStartAccessor",
     "MixinAttackSpeed",
     "MixinPlayerEntity",
-    "MixinTagEntry"
+    "MixinTagEntry",
+    "MixinTimeSlow",
+    "MixinTimeSlowServer"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "minVersion": "0.8",
   "client": [
-    "MixinParalysis"
+    "MixinParalysis",
+    "MixinTimeSlowClient",
+    "MixinTimeSlowRender"
   ]
 }

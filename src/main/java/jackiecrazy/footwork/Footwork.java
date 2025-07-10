@@ -1,15 +1,19 @@
 package jackiecrazy.footwork;
 
 import jackiecrazy.footwork.api.FootworkAttributes;
+import jackiecrazy.footwork.capability.action.IAttachAction;
 import jackiecrazy.footwork.capability.goal.IGoalHelper;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.stylish.IStyleCapability;
+import jackiecrazy.footwork.capability.timeslow.ITimeChange;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
+import jackiecrazy.footwork.networking.FootworkChannel;
+import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.entity.EntityType;
@@ -23,6 +27,7 @@ import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegistryObject;
@@ -46,6 +51,7 @@ public class Footwork {
 
     public Footwork() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::packets);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::attribute);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
@@ -60,10 +66,16 @@ public class Footwork {
         MinecraftForge.EVENT_BUS.addListener(this::commands);
     }
 
+    private void packets(FMLCommonSetupEvent e){
+        FootworkChannel.INSTANCE.registerMessage(1, UpdateTimeSlowPacket.class, new UpdateTimeSlowPacket.UpdateClientEncoder(), new UpdateTimeSlowPacket.UpdateClientDecoder(), new UpdateTimeSlowPacket.UpdateClientHandler());
+    }
+
     private void setup(final RegisterCapabilitiesEvent event) {
         event.register(ICombatCapability.class);
         event.register(IStyleCapability.class);
         event.register(ICombatItemCapability.class);
+        event.register(IAttachAction.class);
+        event.register(ITimeChange.class);
         event.register(IGoalHelper.class);
     }
 

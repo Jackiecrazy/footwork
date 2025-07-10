@@ -4,22 +4,28 @@ import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.api.FootworkDamageArchetype;
 import jackiecrazy.footwork.capability.resources.CombatData;
+import jackiecrazy.footwork.capability.timeslow.TimeCapability;
+import jackiecrazy.footwork.capability.timeslow.TimeSlowData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.potion.FootworkEffects;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -36,6 +42,11 @@ public class EntityHandler {
 
     private static final UUID uuid = UUID.fromString("98c361c7-de32-4f40-b129-d7752bac3712");
     private static final UUID uuid2 = UUID.fromString("98c361c8-de32-4f40-b129-d7752bac3722");
+
+    @SubscribeEvent
+    public static void caps(AttachCapabilitiesEvent<Entity> e) {
+        e.addCapability(new ResourceLocation("footwork:timeslow"), new TimeSlowData());
+    }
 
     @SubscribeEvent
     public static void auxEffects(MobEffectEvent.Added e) {
@@ -150,7 +161,7 @@ public class EntityHandler {
     @SubscribeEvent
     public static void tickMobs(LivingEvent.LivingTickEvent e) {
         LivingEntity elb = e.getEntity();
-        if (CombatData.getCap(elb).isKnockdown() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
+        if (CombatData.getCap(elb).isKnockdown() || CombatData.getCap(elb).isPinned() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
             elb.setXRot(elb.xRotO);
             elb.setYRot(elb.yRotO);
             elb.yHeadRot = elb.yHeadRotO;
