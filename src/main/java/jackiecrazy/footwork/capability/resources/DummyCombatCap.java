@@ -164,6 +164,16 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
+    public int getParryCooldown() {
+        return 0;
+    }
+
+    @Override
+    public float getParryCooldownPerc() {
+        return 0;
+    }
+
+    @Override
     public boolean canParry() {
         return false;
     }

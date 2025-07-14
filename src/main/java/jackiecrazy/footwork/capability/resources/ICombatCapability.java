@@ -134,6 +134,10 @@ public interface ICombatCapability {
 
     boolean isParrying();
 
+    int getParryCooldown();
+
+    float getParryCooldownPerc();
+
     boolean canParry();
 
     int getParryTime();

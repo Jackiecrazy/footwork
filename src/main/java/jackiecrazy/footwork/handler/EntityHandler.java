@@ -4,6 +4,7 @@ import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.api.FootworkDamageArchetype;
 import jackiecrazy.footwork.capability.resources.CombatData;
+import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.timeslow.TimeCapability;
 import jackiecrazy.footwork.capability.timeslow.TimeSlowData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
@@ -83,11 +84,24 @@ public class EntityHandler {
         LivingEntity uke = e.getEntity();
         LivingEntity kek = null;
         DamageSource ds = e.getSource();
+
+        //damage recording, skip all else
+        ICombatCapability cap = CombatData.getCap(uke);
+        if(cap.getDamageRecordTime()>0){
+            cap.recordDamage(e.getAmount());
+            e.setCanceled(true);
+            return;
+        }
+
+        //damage amping from vulnerable
         if (uke.hasEffect(FootworkEffects.VULNERABLE.get()) && !isPhysicalAttack(ds))
             e.setAmount(e.getAmount() + uke.getEffect(FootworkEffects.VULNERABLE.get()).getAmplifier() + 1);
+
         if (ds.getDirectEntity() instanceof LivingEntity) {
             kek = (LivingEntity) ds.getDirectEntity();
         }
+
+        //armor piercing calculation
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid2);
         if (ds instanceof CombatDamageSource cds) {
@@ -97,6 +111,8 @@ public class EntityHandler {
                 uke.getAttribute(Attributes.ARMOR).addTransientModifier(armor);
             }
         }
+
+        //item capabilities
         ItemStack ukemain = uke.getMainHandItem();
         ItemStack ukeoff = uke.getOffhandItem();
         if (ukemain.getCapability(CombatManipulator.CAP).isPresent()) {

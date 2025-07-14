@@ -16,8 +16,14 @@ public interface IStyleCapability {
     void toggleCombatMode(boolean on);
 
     float getAdrenaline();
+    default boolean maxAdrenaline(){
+        return getAdrenaline()>=1;
+    }
     void setAdrenaline(float to);
     float addAdrenaline(float amount);
+    default void resetAdrenaline(){
+        setAdrenaline(0);
+    }
 
     void tick();
 
