@@ -86,12 +86,22 @@ public class DummyCombatItemCap implements ICombatItemCapability {
     }
 
     @Override
-    public void onParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount) {
+    public void onBlock(LivingEntity defender, Entity attacker, ItemStack item, double amount) {
 
     }
 
     @Override
-    public void onOtherHandParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount) {
+    public void onOtherHandBlock(LivingEntity defender, Entity attacker, ItemStack item, double amount) {
+
+    }
+
+    @Override
+    public void onParry(LivingEntity defender, Entity attacker, ItemStack item, double amount) {
+
+    }
+
+    @Override
+    public void onOtherHandParry(LivingEntity defender, Entity attacker, ItemStack item, double amount) {
 
     }
 

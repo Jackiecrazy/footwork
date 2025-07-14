@@ -37,6 +37,8 @@ public class FootworkEffects {
     public static final RegistryObject<MobEffect> FORTIFICATION = EFFECTS.register("fortification", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x0eb00c).addAttributeModifier(Attributes.ARMOR, "55FCED67-E92B-486E-9800-B47F202C4386", 2, AttributeModifier.Operation.ADDITION));
     //increases posture damage by 20% per level
     public static final RegistryObject<MobEffect> ENFEEBLE = EFFECTS.register("enfeeble", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x5c452f));
+    //increases posture damage by 15% per level, removed on hit
+    public static final RegistryObject<MobEffect> COUNTERSTRIKE = EFFECTS.register("counterstrike", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x5c452f));
     //nullifies invisibility
     public static final RegistryObject<MobEffect> EXPOSED = EFFECTS.register("exposed", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x000000));
     //reduces stealth by 2 per level

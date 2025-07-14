@@ -59,7 +59,7 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public float consumePosture(LivingEntity assailant, float amount, boolean breach) {
+    public float consumePosture(LivingEntity assailant, float amount, boolean breach, float removeRally) {
         return 0;
     }
 

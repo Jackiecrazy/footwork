@@ -35,6 +35,7 @@ public class DamageArgument implements Argument<DamageSource> {
     private Argument<Double> knockback_percentage = new FixedNumberArgument(1);
     private Argument<Double> damage_multiplier = new FixedNumberArgument(1);
     private Condition crit = new FalseCondition();
+    private Condition breach = new TrueCondition();
     private Condition proc_normal = new TrueCondition();
     private Condition proc_attack = new TrueCondition();
     private Condition proc_skill = new FalseCondition();
@@ -50,6 +51,7 @@ public class DamageArgument implements Argument<DamageSource> {
         ret
                 .setDamageDealer(equip.resolve(wrapper, parent, caster, target))
                 .setProxy(proxy.resolve(wrapper, parent, caster, target))
+                .flagBreach(breach.resolve(wrapper,parent,caster,target))
                 .setDamageTyping(typing)
                 .setProcAttackEffects(proc_attack.resolve(wrapper, parent, caster, target))
                 .setProcSkillEffects(proc_skill.resolve(wrapper, parent, caster, target))

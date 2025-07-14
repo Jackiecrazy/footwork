@@ -54,9 +54,17 @@ public interface ICombatCapability {
 
     void setPosture(float posture);
 
+    default float getPosturePercentage() {
+        return getPosture() / getMaxPosture();
+    }
+
     float addPosture(float amount);
 
-    float consumePosture(LivingEntity assailant, float amount, boolean breach);
+    float consumePosture(LivingEntity assailant, float amount, boolean breach, float removeRally);
+
+    default float consumePosture(LivingEntity assailant, float amount, boolean breach) {
+        return consumePosture(assailant, amount, breach, 0);
+    }
 
     default float consumePosture(LivingEntity assailant, float amount) {
         return consumePosture(assailant, amount, true);
@@ -172,7 +180,7 @@ public interface ICombatCapability {
 
     void read(CompoundTag from);
 
-    void setOffhandAttack(boolean offhandAttack);
-
     boolean isOffhandAttack();
+
+    void setOffhandAttack(boolean offhandAttack);
 }

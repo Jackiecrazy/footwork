@@ -27,10 +27,11 @@ public class CombatDamageSource extends DamageSource {
     private static final List<TagKey<DamageType>> PHYSICAL = List.of(DamageTypeTags.BYPASSES_COOLDOWN);
     private static final List<TagKey<DamageType>> MAGICAL = List.of(DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS);
     private static final List<TagKey<DamageType>> TRUE = List.of(DamageTypeTags.BYPASSES_RESISTANCE, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_EFFECTS, DamageTypeTags.BYPASSES_ENCHANTMENTS, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS, DamageTypeTags.NO_IMPACT, DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS);
+    private final Collection<TagKey<DamageType>> flags = new HashSet<>();
+    float absorption;
     private float original = -1;
     private float finalized = 0;
     private ItemStack damageDealer = ItemStack.EMPTY;
-    private final Collection<TagKey<DamageType>> flags = new HashSet<>();
     private InteractionHand attackingHand = InteractionHand.MAIN_HAND;
     private Entity proxy;
     private Move skillUsed = null;
@@ -39,6 +40,7 @@ public class CombatDamageSource extends DamageSource {
     private float postureDamage = -1;
     private float armorPierce = 0f, knockback = 1f, multiplier = 1f;
     private FootworkDamageArchetype damageTyping = FootworkDamageArchetype.PHYSICAL;
+    private boolean canBreach = true;
 
     public CombatDamageSource(@Nonnull Entity entity) {
         this(entity, entity, entity.position());
@@ -59,6 +61,15 @@ public class CombatDamageSource extends DamageSource {
 
     public static CombatDamageSource causeSelfDamage(LivingEntity to) {
         return new CombatDamageSource(to);
+    }
+
+    public boolean canBreach() {
+        return canBreach;
+    }
+
+    public CombatDamageSource flagBreach(boolean canBreach) {
+        this.canBreach = canBreach;
+        return this;
     }
 
     public float getCritDamage() {
@@ -230,14 +241,13 @@ public class CombatDamageSource extends DamageSource {
         return this;
     }
 
-    public void setFinalDamage(float fin){
-        finalized=fin;
-    }
-    public float getFinalDamage(){
+    public float getFinalDamage() {
         return finalized;
     }
 
-    float absorption;
+    public void setFinalDamage(float fin) {
+        finalized = fin;
+    }
 
     public float getDockedAbsorption() {
         return absorption;

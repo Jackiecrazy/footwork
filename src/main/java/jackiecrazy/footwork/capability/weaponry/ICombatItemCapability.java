@@ -93,14 +93,24 @@ public interface ICombatItemCapability {
     boolean canBlock(LivingEntity defender, Entity attacker, ItemStack item, boolean recharged, double amount);
 
     /**
+     * use this to apply special effects on blocking
+     */
+    void onBlock(LivingEntity defender, Entity attacker, ItemStack item, double amount);
+
+    /**
+     * use this to apply special effects on the other hand blocking. It's kind of obscure, but it exists
+     */
+    void onOtherHandBlock(LivingEntity defender, Entity attacker, ItemStack item, double amount);
+
+    /**
      * use this to apply special effects on parrying
      */
-    void onParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount);
+    void onParry(LivingEntity defender, Entity attacker, ItemStack item, double amount);
 
     /**
      * use this to apply special effects on the other hand parrying. It's kind of obscure, but it exists
      */
-    void onOtherHandParry(LivingEntity attacker, LivingEntity defender, ItemStack item, double amount);
+    void onOtherHandParry(LivingEntity defender, Entity attacker, ItemStack item, double amount);
 
     float postureMultiplierDefend(Entity attacker, LivingEntity defender, ItemStack item, double amount);
 
