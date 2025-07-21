@@ -10,6 +10,7 @@ import java.util.HashMap;
 public class TimeCapability implements ITimeChange {
     private final ArrayList<Tuple<Integer, Double>> modify = new ArrayList<>();
     private double speed = 1;
+    private int longest;
     private double partialTick = 0;
 
     public TimeCapability() {
@@ -17,8 +18,10 @@ public class TimeCapability implements ITimeChange {
 
     private void recalculateSpeed() {
         double spd = 1;
+        longest = 0;
         for (Tuple<Integer, Double> entry : modify) {
             if (entry.getB() < spd) spd = entry.getB();
+            if (entry.getA() > longest) longest = entry.getA();
         }
         speed = spd;
     }
@@ -59,5 +62,15 @@ public class TimeCapability implements ITimeChange {
     public float getPartialTick(float originalPT) {
         if (speed >= 1) return originalPT;
         return (float) Math.min(1, partialTick + originalPT * speed);
+    }
+
+    @Override
+    public double getEffectiveSpeed() {
+        return speed;
+    }
+
+    @Override
+    public int getTimeRemaining() {
+        return longest;
     }
 }

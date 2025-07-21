@@ -1,21 +1,31 @@
 package jackiecrazy.footwork.utils;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 
 public class TargetingUtils {
 
     public static boolean isAlly(Entity entity, Entity of) {
+        //what
         if (entity == null || of == null) return false;
         if (of == entity) return true;
-        if (entity instanceof TamableAnimal && of instanceof LivingEntity && ((TamableAnimal) entity).isOwnedBy((LivingEntity) of))
+
+        //entities with an owner
+        if (entity instanceof OwnableEntity own && (own.getOwner() == of || isAlly(own.getOwner(), of)))
             return true;
-        if (of instanceof TamableAnimal && entity instanceof LivingEntity && ((TamableAnimal) of).isOwnedBy((LivingEntity) entity))
+        if (of instanceof OwnableEntity own && (own.getOwner() == entity || isAlly(own.getOwner(), entity)))
             return true;
-        if (entity.isAlliedTo(of)) return true;
+        if (entity instanceof Projectile p && (p.getOwner() == of || isAlly(p.getOwner(), of)))
+            return true;
+        if (of instanceof Projectile p && (p.getOwner() == entity || isAlly(p.getOwner(), entity)))
+            return true;
+
+        //alliance check
+        if (entity.isAlliedTo(of))
+            return true;
+
+        //player PvP check
         if (entity instanceof Player && of instanceof Player && entity.getServer() != null && entity.getServer().isPvpAllowed())
             return true;
         return false;

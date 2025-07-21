@@ -21,9 +21,8 @@ public class FootworkAttributes {
     public static final RegistryObject<Attribute> DEATHBLOW_RESISTANCE = ATTRIBUTES.register("deathblow_resistance", () -> new RangedAttribute(Footwork.MODID + ".deathblow_res", 1d, 0, 100).setSyncable(true));
     public static final RegistryObject<Attribute> RANK_GAIN = ATTRIBUTES.register("rank_gain", () -> new RangedAttribute(Footwork.MODID + ".rank_gain", 1d, 0, 1024).setSyncable(true));
     public static final RegistryObject<Attribute> ADRENALINE_GAIN = ATTRIBUTES.register("adrenaline_gain", () -> new RangedAttribute(Footwork.MODID + ".adrenaline_gain", 1d, 0, 1024).setSyncable(true));
-    public static final RegistryObject<Attribute> RALLY_PERCENTAGE = ATTRIBUTES.register("rally_percentage", () -> new RangedAttribute(Footwork.MODID + ".rally_percentage", 0.6d, 0, 1).setSyncable(true));
-   public static final RegistryObject<Attribute> RALLY_CONVERSION = ATTRIBUTES.register("rally_conversion", () -> new RangedAttribute(Footwork.MODID + ".rally_conversion", 0.5d, 0, 1).setSyncable(true));
-    public static final RegistryObject<Attribute> RALLY_DURATION = ATTRIBUTES.register("rally_duration", () -> new RangedAttribute(Footwork.MODID + ".rally_duration", 2d, 0, 60).setSyncable(true));
+    public static final RegistryObject<Attribute> MAX_RALLY = ATTRIBUTES.register("max_rally", () -> new RangedAttribute(Footwork.MODID + ".max_rally", 0d, 0, 1).setSyncable(true));
+    public static final RegistryObject<Attribute> RALLY_CONVERSION = ATTRIBUTES.register("rally_conversion", () -> new RangedAttribute(Footwork.MODID + ".rally_conversion", 0.35d, 0, 1).setSyncable(true));
 
     public static final RegistryObject<Attribute> SKILL_EFFECTIVENESS = ATTRIBUTES.register("skill_effectiveness", () -> new RangedAttribute(Footwork.MODID + ".skill_effectiveness", 1d, 0, 100).setSyncable(true));
     public static final RegistryObject<Attribute> TWO_HANDING = ATTRIBUTES.register("two_handing", () -> new RangedAttribute(Footwork.MODID + ".two_handing", 0d, -1, 4).setSyncable(true));

@@ -13,4 +13,6 @@ public interface ITimeChange {
     void resetSpeed();
     void setRawSpeed(double speed);
     float getPartialTick(float originalPT);
+    double getEffectiveSpeed();
+    int getTimeRemaining();
 }

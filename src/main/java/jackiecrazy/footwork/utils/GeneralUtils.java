@@ -6,7 +6,7 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
-import net.minecraft.core.Vec3i;
+import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -32,7 +32,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
@@ -56,10 +55,9 @@ import net.minecraft.world.phys.HitResult;
 
 public class GeneralUtils {
     public static double getSpeedSq(Entity e) {
-        if (e.getVehicle() != null)
-            if (e.getRootVehicle() instanceof LivingEntity)
-                return CombatData.getCap((LivingEntity) e.getRootVehicle()).getMotionConsistently().lengthSqr();
-            else return e.getRootVehicle().getDeltaMovement().lengthSqr();
+        if (e.getVehicle() != null) if (e.getRootVehicle() instanceof LivingEntity)
+            return CombatData.getCap((LivingEntity) e.getRootVehicle()).getMotionConsistently().lengthSqr();
+        else return e.getRootVehicle().getDeltaMovement().lengthSqr();
         if (e instanceof LivingEntity)
             return Math.max(CombatData.getCap((LivingEntity) e).getMotionConsistently().lengthSqr(), e.getDeltaMovement().lengthSqr());
         return e.getDeltaMovement().lengthSqr();
@@ -67,15 +65,13 @@ public class GeneralUtils {
 
     @Nullable
     public static EntityType getEntityTypeFromResourceLocation(ResourceLocation rl) {
-        if (ForgeRegistries.ENTITY_TYPES.containsKey(rl))
-            return ForgeRegistries.ENTITY_TYPES.getValue(rl);
+        if (ForgeRegistries.ENTITY_TYPES.containsKey(rl)) return ForgeRegistries.ENTITY_TYPES.getValue(rl);
         return null;
     }
 
     @Nullable
     public static ResourceLocation getResourceLocationFromEntityType(EntityType et) {
-        if (ForgeRegistries.ENTITY_TYPES.containsValue(et))
-            return ForgeRegistries.ENTITY_TYPES.getKey(et);
+        if (ForgeRegistries.ENTITY_TYPES.containsValue(et)) return ForgeRegistries.ENTITY_TYPES.getKey(et);
         return null;
     }
 
@@ -274,7 +270,48 @@ public class GeneralUtils {
         return pick;
     }
 
+    @Deprecated
     public static List<Entity> raytraceEntities(Level world, LivingEntity attacker, double range) {
+        return raytraceEntities(world, (Entity) attacker, range);
+    }
+
+    private static void quickSwap(LivingEntity e, ItemStack stack) {
+        ItemStack main = e.getMainHandItem();
+        boolean wasSilent = e.isSilent();
+        e.setSilent(true);
+        e.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        e.setSilent(wasSilent);
+
+        main.getAttributeModifiers(EquipmentSlot.MAINHAND).forEach((att, mod) -> Optional.ofNullable(e.getAttribute(att)).ifPresent((mai) -> mai.removeModifier(mod)));
+        stack.getAttributeModifiers(EquipmentSlot.MAINHAND).forEach((att, mod) -> Optional.ofNullable(e.getAttribute(att)).ifPresent((mai) -> {
+            if (!mai.hasModifier(mod)) mai.addTransientModifier(mod);
+        }));
+    }
+
+    public static void attack(LivingEntity e, Entity target) {
+        if (e instanceof Player p) p.attack(target);
+        else e.doHurtTarget(target);
+    }
+
+    public static void attackTargetsWith(LivingEntity e, List<Entity> targets, ItemStack stack, Predicate<Entity> predicate) {
+        int ticks = e.attackStrengthTicker;
+        ItemStack main = e.getMainHandItem();
+        try {
+            quickSwap(e, stack);
+            for (Entity target : targets)
+                if (predicate.test(target)) {
+                    e.attackStrengthTicker = 99999;
+                    attack(e, target);
+                }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            quickSwap(e, main);
+            e.attackStrengthTicker = ticks;
+        }
+    }
+
+    public static List<Entity> raytraceEntities(Level world, Entity attacker, double range) {
         Vec3 start = attacker.getEyePosition(0.5f);
         Vec3 look = attacker.getLookAngle().scale(range + 2);
         Vec3 end = start.add(look);
@@ -292,6 +329,53 @@ public class GeneralUtils {
         }
         return ret;
     }
+
+    public static List<Entity> arcTraceEntities(Level level, Entity owner, Vec3 from, Vec3 to, double arcRadius, double hitRadius, Predicate<Entity> selector) {
+        Vec3 origin = owner.getPosition(1.0F).add(0,1,0); // or hand position
+
+        Vec3 dirFrom = from.subtract(origin).normalize();
+        Vec3 dirTo = to.subtract(origin).normalize();
+        Vec3 bisector = dirFrom.add(dirTo).normalize();
+
+        double sweepAngleRad = Math.acos(Mth.clamp(dirFrom.dot(dirTo), -1.0, 1.0));
+        double sweepAngleHalfCos = Math.cos(sweepAngleRad / 2.0);
+
+        AABB searchBox = new AABB(from, to).expandTowards(origin).inflate(arcRadius + hitRadius);
+
+        List<Entity> entities = new ArrayList<>();
+        for (Entity target : level.getEntities(owner, searchBox, e -> e.isPickable() && e != owner)) {
+            AABB targetBB = target.getBoundingBox();
+
+            // Step 1: Get closest point on the bounding box to the sweep origin
+            Vec3 closestPoint = new Vec3(
+                    Mth.clamp(origin.x, targetBB.minX, targetBB.maxX),
+                    Mth.clamp(origin.y, targetBB.minY, targetBB.maxY),
+                    Mth.clamp(origin.z, targetBB.minZ, targetBB.maxZ)
+            );
+
+            Vec3 toTarget = closestPoint.subtract(origin);
+            double distance = toTarget.length();
+
+            if(!selector.test(target)) continue;
+
+            if (distance > arcRadius + hitRadius) continue;
+
+            Vec3 toTargetDir = toTarget.normalize();
+            double alignment = toTargetDir.dot(bisector);
+            if (alignment < sweepAngleHalfCos) continue;
+
+            // Get perpendicular distance from the arc
+            Vec3 closestOnArc = bisector.scale(distance);
+            double lateralDist = toTarget.subtract(closestOnArc).length();
+
+            if (lateralDist <= hitRadius) {
+                entities.add(target);
+            }
+        }
+
+        return entities;
+    }
+
 
     public static Vec3 getPointInFrontOf(Entity target, Entity from, double distance) {
         Vec3 end = target.position().add(from.position().subtract(target.position()).normalize().scale(distance));
@@ -358,23 +442,9 @@ public class GeneralUtils {
         if (viewer.distanceToSqr(viewed) > 1000) return true;//what
         AABB viewerBoundBox = viewer.getBoundingBox();
         AABB angelBoundingBox = viewed.getBoundingBox();
-        Vec3[] viewerPoints = {new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.minZ),
-                new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.minZ),
-                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.minZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.minZ),};
+        Vec3[] viewerPoints = {new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.minZ), new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.minZ), new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.minZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.minZ),};
 
-        Vec3[] angelPoints = {new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.minZ),
-                new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.minZ),
-                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.minZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.minZ),};
+        Vec3[] angelPoints = {new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.minZ), new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.minZ), new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.minZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.minZ),};
 
         for (int i = 0; i < viewerPoints.length; i++) {
             if (viewer.level().clip(new ClipContext(viewerPoints[i], angelPoints[i], flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS) {
@@ -643,7 +713,7 @@ public class GeneralUtils {
             double angleHead = -Mth.atan2(relativeHeadVec, distIgnoreY);
             double angleFoot = -Mth.atan2(relativeFootVec, distIgnoreY);
             //straight up is -90 and straight down is 90
-            float arccos= (float) Math.acos(lookVec.y/lookVec.length());
+            float arccos = (float) Math.acos(lookVec.y / lookVec.length());
             double maxRot = rad(arccos + vertAngle / 2f);
             double minRot = rad(arccos - vertAngle / 2f);
             if (angleHead > maxRot || angleFoot < minRot) return false;
@@ -739,17 +809,12 @@ public class GeneralUtils {
     public static ItemStack dropSkull(LivingEntity elb) {
         ItemStack ret = null;
         if (elb instanceof AbstractSkeleton) {
-            if (elb instanceof WitherSkeleton)
-                ret = new ItemStack(Items.WITHER_SKELETON_SKULL);
+            if (elb instanceof WitherSkeleton) ret = new ItemStack(Items.WITHER_SKELETON_SKULL);
             else ret = new ItemStack(Items.SKELETON_SKULL);
-        } else if (elb instanceof Zombie)
-            ret = new ItemStack(Items.ZOMBIE_HEAD);
-        else if (elb instanceof Creeper)
-            ret = new ItemStack(Items.CREEPER_HEAD);
-        else if (elb instanceof EnderDragon)
-            ret = new ItemStack(Items.DRAGON_HEAD);
-        else if (elb instanceof Piglin)
-            ret = new ItemStack(Items.PIGLIN_HEAD);
+        } else if (elb instanceof Zombie) ret = new ItemStack(Items.ZOMBIE_HEAD);
+        else if (elb instanceof Creeper) ret = new ItemStack(Items.CREEPER_HEAD);
+        else if (elb instanceof EnderDragon) ret = new ItemStack(Items.DRAGON_HEAD);
+        else if (elb instanceof Piglin) ret = new ItemStack(Items.PIGLIN_HEAD);
         else if (elb instanceof Player) {
             Player p = (Player) elb;
             ret = new ItemStack(Items.PLAYER_HEAD);

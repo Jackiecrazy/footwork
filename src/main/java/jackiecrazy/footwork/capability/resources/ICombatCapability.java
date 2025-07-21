@@ -27,7 +27,7 @@ public interface ICombatCapability {
     //it takes about 6s to get back to full.
     //on receiving jump input as player, perform circle sweep with knockback and return to mobility at current posture percentage.
     //rally gets set after posture is consumed with a flag to rally (all external sources of damage).
-    // It stays at max for half a second, then loses max(1, 1/(10*rally duration)) of its value per tick until it rounds to the true value.
+    //  u
     //split guard frames, dodge frames, iframes, and parry frames.
     //Guard frames are set to a number and decrement, you are considered guarding while it's active. Guarding against an attack flinches the attacker, and counts as an attack for filling trigger.
     //upon releasing sneak, set parry frames for a set number of ticks. Successful parrying creates a shockwave that deals light posture damage, adds 1 second iframe, and adds a trigger charge.
@@ -77,6 +77,10 @@ public interface ICombatCapability {
     float getRally();
 
     void setRally(float rally);
+
+    default void addRally(float rally){
+        setRally(getRally()+rally);
+    }
 
     void rally(float quantity);
 

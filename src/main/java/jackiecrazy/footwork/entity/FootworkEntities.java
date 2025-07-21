@@ -18,6 +18,12 @@ public class FootworkEntities {
             .of(DummyEntity::new, MobCategory.MISC)
             .sized(0.5F, 0.5F)
             .build("dummy"));
+    public static final RegistryObject<EntityType<FlyingWeaponEntity>> WEAPON = ENTITIES.register("flying_weapon", () -> EntityType.Builder
+            .of(FlyingWeaponEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .updateInterval(1)
+            .setShouldReceiveVelocityUpdates(true)
+            .build("flying_weapon"));
 
     @SubscribeEvent
     public static void attribute(EntityAttributeCreationEvent e){
