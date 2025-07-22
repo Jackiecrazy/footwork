@@ -1,8 +1,11 @@
 package jackiecrazy.footwork.entity;
 
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.MotionFrame;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import jackiecrazy.footwork.utils.TargetingUtils;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -15,8 +18,12 @@ import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.Nullable;
@@ -28,39 +35,20 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class FlyingWeaponEntity extends Entity implements OwnableEntity {
-    private static final List<MotionFrame> TWIST_THE_KNIFE = List.of(
-            new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), 135),
-            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), 135),
-            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.3)),
-            new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), -60)
-    );
-    private static final List<MotionFrame> STAB = List.of(
-            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0)),
-            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1))
-    );
-    private static final List<MotionFrame> SLASH = List.of(
-            new MotionFrame(new Vec3(1, 1, 1), new Vec3(0, 0, 1)),
-            new MotionFrame(new Vec3(-1, -1, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45))
-    );
-    private static final List<MotionFrame> BACKSLASH = List.of(
-            new MotionFrame(new Vec3(-1, 1, 1), new Vec3(0, 0, 1), -45),
-            new MotionFrame(new Vec3(1, -1, 0), new Vec3(0, 0, 1), new Vector4d(1, -1, 1, -45))
-    );
-    private static final List<MotionFrame> CHOP = List.of(
-            new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)),
-            new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1))
-    );
-    private static final List<List<MotionFrame>> EVERYONE = List.of(
-            TWIST_THE_KNIFE,
-            STAB,
-            SLASH,
-            BACKSLASH,
-            CHOP
-    );
+    private static final List<MotionFrame> TWIST_THE_KNIFE = List.of(new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.3)), new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), -60));
+    private static final List<MotionFrame> STAB = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)));
+    private static final List<MotionFrame> CIRCLE = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1)));
+    private static final List<MotionFrame> SLASH = List.of(new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45)));
+    private static final List<MotionFrame> BACKSLASH = List.of(new MotionFrame(new Vec3(-1, 0.6, 1), new Vec3(0, 0, 1), -45), new MotionFrame(new Vec3(1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(1, -1, 1, -45)));
+    private static final List<MotionFrame> CHOP = List.of(new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1)));
+    private static final List<List<MotionFrame>> EVERYONE = List.of(CIRCLE, STAB, SLASH, BACKSLASH, CHOP);
     private static final double FRAMEPERTICK = 0.14;
     private static final EntityDataAccessor<Integer> ID_ROLL = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.INT);
     //private static final EntityDataAccessor<Float> ID_DISPLACE = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.FLOAT);
     private final List<MotionFrame> motionPath = new ArrayList<>();
+    //how the weapon floats when idle: point forwards
+    private final MotionFrame idlePose = new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO);
+    private final List<Entity> alreadyHit = new ArrayList<>();
     public float rollO, displacementO;
     public double attackRange = 3;
     private ItemStack heldItem;
@@ -70,14 +58,15 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private double frameDuration = 0;
     private MotionFrame previousFrame;
     private MotionFrame nextFrame;
-    private boolean playTransitionSpeed = false;
-    private boolean idle = false;
-    //how the weapon floats when idle
-    private MotionFrame idlePose = new MotionFrame(new Vec3(0, 0, 1), new Vec3(0.2, 0, 0));
+    private boolean incorporeal = false;
+    //private Vec3 handOffset = new Vec3(-0.4, -0.4, -0.5);
+    private Vec3 handOffset = new Vec3(1, 0, 0);
 
     public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
         super(type, level);
-        this.heldItem = new ItemStack(Items.IRON_SWORD);
+        ItemStack stack = new ItemStack(Items.IRON_SWORD);
+        //stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 1);
+        this.heldItem = stack;
         setMotionPath(TWIST_THE_KNIFE);
     }
 
@@ -110,7 +99,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
     private void updateMotionTargets() {
         currentTargetIndex %= motionPath.size();
-
+        alreadyHit.clear();
         MotionFrame next = motionPath.get(currentTargetIndex);
         LivingEntity owner = getOwner();
         if (owner == null) return;
@@ -151,7 +140,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
             displacementO = getDisplacementForRender();
             return;
         }
-        if (owner != null) {
+        if (getOwner() != null) {
             setOldPosAndRot();
 
             //idle animation, float next to the player
@@ -182,28 +171,29 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                 //motion path test
                 // Recalculate target every tick relative to player
                 MotionFrame lerped = previousFrame.lerp(nextFrame, ease(frameDuration));//TODO future easing functions
-                Vec3 desiredPosition = lerped.resolveTargetOffset(owner, idlePose.offset(), attackRange);
+                Vec3 desiredPosition = lerped.resolveTargetOffset(owner, handOffset, attackRange);
 
                 // Move toward the desired position smoothly
                 Vec3 delta = desiredPosition.subtract(this.position());
 
                 this.setPos(desiredPosition);
-                frameDuration += FRAMEPERTICK/3;
+                frameDuration += FRAMEPERTICK;
                 if (frameDuration >= 1) {
                     currentTargetIndex++;
                     if (currentTargetIndex >= motionPath.size()) {
                         //end current path, return to neutral
                         currentTargetIndex = 0;
                         frameDuration = 0;
-                        if(!idle) {
-                            idle = true;
-                            setMotionPath(List.of(idlePose));//fixme resolveTargetOffset offsets too much
-                        }else{
+                        if (!incorporeal) {
+                            incorporeal = true;
+                            setMotionPath(List.of(idlePose));
+                        } else {
                             setMotionPath(EVERYONE.get(random.nextInt(EVERYONE.size())));
-                            idle =false;
+                            //setMotionPath(random.nextBoolean()?SLASH:BACKSLASH);
+                            incorporeal = false;
                         }
                     } else {
-                        playTransitionSpeed = false;
+                        incorporeal = false;
                         updateMotionTargets();
                     }
                 }
@@ -215,15 +205,23 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
             } else updateMotionTargets();
 
             // Collision and attack logic
-            if (!playTransitionSpeed) {
-                List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0), getPosition(1), attackRange, 1, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
-                GeneralUtils.attackTargetsWith(owner, targets, getHeldItem(), Objects::nonNull);
+            if (!incorporeal) {
+                HitResult hit = level().clip(new ClipContext(getPosition(0), getPosition(1), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+                if (hit.getType() == HitResult.Type.BLOCK) {
+                    BlockHitResult blockHit = (BlockHitResult) hit;
+                    BlockPos blockPos = blockHit.getBlockPos();
+                    Direction hitFace = blockHit.getDirection();
+                    onHitBlock(blockPos, hitFace, blockHit.getLocation());
+                }
+
+
+                List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0), getPosition(1), attackRange, 1.2, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+                GeneralUtils.attackTargetsWith(owner, targets, alreadyHit, getHeldItem(), Objects::nonNull);
             }
 
         } else {
             level().getEntities(this, this.getBoundingBox().inflate(10), a -> a instanceof Husk).forEach(a -> {
-                if (a instanceof Husk h)
-                    setOwner(h);
+                if (a instanceof Husk h) setOwner(h);
             });
             //owner = level().getNearestPlayer(this, 16);
         }
@@ -231,8 +229,13 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
     }
 
+    private void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location) {
+        Footwork.LOGGER.debug("hit "+blockPos.toString());
+        setPos(location);
+    }
+
     private double ease(double x) {
-        return playTransitionSpeed ? x : x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+        return incorporeal ? x : x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     }
 
     public void recalculateOrientation(LivingEntity owner, Vector4d quaternion) {
@@ -246,8 +249,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         Vec3 visualOrientation = new Vec3(quaternion.x, quaternion.y, quaternion.z);
 
         // Rotate the local vector by player's rotation
-        Vec3 worldDirection = visualOrientation
-                .xRot((float) -Math.toRadians(pitch))  // Apply pitch first (X-axis)
+        Vec3 worldDirection = visualOrientation.xRot((float) -Math.toRadians(pitch))  // Apply pitch first (X-axis)
                 .yRot((float) -Math.toRadians(yaw));   // Then yaw (Y-axis)
 
         // Step 2: Face that world direction
@@ -275,10 +277,8 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
-        if (!this.heldItem.isEmpty())
-            tag.put("Item", this.heldItem.save(new CompoundTag()));
-        if (ownerID != null)
-            tag.putUUID("ownerUUID", ownerID);
+        if (!this.heldItem.isEmpty()) tag.put("Item", this.heldItem.save(new CompoundTag()));
+        if (ownerID != null) tag.putUUID("ownerUUID", ownerID);
     }
 
     @Override

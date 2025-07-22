@@ -24,8 +24,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
     }
 
     @Override
-    public void render(FlyingWeaponEntity entity, float yaw, float partialTicks, PoseStack poseStack,
-                       MultiBufferSource buffer, int packedLight) {
+    public void render(FlyingWeaponEntity entity, float yaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         ItemStack stack = entity.getHeldItem();
         if (!stack.isEmpty()) {
             poseStack.pushPose();
@@ -46,11 +45,11 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
 
             // Scale and render
-            float scale = (float) Math.max(entity.attackRange/3, 0.4);
+            float scale = (float) Math.max(entity.attackRange / 3, 0.4);
             poseStack.scale(1f, scale, scale);
 
-            this.itemRenderer.renderStatic(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, packedLight,
-                    OverlayTexture.NO_OVERLAY, poseStack, buffer, entity.level(), 0);
+            this.itemRenderer.renderStatic(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, buffer, entity.level(), 0);
+            //GhostItemRenders.renderGlintOnly(stack, poseStack, buffer, 1, 1);
             poseStack.popPose();
         }
     }

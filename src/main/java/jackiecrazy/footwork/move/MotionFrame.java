@@ -55,7 +55,7 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientatio
 
         // step 0: find the default offset position to begin calculations
         Vec3 adjustedDefault = forward.scale(defaultOffset.z)
-                .add(right.scale(direction.x))
+                .add(right.scale(defaultOffset.x))
                 .add(up.scale(defaultOffset.y));
 
         // --- Step 1: Modify the forward vector using the direction vector ---

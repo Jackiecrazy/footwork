@@ -293,13 +293,14 @@ public class GeneralUtils {
         else e.doHurtTarget(target);
     }
 
-    public static void attackTargetsWith(LivingEntity e, List<Entity> targets, ItemStack stack, Predicate<Entity> predicate) {
+    public static void attackTargetsWith(LivingEntity e, List<Entity> targets, List<Entity> ignoreList, ItemStack stack, Predicate<Entity> predicate) {
         int ticks = e.attackStrengthTicker;
         ItemStack main = e.getMainHandItem();
         try {
             quickSwap(e, stack);
             for (Entity target : targets)
-                if (predicate.test(target)) {
+                if (predicate.test(target) && !ignoreList.contains(target)) {
+                    ignoreList.add(target);
                     e.attackStrengthTicker = 99999;
                     attack(e, target);
                 }
@@ -331,7 +332,7 @@ public class GeneralUtils {
     }
 
     public static List<Entity> arcTraceEntities(Level level, Entity owner, Vec3 from, Vec3 to, double arcRadius, double hitRadius, Predicate<Entity> selector) {
-        Vec3 origin = owner.getPosition(1.0F).add(0,1,0); // or hand position
+        Vec3 origin = owner.getEyePosition(); // or hand position
 
         Vec3 dirFrom = from.subtract(origin).normalize();
         Vec3 dirTo = to.subtract(origin).normalize();
@@ -356,7 +357,7 @@ public class GeneralUtils {
             Vec3 toTarget = closestPoint.subtract(origin);
             double distance = toTarget.length();
 
-            if(!selector.test(target)) continue;
+            if (!selector.test(target)) continue;
 
             if (distance > arcRadius + hitRadius) continue;
 
