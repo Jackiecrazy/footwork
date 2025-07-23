@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.entity;
 
 import jackiecrazy.footwork.Footwork;
+import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;

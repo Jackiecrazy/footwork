@@ -344,26 +344,25 @@ public class GeneralUtils {
         AABB searchBox = new AABB(from, to).expandTowards(origin).inflate(arcRadius + hitRadius);
 
         List<Entity> entities = new ArrayList<>();
-        for (Entity target : level.getEntities(owner, searchBox, e -> e.isPickable() && e != owner)) {
+        for (Entity target : level.getEntities(owner, searchBox, selector)) {
             AABB targetBB = target.getBoundingBox();
 
             // Step 1: Get closest point on the bounding box to the sweep origin
-            Vec3 closestPoint = new Vec3(
-                    Mth.clamp(origin.x, targetBB.minX, targetBB.maxX),
-                    Mth.clamp(origin.y, targetBB.minY, targetBB.maxY),
-                    Mth.clamp(origin.z, targetBB.minZ, targetBB.maxZ)
-            );
+            Vec3 closestPoint = new Vec3(Mth.clamp(origin.x, targetBB.minX, targetBB.maxX),
+                                         Mth.clamp(origin.y, targetBB.minY, targetBB.maxY),
+                                         Mth.clamp(origin.z, targetBB.minZ, targetBB.maxZ));
 
             Vec3 toTarget = closestPoint.subtract(origin);
             double distance = toTarget.length();
 
-            if (!selector.test(target)) continue;
-
             if (distance > arcRadius + hitRadius) continue;
 
             Vec3 toTargetDir = toTarget.normalize();
-            double alignment = toTargetDir.dot(bisector);
-            if (alignment < sweepAngleHalfCos) continue;
+            /*double alignment = toTargetDir.dot(bisector);
+            if (alignment < sweepAngleHalfCos) continue;//FIXME problematic*/
+            double dotFrom = toTargetDir.dot(dirFrom);
+            double dotTo = toTargetDir.dot(dirTo);
+            if (dotFrom < Math.cos(sweepAngleRad) || dotTo < Math.cos(sweepAngleRad)) continue;
 
             // Get perpendicular distance from the arc
             Vec3 closestOnArc = bisector.scale(distance);
@@ -377,6 +376,34 @@ public class GeneralUtils {
         return entities;
     }
 
+    public static List<Entity> arcTraceEntitiesOld(Level level, Vec3 origin, Vec3 from, Vec3 to, double radius, Predicate<Entity> selector) {
+
+        // Direction vectors from owner to weapon positions
+        Vec3 dirFrom = from.subtract(origin).normalize();
+        Vec3 dirTo = to.subtract(origin).normalize();
+
+        // Compute bisector direction
+        Vec3 bisector = dirFrom.add(dirTo).normalize();
+
+        // Compute the actual angle swept in radians
+        double sweepAngleRad = Math.acos(dirFrom.dot(dirTo));
+        double sweepAngleHalfCos = Math.cos(sweepAngleRad / 2.0);
+
+        // Build the bounding box around the entire arc (inflated for range)
+        AABB hitZone = new AABB(from, to).expandTowards(origin).inflate(radius);
+
+        // Collect entities inside arc
+        List<Entity> entities = new ArrayList<>();
+        for (Entity target : level.getEntities((Entity) null, hitZone, selector)) {
+            Vec3 toTarget = target.getBoundingBox().getCenter().subtract(origin).normalize();
+            double alignment = toTarget.dot(bisector);
+            if (alignment >= sweepAngleHalfCos) {
+                entities.add(target);
+            }
+        }
+
+        return entities;
+    }
 
     public static Vec3 getPointInFrontOf(Entity target, Entity from, double distance) {
         Vec3 end = target.position().add(from.position().subtract(target.position()).normalize().scale(distance));

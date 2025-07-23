@@ -1,4 +1,4 @@
-package jackiecrazy.footwork.entity;
+package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.MotionFrame;
@@ -29,12 +29,10 @@ import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector4d;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class FlyingWeaponEntity extends Entity implements OwnableEntity {
+    public static final int MAX_TRAIL_LENGTH = 3;
     private static final List<MotionFrame> TWIST_THE_KNIFE = List.of(new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.3)), new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), -60));
     private static final List<MotionFrame> STAB = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)));
     private static final List<MotionFrame> CIRCLE = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1)));
@@ -49,6 +47,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     //how the weapon floats when idle: point forwards
     private final MotionFrame idlePose = new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO);
     private final List<Entity> alreadyHit = new ArrayList<>();
+    private final Deque<SwingHistory> history = new ArrayDeque<>();
     public float rollO, displacementO;
     public double attackRange = 3;
     private ItemStack heldItem;
@@ -60,14 +59,18 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private MotionFrame nextFrame;
     private boolean incorporeal = false;
     //private Vec3 handOffset = new Vec3(-0.4, -0.4, -0.5);
-    private Vec3 handOffset = new Vec3(1, 0, 0);
+    private Vec3 universalOffset = new Vec3(1, 0, 0);
 
     public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
         super(type, level);
         ItemStack stack = new ItemStack(Items.IRON_SWORD);
-        //stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 1);
+        stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 1);
         this.heldItem = stack;
         setMotionPath(TWIST_THE_KNIFE);
+    }
+
+    public Deque<SwingHistory> getHistory() {
+        return history;
     }
 
     public void setMotionPath(List<MotionFrame> path) {
@@ -100,6 +103,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private void updateMotionTargets() {
         currentTargetIndex %= motionPath.size();
         alreadyHit.clear();
+        while (!history.isEmpty()) history.pop();
         MotionFrame next = motionPath.get(currentTargetIndex);
         LivingEntity owner = getOwner();
         if (owner == null) return;
@@ -138,6 +142,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         if (level().isClientSide) {
             rollO = getRoll();
             displacementO = getDisplacementForRender();
+            addToHistory(position(), getYRot(), getRoll(), getXRot());
             return;
         }
         if (getOwner() != null) {
@@ -171,7 +176,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                 //motion path test
                 // Recalculate target every tick relative to player
                 MotionFrame lerped = previousFrame.lerp(nextFrame, ease(frameDuration));//TODO future easing functions
-                Vec3 desiredPosition = lerped.resolveTargetOffset(owner, handOffset, attackRange);
+                Vec3 desiredPosition = lerped.resolveTargetOffset(owner, universalOffset, attackRange);
 
                 // Move toward the desired position smoothly
                 Vec3 delta = desiredPosition.subtract(this.position());
@@ -189,7 +194,6 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                             setMotionPath(List.of(idlePose));
                         } else {
                             setMotionPath(EVERYONE.get(random.nextInt(EVERYONE.size())));
-                            //setMotionPath(random.nextBoolean()?SLASH:BACKSLASH);
                             incorporeal = false;
                         }
                     } else {
@@ -213,9 +217,11 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                     Direction hitFace = blockHit.getDirection();
                     onHitBlock(blockPos, hitFace, blockHit.getLocation());
                 }
+                Vec3 sourcePoint = idlePose.resolveTargetOffset(owner, universalOffset, attackRange);
 
 
                 List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0), getPosition(1), attackRange, 1.2, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+                //List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0), getPosition(1), attackRange, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
                 GeneralUtils.attackTargetsWith(owner, targets, alreadyHit, getHeldItem(), Objects::nonNull);
             }
 
@@ -229,8 +235,16 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
     }
 
+    private void addToHistory(Vec3 desiredPosition, float yRot, int roll, float xRot) {
+        if (tickCount % 2 != 0) return;
+        history.addFirst(new SwingHistory(desiredPosition, yRot, roll, xRot));
+        while (history.size() > MAX_TRAIL_LENGTH) {
+            history.removeLast();
+        }
+    }
+
     private void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location) {
-        Footwork.LOGGER.debug("hit "+blockPos.toString());
+        Footwork.LOGGER.debug("hit " + blockPos.toString());
         setPos(location);
     }
 
