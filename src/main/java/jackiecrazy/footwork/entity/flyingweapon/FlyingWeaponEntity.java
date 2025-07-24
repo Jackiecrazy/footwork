@@ -1,7 +1,8 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.MotionFrame;
+import jackiecrazy.footwork.move.motionframe.MotionFrame;
+import jackiecrazy.footwork.utils.EasingFunction;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import jackiecrazy.footwork.utils.TargetingUtils;
 import net.minecraft.core.BlockPos;
@@ -32,38 +33,46 @@ import org.joml.Vector4d;
 import java.util.*;
 
 public class FlyingWeaponEntity extends Entity implements OwnableEntity {
-    public static final int MAX_TRAIL_LENGTH = 3;
+    public static final int MAX_TRAIL_LENGTH = 20;
     private static final List<MotionFrame> TWIST_THE_KNIFE = List.of(new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.3)), new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), -60));
-    private static final List<MotionFrame> STAB = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)));
-    private static final List<MotionFrame> CIRCLE = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1)));
+    private static final List<MotionFrame> STAB = List.of(
+            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0)),
+            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1))
+    );
+    private static final List<MotionFrame> CIRCLE = List.of(
+            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)),
+            new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), new Vector4d(-1, 0, 0, 90)),
+            new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 90)),
+            new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), new Vector4d(1, 0, 0, 90)),
+            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)));
     private static final List<MotionFrame> SLASH = List.of(new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45)));
     private static final List<MotionFrame> BACKSLASH = List.of(new MotionFrame(new Vec3(-1, 0.6, 1), new Vec3(0, 0, 1), -45), new MotionFrame(new Vec3(1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(1, -1, 1, -45)));
     private static final List<MotionFrame> CHOP = List.of(new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1)));
     private static final List<List<MotionFrame>> EVERYONE = List.of(CIRCLE, STAB, SLASH, BACKSLASH, CHOP);
     private static final double FRAMEPERTICK = 0.14;
-    private static final EntityDataAccessor<Integer> ID_ROLL = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.INT);
-    //private static final EntityDataAccessor<Float> ID_DISPLACE = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> ID_ROLL = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> ID_INTANGIBLE = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.BOOLEAN);
     private final List<MotionFrame> motionPath = new ArrayList<>();
-    //how the weapon floats when idle: point forwards
-    private final MotionFrame idlePose = new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO);
+    //how the weapon floats when idle: point downwards
+    private final MotionFrame idlePose = new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 0, 60));
     private final List<Entity> alreadyHit = new ArrayList<>();
     private final Deque<SwingHistory> history = new ArrayDeque<>();
     public float rollO, displacementO;
     public double attackRange = 3;
+    public int renderLag = 0;
     private ItemStack heldItem;
     private LivingEntity owner;
     private UUID ownerID;
     private int currentTargetIndex = 0;
     private double frameDuration = 0;
+    //todo replace with a single MotionManager with different implementations
     private MotionFrame previousFrame;
     private MotionFrame nextFrame;
-    private boolean incorporeal = false;
-    //private Vec3 handOffset = new Vec3(-0.4, -0.4, -0.5);
     private Vec3 universalOffset = new Vec3(1, 0, 0);
 
     public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
         super(type, level);
-        ItemStack stack = new ItemStack(Items.IRON_SWORD);
+        ItemStack stack = new ItemStack(Items.IRON_AXE);
         stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 1);
         this.heldItem = stack;
         setMotionPath(TWIST_THE_KNIFE);
@@ -77,7 +86,6 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         this.motionPath.clear();
         this.motionPath.addAll(path);
         this.currentTargetIndex = 0;
-        //nextFrame = motionPath.get(currentTargetIndex);
         updateMotionTargets();
     }
 
@@ -103,7 +111,6 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private void updateMotionTargets() {
         currentTargetIndex %= motionPath.size();
         alreadyHit.clear();
-        while (!history.isEmpty()) history.pop();
         MotionFrame next = motionPath.get(currentTargetIndex);
         LivingEntity owner = getOwner();
         if (owner == null) return;
@@ -120,7 +127,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         this.heldItem = stack;
     }
 
-    public int getRoll() {
+    public float getRoll() {
         return entityData.get(ID_ROLL);
     }
 
@@ -130,19 +137,20 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
     @Override
     protected void defineSynchedData() {
-        this.entityData.define(ID_ROLL, 0);
-        //this.entityData.define(ID_DISPLACE, 0f);
+        this.entityData.define(ID_ROLL, 0f);
+        this.entityData.define(ID_INTANGIBLE, false);
     }
 
     // Custom motion logic and collision in tick()
     @Override
     public void tick() {
         super.tick();
+        setGlowingTag(true);
         // Movement logic
         if (level().isClientSide) {
             rollO = getRoll();
             displacementO = getDisplacementForRender();
-            addToHistory(position(), getYRot(), getRoll(), getXRot());
+            updateClientData();
             return;
         }
         if (getOwner() != null) {
@@ -175,29 +183,32 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
                 //motion path test
                 // Recalculate target every tick relative to player
-                MotionFrame lerped = previousFrame.lerp(nextFrame, ease(frameDuration));//TODO future easing functions
+                MotionFrame lerped = previousFrame.lerp(nextFrame, EasingFunction.IN_CUBIC.ease(frameDuration));//TODO future easing functions
                 Vec3 desiredPosition = lerped.resolveTargetOffset(owner, universalOffset, attackRange);
 
                 // Move toward the desired position smoothly
                 Vec3 delta = desiredPosition.subtract(this.position());
 
                 this.setPos(desiredPosition);
-                frameDuration += FRAMEPERTICK;
+                frameDuration += FRAMEPERTICK/5;
+
+                //finished frame, move to the next target frame
                 if (frameDuration >= 1) {
                     currentTargetIndex++;
                     if (currentTargetIndex >= motionPath.size()) {
                         //end current path, return to neutral
                         currentTargetIndex = 0;
                         frameDuration = 0;
-                        if (!incorporeal) {
-                            incorporeal = true;
+                        if (!isIncorporeal()) {
+                            setIncorporeal(true);
                             setMotionPath(List.of(idlePose));
+                            //while (!history.isEmpty()) history.pop();
                         } else {
                             setMotionPath(EVERYONE.get(random.nextInt(EVERYONE.size())));
-                            incorporeal = false;
+                            setIncorporeal(false);
                         }
                     } else {
-                        incorporeal = false;
+                        setIncorporeal(false);
                         updateMotionTargets();
                     }
                 }
@@ -209,7 +220,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
             } else updateMotionTargets();
 
             // Collision and attack logic
-            if (!incorporeal) {
+            if (!isIncorporeal()) {
                 HitResult hit = level().clip(new ClipContext(getPosition(0), getPosition(1), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
                 if (hit.getType() == HitResult.Type.BLOCK) {
                     BlockHitResult blockHit = (BlockHitResult) hit;
@@ -220,8 +231,8 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                 Vec3 sourcePoint = idlePose.resolveTargetOffset(owner, universalOffset, attackRange);
 
 
-                List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0), getPosition(1), attackRange, 1.2, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
-                //List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0), getPosition(1), attackRange, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+                //List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0), getPosition(1), attackRange, 1.2, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+                List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0), getPosition(1), 1.4, attackRange, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
                 GeneralUtils.attackTargetsWith(owner, targets, alreadyHit, getHeldItem(), Objects::nonNull);
             }
 
@@ -235,9 +246,12 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
     }
 
-    private void addToHistory(Vec3 desiredPosition, float yRot, int roll, float xRot) {
-        if (tickCount % 2 != 0) return;
-        history.addFirst(new SwingHistory(desiredPosition, yRot, roll, xRot));
+    private void updateClientData() {
+        if (!isIncorporeal()) {
+            if (renderLag < 4)
+                renderLag++;
+        } else if (renderLag > 0) renderLag--;
+        history.addFirst(new SwingHistory(position(), getYRot(), getRoll(), getXRot()));
         while (history.size() > MAX_TRAIL_LENGTH) {
             history.removeLast();
         }
@@ -246,10 +260,6 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location) {
         Footwork.LOGGER.debug("hit " + blockPos.toString());
         setPos(location);
-    }
-
-    private double ease(double x) {
-        return incorporeal ? x : x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
     }
 
     public void recalculateOrientation(LivingEntity owner, Vector4d quaternion) {
@@ -273,7 +283,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         setYRot(targetYaw);
         setXRot(targetPitch);
         rollO = entityData.get(ID_ROLL);
-        entityData.set(ID_ROLL, (int) quaternion.w);
+        entityData.set(ID_ROLL, (float) quaternion.w);
     }
 
 
@@ -311,4 +321,11 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     }
 
 
+    public boolean isIncorporeal() {
+        return entityData.get(ID_INTANGIBLE);
+    }
+
+    public void setIncorporeal(boolean incorporeal) {
+        entityData.set(ID_INTANGIBLE, incorporeal);
+    }
 }

@@ -119,7 +119,13 @@ public class GeneralUtils {
     }
 
     @Nonnull
-    public static HitResult raytraceAnything(Level world, Vec3 start, Vec3 direction, double distance, boolean doEntities, ClipContext.Block block, ClipContext.Fluid fluid) {
+    public static HitResult raytraceAnything(Level world,
+                                             Vec3 start,
+                                             Vec3 direction,
+                                             double distance,
+                                             boolean doEntities,
+                                             ClipContext.Block block,
+                                             ClipContext.Fluid fluid) {
         Vec3 end = start.add(direction);
         if (doEntities) {
             Entity entity = null;
@@ -293,7 +299,11 @@ public class GeneralUtils {
         else e.doHurtTarget(target);
     }
 
-    public static void attackTargetsWith(LivingEntity e, List<Entity> targets, List<Entity> ignoreList, ItemStack stack, Predicate<Entity> predicate) {
+    public static void attackTargetsWith(LivingEntity e,
+                                         List<Entity> targets,
+                                         List<Entity> ignoreList,
+                                         ItemStack stack,
+                                         Predicate<Entity> predicate) {
         int ticks = e.attackStrengthTicker;
         ItemStack main = e.getMainHandItem();
         try {
@@ -331,7 +341,13 @@ public class GeneralUtils {
         return ret;
     }
 
-    public static List<Entity> arcTraceEntities(Level level, Entity owner, Vec3 from, Vec3 to, double arcRadius, double hitRadius, Predicate<Entity> selector) {
+    public static List<Entity> arcTraceEntities(Level level,
+                                                Entity owner,
+                                                Vec3 from,
+                                                Vec3 to,
+                                                double arcRadius,
+                                                double hitRadius,
+                                                Predicate<Entity> selector) {
         Vec3 origin = owner.getEyePosition(); // or hand position
 
         Vec3 dirFrom = from.subtract(origin).normalize();
@@ -355,55 +371,95 @@ public class GeneralUtils {
             Vec3 toTarget = closestPoint.subtract(origin);
             double distance = toTarget.length();
 
-            if (distance > arcRadius + hitRadius) continue;
+            if (distance > arcRadius + hitRadius) {
+                System.out.println("skipped " + target + " due to radius");
+                continue;
+            }
 
             Vec3 toTargetDir = toTarget.normalize();
-            /*double alignment = toTargetDir.dot(bisector);
-            if (alignment < sweepAngleHalfCos) continue;//FIXME problematic*/
             double dotFrom = toTargetDir.dot(dirFrom);
             double dotTo = toTargetDir.dot(dirTo);
-            if (dotFrom < Math.cos(sweepAngleRad) || dotTo < Math.cos(sweepAngleRad)) continue;
+            if (dotFrom < Math.cos(sweepAngleRad) || dotTo < Math.cos(sweepAngleRad)) {
+                System.out.println("skipped " + target + " due to cosine");
+                continue;
+            }
 
             // Get perpendicular distance from the arc
             Vec3 closestOnArc = bisector.scale(distance);
             double lateralDist = toTarget.subtract(closestOnArc).length();
 
-            if (lateralDist <= hitRadius) {
-                entities.add(target);
+            if (lateralDist > hitRadius) {
+                System.out.println("skipped " + target + " due to distance");
+                continue;
             }
+
+            entities.add(target);
         }
 
         return entities;
     }
 
-    public static List<Entity> arcTraceEntitiesOld(Level level, Vec3 origin, Vec3 from, Vec3 to, double radius, Predicate<Entity> selector) {
+    public static List<Entity> arcTraceEntitiesOld(Level level,
+                                                   Vec3 origin,
+                                                   Vec3 from,
+                                                   Vec3 to,
+                                                   double hitRadius,
+                                                   double maxRange,
+                                                   Predicate<Entity> selector) {
 
-        // Direction vectors from owner to weapon positions
-        Vec3 dirFrom = from.subtract(origin).normalize();
-        Vec3 dirTo = to.subtract(origin).normalize();
+        AABB searchBox = new AABB(from, to).inflate(maxRange);
+        List<Entity> result = new ArrayList<>();
 
-        // Compute bisector direction
-        Vec3 bisector = dirFrom.add(dirTo).normalize();
+        for (Entity target : level.getEntities((Entity) null, searchBox, selector)) {
+            AABB bb = target.getBoundingBox();
+            Vec3 closest = closestPointOnSegmentToAABB(from, to, bb);
 
-        // Compute the actual angle swept in radians
-        double sweepAngleRad = Math.acos(dirFrom.dot(dirTo));
-        double sweepAngleHalfCos = Math.cos(sweepAngleRad / 2.0);
+            double distance = closest.distanceToSqr(from);
+            if (distance > maxRange * maxRange) continue;
 
-        // Build the bounding box around the entire arc (inflated for range)
-        AABB hitZone = new AABB(from, to).expandTowards(origin).inflate(radius);
-
-        // Collect entities inside arc
-        List<Entity> entities = new ArrayList<>();
-        for (Entity target : level.getEntities((Entity) null, hitZone, selector)) {
-            Vec3 toTarget = target.getBoundingBox().getCenter().subtract(origin).normalize();
-            double alignment = toTarget.dot(bisector);
-            if (alignment >= sweepAngleHalfCos) {
-                entities.add(target);
+            // Check if within the radius of the capsule
+            Vec3 nearest = new Vec3(Mth.clamp(origin.x, bb.minX, bb.maxX),
+                                    Mth.clamp(origin.y, bb.minY, bb.maxY),
+                                    Mth.clamp(origin.z, bb.minZ, bb.maxZ));
+            ; // closest point on entity box to sweep line
+            if (nearest.distanceToSqr(closest) <= hitRadius * hitRadius) {
+                result.add(target);
             }
         }
 
-        return entities;
+        return result;
     }
+
+    private static Vec3 closestPointOnSegmentToAABB(Vec3 segStart, Vec3 segEnd, AABB box) {
+        // Segment direction
+        Vec3 dir = segEnd.subtract(segStart);
+        double length = dir.length();
+        if (length == 0) return segStart;
+
+        Vec3 norm = dir.scale(1.0 / length);
+
+        // Project each axis independently (AABB clamp)
+        double t = 0.0;
+        double step = length / 8.0; // accuracy step — can tune this
+
+        Vec3 closest = segStart;
+        double minDistSq = Double.MAX_VALUE;
+
+        for (int i = 0; i <= 8; i++) {
+            Vec3 p = segStart.add(norm.scale(i * step));
+            Vec3 closestPoint = new Vec3(Mth.clamp(p.x, box.minX, box.maxX),
+                                         Mth.clamp(p.y, box.minY, box.maxY),
+                                         Mth.clamp(p.z, box.minZ, box.maxZ));
+            double distSq = closestPoint.distanceToSqr(p);
+            if (distSq < minDistSq) {
+                minDistSq = distSq;
+                closest = p;
+            }
+        }
+
+        return closest;
+    }
+
 
     public static Vec3 getPointInFrontOf(Entity target, Entity from, double distance) {
         Vec3 end = target.position().add(from.position().subtract(target.position()).normalize().scale(distance));
@@ -470,9 +526,27 @@ public class GeneralUtils {
         if (viewer.distanceToSqr(viewed) > 1000) return true;//what
         AABB viewerBoundBox = viewer.getBoundingBox();
         AABB angelBoundingBox = viewed.getBoundingBox();
-        Vec3[] viewerPoints = {new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.minZ), new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.minZ), new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.minZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.maxZ), new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.minZ),};
+        Vec3[] viewerPoints = {
+                new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.minZ),
+                new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.maxZ),
+                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.minZ),
+                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
+                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.minZ),
+                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
+                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.maxZ),
+                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.minZ),
+                };
 
-        Vec3[] angelPoints = {new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.minZ), new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.minZ), new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.minZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.maxZ), new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.minZ),};
+        Vec3[] angelPoints = {
+                new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.minZ),
+                new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.maxZ),
+                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.minZ),
+                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
+                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.minZ),
+                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
+                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.maxZ),
+                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.minZ),
+                };
 
         for (int i = 0; i < viewerPoints.length; i++) {
             if (viewer.level().clip(new ClipContext(viewerPoints[i], angelPoints[i], flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS) {
@@ -491,7 +565,11 @@ public class GeneralUtils {
      * @author Suff/Swirtzly
      */
     @Nullable
-    private static HitResult rayTraceBlocks(Entity livingEntity, Level world, Vec3 vec31, Vec3 vec32, Predicate<BlockPos> stopOn) {
+    private static HitResult rayTraceBlocks(Entity livingEntity,
+                                            Level world,
+                                            Vec3 vec31,
+                                            Vec3 vec32,
+                                            Predicate<BlockPos> stopOn) {
         if (!Double.isNaN(vec31.x) && !Double.isNaN(vec31.y) && !Double.isNaN(vec31.z)) {
             if (!Double.isNaN(vec32.x) && !Double.isNaN(vec32.y) && !Double.isNaN(vec32.z)) {
                 int i = Mth.floor(vec32.x);

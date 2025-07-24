@@ -7,18 +7,24 @@ import jackiecrazy.footwork.entity.flyingweapon.SwingHistory;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.model.pipeline.VertexConsumerWrapper;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
     private final ItemRenderer itemRenderer;
@@ -29,7 +35,15 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
     }
 
     @Override
-    public void render(FlyingWeaponEntity entity, float yaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+    public void render(FlyingWeaponEntity entity,
+                       float yaw,
+                       float partialTicks,
+                       PoseStack poseStack,
+                       MultiBufferSource buffer,
+                       int packedLight) {
+        if (buffer instanceof OutlineBufferSource obs) {
+            obs.setColor((int) (Math.sin(Math.toRadians(entity.tickCount)) * 128) + 128, 256 - (int) (Math.sin(Math.toRadians(entity.tickCount)) * 128) + 128, (int) (Math.cos(Math.toRadians(entity.tickCount)) * 128) + 128, 255);
+        }
         ItemStack stack = entity.getHeldItem();
         if (!stack.isEmpty()) {
 
@@ -51,10 +65,9 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             poseStack.scale(1f, scale, scale);
 
             //actual weapon
-            this.itemRenderer.renderStatic(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, buffer, entity.level(), 0);
-//            poseStack.translate(0,1,0);
-//            MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, 0.5f);
-//            itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
+            MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+            this.itemRenderer.renderStatic(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, entity.level(), 0);
+            //renderShadowWeapon(stack, poseStack, buffer);
             poseStack.popPose();
 
             //afterimage render//
@@ -64,26 +77,65 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             SwingHistory sh1 = null;
             //cancel all natural entity offsets first
             Vec3 interpolated = entity.getPosition(partialTicks); // same as what's applied by default
-            Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-            Vec3 camPos = camera.getPosition();
             poseStack.translate(
                     -(interpolated.x),
                     -(interpolated.y),
                     -(interpolated.z)
             );
+            int skip = 0;
             for (SwingHistory sh : entity.getHistory()) {
                 sh0 = sh1;
                 sh1 = sh;
-                if (sh0 != null && sh1 != null) {
+                skip += 1;
+                if (sh0 != null && sh1 != null && skip >= entity.renderLag) {
+                    skip %= 4;
                     alpha *= 0.5f;
-                    renderAfterimage(entity, partialTicks, poseStack, buffer, packedLight, stack, sh0, sh1, alpha);
+                    renderAfterimage(entity, partialTicks, poseStack, buffer, packedLight, stack, sh0, sh1, 0);
+                    break;
                 }
             }
             poseStack.popPose();
         }
     }
 
-    private void renderAfterimage(FlyingWeaponEntity entity, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight, ItemStack stack, SwingHistory from, SwingHistory to, float alpha) {
+    private void renderShadowWeapon(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource) {
+        //VertexConsumer consumer = bufferSource.getBuffer(FootworkRenderTypes.GHOST_ITEM);
+        VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS));
+        VertexConsumer whiteTinted = new VertexConsumerWrapper(consumer) {
+            @Override
+            public VertexConsumer color(int r, int g, int b, int a) {
+                return super.color(255, 255, 255, 128); // force semi-translucent white
+            }
+        };
+        BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
+
+        itemRenderer.renderModelLists(
+                model,
+                stack,
+                0xF000F0,//max brightness
+                OverlayTexture.NO_OVERLAY,
+                poseStack,
+                whiteTinted
+        );
+
+    }
+
+
+    private void renderQuads(PoseStack.Pose p, List<BakedQuad> quads, VertexConsumer buffer, int light) {
+        for (BakedQuad quad : quads) {
+            buffer.putBulkData(p, quad, 1.0f, 1.0f, 1.0f, 1f, light, OverlayTexture.NO_OVERLAY, true);
+        }
+    }
+
+    private void renderAfterimage(FlyingWeaponEntity entity,
+                                  float partialTicks,
+                                  PoseStack poseStack,
+                                  MultiBufferSource buffer,
+                                  int packedLight,
+                                  ItemStack stack,
+                                  SwingHistory from,
+                                  SwingHistory to,
+                                  float alpha) {
         poseStack.pushPose();
 
         Vec3 interpolate = from.position().lerp(to.position(), partialTicks);
@@ -100,12 +152,9 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
         poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
 
-        //TODO move here
-
-
-        // Scale and render
-        float scale = (float) Math.max(entity.attackRange / 3, 0.4);
-        poseStack.scale(1f, scale, scale);
+        // Scale and render, fixme doesn't follow perfectly
+        float scale = (float) Math.max(entity.attackRange, 0.4);
+        poseStack.scale(scale, scale, scale);
 
         //afterimages
         MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);

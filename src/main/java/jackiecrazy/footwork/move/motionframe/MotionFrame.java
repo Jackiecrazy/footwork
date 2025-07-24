@@ -1,10 +1,7 @@
-package jackiecrazy.footwork.move;
+package jackiecrazy.footwork.move.motionframe;
 
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaterniond;
 import org.joml.Vector4d;
 
 public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientation) {
