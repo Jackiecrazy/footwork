@@ -2,7 +2,7 @@ package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
-import jackiecrazy.footwork.utils.EasingFunction;
+import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import jackiecrazy.footwork.utils.TargetingUtils;
 import net.minecraft.core.BlockPos;
@@ -65,9 +65,8 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private UUID ownerID;
     private int currentTargetIndex = 0;
     private double frameDuration = 0;
-    //todo replace with a single MotionManager with different implementations
-    private MotionFrame previousFrame;
-    private MotionFrame nextFrame;
+    private MotionManager motionManager;
+    private int animProgress = 0;
     private Vec3 universalOffset = new Vec3(1, 0, 0);
 
     public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
@@ -117,6 +116,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         previousFrame = nextFrame;
         nextFrame = next;
         frameDuration = 0;
+        animProgress = 0;
     }
 
     public ItemStack getHeldItem() {
@@ -179,18 +179,18 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
             setPos(smoothed);*/
 
-            if (nextFrame != null && previousFrame != null) {
+            if (motionManager != null) {
 
                 //motion path test
                 // Recalculate target every tick relative to player
-                MotionFrame lerped = previousFrame.lerp(nextFrame, EasingFunction.IN_CUBIC.ease(frameDuration));//TODO future easing functions
-                Vec3 desiredPosition = lerped.resolveTargetOffset(owner, universalOffset, attackRange);
+                animProgress++;
+                MotionFrame next = motionManager.getNextPoint(animProgress);
+                Vec3 desiredPosition = next.resolveTargetOffset(owner, universalOffset, attackRange);
 
                 // Move toward the desired position smoothly
                 Vec3 delta = desiredPosition.subtract(this.position());
 
                 this.setPos(desiredPosition);
-                frameDuration += FRAMEPERTICK/5;
 
                 //finished frame, move to the next target frame
                 if (frameDuration >= 1) {

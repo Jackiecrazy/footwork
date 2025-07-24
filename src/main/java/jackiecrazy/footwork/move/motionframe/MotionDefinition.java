@@ -30,9 +30,9 @@ public record MotionDefinition(List<MotionFrame> frames, EasingFunction easing, 
         this(dir, offset, orient, EasingFunction.IN_CUBIC);
     }
 
-    public Vec3 resolveTargetOffset(Entity referent, Vec3 defaultOffset, double range, int time) {
+    public MotionFrame interpret(int time) {
         int frameCount = frames.size();
-        if (frameCount < 2) return frames.get(0).resolveTargetOffset(referent, defaultOffset, range);
+        if (frameCount < 2) return frames.get(0);
 
         double progress = (double) time / duration();
         double easedProgress = easing().ease(progress); // Output in [0, 1]
@@ -43,10 +43,10 @@ public record MotionDefinition(List<MotionFrame> frames, EasingFunction easing, 
 
         // Determine current segment and local progress
         int segment = Math.min((int) (easedProgress / segmentLength), segmentCount - 1);
-        double localT = (easedProgress - segment * segmentLength) / segmentLength;//FIXME
+        double localT = (easedProgress - segment * segmentLength) / segmentLength;//FIXME?
 
         MotionFrame start = frames().get(segment);
         MotionFrame end = frames().get(segment + 1);
-        return start.lerp(end, localT).resolveTargetOffset(referent, defaultOffset, range);
+        return start.lerp(end, localT);
     }
 }
