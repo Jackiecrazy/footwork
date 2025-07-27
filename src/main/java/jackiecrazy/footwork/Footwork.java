@@ -13,10 +13,12 @@ import jackiecrazy.footwork.client.render.WeaponEntityRenderer;
 import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
+import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.networking.FootworkChannel;
 import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -69,6 +71,7 @@ public class Footwork {
 
     private void packets(FMLCommonSetupEvent e){
         FootworkChannel.INSTANCE.registerMessage(1, UpdateTimeSlowPacket.class, new UpdateTimeSlowPacket.UpdateClientEncoder(), new UpdateTimeSlowPacket.UpdateClientDecoder(), new UpdateTimeSlowPacket.UpdateClientHandler());
+        EntityDataSerializers.registerSerializer(MotionFrame.SERIALIZER);
     }
 
     private void setup(final RegisterCapabilitiesEvent event) {

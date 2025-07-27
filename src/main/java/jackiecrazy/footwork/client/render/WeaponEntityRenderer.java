@@ -4,12 +4,10 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEntity;
 import jackiecrazy.footwork.entity.flyingweapon.SwingHistory;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -18,6 +16,7 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -32,6 +31,7 @@ import java.util.Deque;
 import java.util.List;
 
 public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
+    public static final Vector3f NORMAL = new Vector3f(0, 1, 0);
     private final ItemRenderer itemRenderer;
 
     public WeaponEntityRenderer(EntityRendererProvider.Context context) {
@@ -62,7 +62,8 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
             poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
             poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
-            poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
+            poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
+            //poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
             poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
             // Scale and render
@@ -79,6 +80,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             //renderAfterimages(entity, partialTicks, poseStack, buffer, packedLight, stack);
             renderBigAfterimage(entity, partialTicks, poseStack, buffer, packedLight, stack);
             //renderTrail(entity, poseStack, partialTicks, buffer);
+            renderTrailIGuess(entity, poseStack, partialTicks, buffer);
         }
     }
 
@@ -89,7 +91,6 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                                      int packedLight,
                                      ItemStack stack) {
         poseStack.pushPose();
-        float alpha = 1f;
         SwingHistory from;
         SwingHistory to = null;
         //cancel all natural entity offsets first
@@ -100,39 +101,44 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                 -(interpolated.z)
         );
         int skip = 0;
-        if (entity.renderLag > 0)
-            for (SwingHistory sh : entity.getHistory()) {
+        if (entity.renderLag > 0) {
+            int lerpRenderLag = (int) ((entity.renderLag - 1 + partialTicks) * FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
+            for (Tuple<SwingHistory,SwingHistory> sh : entity.getTrailHistory()) {
                 from = to;
-                to = sh;
+                to = sh.getB();
                 skip += 1;
-                if (from != null && to != null && skip >= entity.renderLag) {
+                if (from != null && to != null && skip >= lerpRenderLag) {
                     poseStack.pushPose();
 
-                    Vec3 interpolate = from.position().lerp(to.position(), partialTicks);
+                    float moddedPartialTicks = partialTicks % (1f / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
+                    Vec3 interpolate = from.position().lerp(to.position(), moddedPartialTicks);
                     poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
                     // Position and rotate as needed
-                    float lerpYRot = Mth.rotLerp(partialTicks, from.pitch(), to.pitch());
-                    float lerpXRot = Mth.rotLerp(partialTicks, from.yaw(), to.yaw());
-                    float lerpZRot = Mth.rotLerp(partialTicks, from.roll(), to.roll());
+                    float lerpYRot = Mth.rotLerp(moddedPartialTicks, from.pitch(), to.pitch());
+                    float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
+                    float lerpZRot = Mth.rotLerp(moddedPartialTicks, from.roll(), to.roll());
                     //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
                     poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
                     poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
                     poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
-                    poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
+                    poseStack.translate(0, 0, -0.1 * entity.attackRange);//pull pommel back a bit
+                    float scale = (float) Math.max(entity.attackRange, 0.4);
+                    poseStack.scale(scale, scale, scale);//should scale here, right?
+                    poseStack.translate(0, 0, -0.4);//aligning pommel to the best of my ability
                     poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
                     poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
-
-                    // Scale and render, fixme doesn't follow perfectly
-                    float scale = (float) Math.max(entity.attackRange, 0.4);
-                    poseStack.scale(scale, scale, scale);
+                    poseStack.translate(0.15 * entity.attackRange, 0, 0);//trying to put the weapon on the same axis
 
                     //afterimages
-                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
-                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
+//                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
+//                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
+                    int alpha = lerpRenderLag * 32 / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS;
+                    renderShadowWeapon(stack, poseStack, buffer, alpha);
                     poseStack.popPose();
                     break;
                 }
             }
+        }
         poseStack.popPose();
     }
 
@@ -154,9 +160,9 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                 -(interpolated.z)
         );
         int skip = 0;
-        for (SwingHistory sh : entity.getHistory()) {
+        for (Tuple<SwingHistory, SwingHistory> sh : entity.getTrailHistory()) {
             sh0 = sh1;
-            sh1 = sh;
+            sh1 = sh.getA();
             skip += 1;
             if (sh0 != null && sh1 != null && skip >= entity.renderLag) {
                 skip %= 4;
@@ -167,16 +173,17 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.popPose();
     }
 
-    private void renderShadowWeapon(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource) {
+    private void renderShadowWeapon(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource, int alpha) {
         //VertexConsumer consumer = bufferSource.getBuffer(FootworkRenderTypes.GHOST_ITEM);
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS));
         VertexConsumer whiteTinted = new VertexConsumerWrapper(consumer) {
             @Override
             public VertexConsumer color(int r, int g, int b, int a) {
-                return super.color(255, 255, 255, 128); // force semi-translucent white
+                return super.color(0, 0, 0, alpha); // force semi-translucent black
             }
         };
         BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
+        model.applyTransform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, poseStack, false);
 
         itemRenderer.renderModelLists(
                 model,
@@ -236,7 +243,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                 -(interpolated.z)
         );
 
-        Deque<SwingHistory> points = entity.getHistory();
+        Deque<Tuple<SwingHistory, SwingHistory>> points = entity.getTrailHistory();
         if (points.size() < 2) return;
         //todo render inbetween frames
 
@@ -246,9 +253,9 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         float alphaStep = 1.0f / points.size();
         int i = 0;
 
-        for (SwingHistory point : points) {
+        for (Tuple<SwingHistory, SwingHistory> point : points) {
             float alpha = 1.0f - (i * alphaStep);
-            Vec3 pos = point.position();
+            Vec3 pos = point.getA().position();
 
             if (last != null && !last.equals(pos)) {
                 float length = (float) pos.distanceTo(last);
@@ -262,8 +269,56 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.popPose();
     }
 
+    private void renderTrailIGuess(FlyingWeaponEntity entity,
+                             PoseStack poseStack,
+                             float partialticks,
+                             MultiBufferSource buffer) {
+        poseStack.pushPose();
+        VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(FootworkRenderTypes.white));
+        Vec3 interpolated = entity.getPosition(partialticks); // same as what's applied by default
+        poseStack.translate(
+                -(interpolated.x),
+                -(interpolated.y),
+                -(interpolated.z)
+        );
+
+        Deque<Tuple<SwingHistory, SwingHistory>> points = entity.getTrailHistory();
+        if (points.size() < 2) return;
+
+        Tuple<SwingHistory,SwingHistory> last = null;
+        float alphaStep = 1.0f / points.size();
+        int i = 0;
+
+        for (Tuple<SwingHistory, SwingHistory> point : points) {
+            float alpha = (1.0f - (i * alphaStep))/2;
+
+            if (last != null && !last.equals(point)) {
+                someKindaQuad(consumer, poseStack, last.getB().position(),last.getA().position(),point.getA().position(),point.getB().position(), alpha);
+            }
+            last = point;
+            i++;
+        }
+
+        poseStack.popPose();
+    }
+
+    private void someKindaQuad(VertexConsumer consumer, PoseStack poseStack, Vec3 from1, Vec3 from2, Vec3 to1, Vec3 to2, float alpha) {
+        PoseStack.Pose pose = poseStack.last();
+        Matrix4f matrix = pose.pose();
+        Matrix3f normalMatrix = pose.normal();
+        Vector3f p1 = from1.toVector3f(), p2=from2.toVector3f(), p3=to1.toVector3f(), p4=to2.toVector3f();
+
+        float r = 0.6f, g = 0.8f, b = 1.0f;
+        int light = 15728880;
+
+        consumer.vertex(matrix, p1.x(), p1.y(), p1.z()).color(r, g, b, alpha).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, NORMAL.x(), NORMAL.y(), NORMAL.z()).endVertex();
+        consumer.vertex(matrix, p2.x(), p2.y(), p2.z()).color(r, g, b, alpha).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, NORMAL.x(), NORMAL.y(), NORMAL.z()).endVertex();
+        consumer.vertex(matrix, p3.x(), p3.y(), p3.z()).color(r, g, b, alpha).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, NORMAL.x(), NORMAL.y(), NORMAL.z()).endVertex();
+        consumer.vertex(matrix, p4.x(), p4.y(), p4.z()).color(r, g, b, alpha).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, NORMAL.x(), NORMAL.y(), NORMAL.z()).endVertex();
+    }
+
     private void addQuadOld(VertexConsumer consumer, PoseStack poseStack, Vec3 from, Vec3 to, float alpha) {
-        float width = 0.07f;
+        float width = 0.4f;
         PoseStack.Pose pose = poseStack.last();
         Matrix4f matrix = pose.pose();
         Matrix3f normalMatrix = pose.normal();
@@ -283,75 +338,12 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         float r = 0.6f, g = 0.8f, b = 1.0f;
         int light = 15728880;
 
-        Vector3f normal = new Vector3f(0, 1, 0); // Flat upward normal
+        Vector3f normal = NORMAL; // Flat upward normal
 
         consumer.vertex(matrix, p1.x(), p1.y(), p1.z()).color(r, g, b, alpha).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
         consumer.vertex(matrix, p2.x(), p2.y(), p2.z()).color(r, g, b, alpha).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
         consumer.vertex(matrix, p3.x(), p3.y(), p3.z()).color(r, g, b, alpha).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
         consumer.vertex(matrix, p4.x(), p4.y(), p4.z()).color(r, g, b, alpha).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
-    }
-
-    private void addQuad(VertexConsumer consumer, PoseStack poseStack,
-                         Vec3 origin, float yawDeg, float pitchDeg, float rollDeg,
-                         float width, float length, float alpha) {
-        PoseStack.Pose pose = poseStack.last();
-        Matrix4f matrix = pose.pose();
-        Matrix3f normalMatrix = pose.normal();
-
-        // Rotate using local weapon orientation
-        Quaternionf rotation = new Quaternionf()
-                .rotateZ((float) Math.toRadians(rollDeg))
-                .rotateY((float) Math.toRadians(yawDeg))
-                .rotateX((float) Math.toRadians(pitchDeg + 90));
-
-        float halfWidth = width / 2f;
-
-        // Weapon-local quad (X = right, Y = up, Z = forward)
-        Vector3f p1 = new Vector3f(+halfWidth, 0, 0);           // right, origin
-        Vector3f p2 = new Vector3f(-halfWidth, 0, 0);           // left, origin
-        Vector3f p3 = new Vector3f(-halfWidth, 0, -length);     // left, tail
-        Vector3f p4 = new Vector3f(+halfWidth, 0, -length);     // right, tail
-
-        // Apply rotation
-        p1.rotate(rotation);
-        p2.rotate(rotation);
-        p3.rotate(rotation);
-        p4.rotate(rotation);
-
-        // Offset to world position
-        p1.add((float) origin.x, (float) origin.y, (float) origin.z);
-        p2.add((float) origin.x, (float) origin.y, (float) origin.z);
-        p3.add((float) origin.x, (float) origin.y, (float) origin.z);
-        p4.add((float) origin.x, (float) origin.y, (float) origin.z);
-
-        // Default upward normal (can be improved later with cross product)
-        Vector3f normal = new Vector3f(0, 1, 0);
-
-        float r = 0.6f, g = 0.8f, b = 1.0f;
-        int light = 15728880;
-
-        consumer.vertex(matrix, p1.x(), p1.y(), p1.z()).color(r, g, b, alpha).uv(0, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
-        consumer.vertex(matrix, p2.x(), p2.y(), p2.z()).color(r, g, b, alpha).uv(1, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
-        consumer.vertex(matrix, p3.x(), p3.y(), p3.z()).color(r, g, b, alpha).uv(1, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
-        consumer.vertex(matrix, p4.x(), p4.y(), p4.z()).color(r, g, b, alpha).uv(0, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMatrix, normal.x(), normal.y(), normal.z()).endVertex();
-    }
-
-    private void putVertex(VertexConsumer consumer, Vector3f pos, float u, float v, float alpha) {
-        consumer.vertex(pos.x, pos.y, pos.z)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(0xF000F0)
-                .normal(0, 1, 0)
-                .endVertex();
     }
 
 

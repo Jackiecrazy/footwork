@@ -1,10 +1,33 @@
 package jackiecrazy.footwork.move.motionframe;
 
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.joml.Vector4d;
 
 public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientation) {
+
+    public static final EntityDataSerializer<MotionFrame> SERIALIZER = new EntityDataSerializer<MotionFrame>() {
+        @Override
+        public void write(FriendlyByteBuf buf, MotionFrame frame) {
+            buf.writeVector3f(frame.direction.toVector3f());
+            buf.writeVector3f(frame.offset.toVector3f());
+            buf.writeVector3f(new Vec3(frame.renderOrientation.x, frame.renderOrientation.y, frame.renderOrientation.z).toVector3f());
+            buf.writeDouble(frame.renderOrientation.w);
+        }
+
+        @Override
+        public MotionFrame read(FriendlyByteBuf buf) {
+            return new MotionFrame(new Vec3(buf.readVector3f()), new Vec3(buf.readVector3f()), new Vector4d(buf.readVector3f(), buf.readDouble()));
+        }
+
+        @Override
+        public MotionFrame copy(MotionFrame mf) {
+            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Vector4d(mf.renderOrientation));
+        }
+    };
 
     public MotionFrame(Vec3 dir, Vec3 offset) {
         this(dir, offset, 0);

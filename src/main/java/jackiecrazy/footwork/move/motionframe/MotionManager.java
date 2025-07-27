@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.move.motionframe;
 
+import net.minecraft.network.syncher.EntityDataSerializer;
+
 public interface MotionManager {
     MotionFrame getNextPoint(int elapsedTicks);
     int getDuration();
