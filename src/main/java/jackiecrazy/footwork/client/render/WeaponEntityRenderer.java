@@ -59,7 +59,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             float lerpXRot = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
             float lerpZRot = Mth.rotLerp(partialTicks, entity.rollO, entity.getRoll());
             //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-            poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+            poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw fixme when playing animations Y is flipped
             poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
             poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
             poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
@@ -80,7 +80,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             //renderAfterimages(entity, partialTicks, poseStack, buffer, packedLight, stack);
             renderBigAfterimage(entity, partialTicks, poseStack, buffer, packedLight, stack);
             //renderTrail(entity, poseStack, partialTicks, buffer);
-            renderTrailIGuess(entity, poseStack, partialTicks, buffer);
+            //renderTrailIGuess(entity, poseStack, partialTicks, buffer);
         }
     }
 
@@ -110,7 +110,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                 if (from != null && to != null && skip >= lerpRenderLag) {
                     poseStack.pushPose();
 
-                    float moddedPartialTicks = partialTicks % (1f / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
+                    float moddedPartialTicks = (partialTicks % (1f / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS))*FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS;
                     Vec3 interpolate = from.position().lerp(to.position(), moddedPartialTicks);
                     poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
                     // Position and rotate as needed
@@ -118,7 +118,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                     float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
                     float lerpZRot = Mth.rotLerp(moddedPartialTicks, from.roll(), to.roll());
                     //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-                    poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+                    poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw
                     poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
                     poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
                     poseStack.translate(0, 0, -0.1 * entity.attackRange);//pull pommel back a bit
@@ -214,7 +214,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         float lerpXRot = Mth.rotLerp(partialTicks, from.yaw(), to.yaw());
         float lerpZRot = Mth.rotLerp(partialTicks, from.roll(), to.roll());
         //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-        poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+        poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw
         poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
         poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
         poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
@@ -245,7 +245,6 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
 
         Deque<Tuple<SwingHistory, SwingHistory>> points = entity.getTrailHistory();
         if (points.size() < 2) return;
-        //todo render inbetween frames
 
         poseStack.pushPose();
 
@@ -283,7 +282,10 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         );
 
         Deque<Tuple<SwingHistory, SwingHistory>> points = entity.getTrailHistory();
-        if (points.size() < 2) return;
+        if (points.size() < 2){
+            poseStack.popPose();
+            return;
+        }
 
         Tuple<SwingHistory,SwingHistory> last = null;
         float alphaStep = 1.0f / points.size();
