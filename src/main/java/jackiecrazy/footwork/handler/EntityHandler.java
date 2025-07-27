@@ -68,7 +68,6 @@ public class EntityHandler {
         if (s instanceof CombatDamageSource cds) {
             return cds.canProcAutoEffects();
         }
-        //TODO does this break anything?
         return s.getEntity() != null && s.getEntity() == s.getDirectEntity() && !s.is(DamageTypeTags.IS_EXPLOSION) && !s.is(DamageTypeTags.IS_PROJECTILE);//!s.isFire() && !s.isMagic() &&
     }
 

@@ -59,8 +59,8 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             float lerpXRot = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
             float lerpZRot = Mth.rotLerp(partialTicks, entity.rollO, entity.getRoll());
             //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-            poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw
-            poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch
+            poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+            poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch
             poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
             poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
             //poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
@@ -118,8 +118,8 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                     float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
                     float lerpZRot = Mth.rotLerp(moddedPartialTicks, from.roll(), to.roll());
                     //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-                    poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw
-                    poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
+                    poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+                    poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch, +angle to point the sword
                     poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
                     poseStack.translate(0, 0, -0.1 * entity.attackRange);//pull pommel back a bit
                     float scale = (float) Math.max(entity.attackRange, 0.4);
@@ -214,14 +214,14 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         float lerpXRot = Mth.rotLerp(partialTicks, from.yaw(), to.yaw());
         float lerpZRot = Mth.rotLerp(partialTicks, from.roll(), to.roll());
         //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-        poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw
-        poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
+        poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+        poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch, +angle to point the sword
         poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
         poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
         poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
 
-        // Scale and render, fixme doesn't follow perfectly
+        // Scale and render
         float scale = (float) Math.max(entity.attackRange / 3, 0.4);
         poseStack.scale(scale, scale, scale);
 

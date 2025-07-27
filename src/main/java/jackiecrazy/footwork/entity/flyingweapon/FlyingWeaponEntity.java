@@ -73,6 +73,24 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingWeaponEntity.class, MotionFrame.SERIALIZER);
     private static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingWeaponEntity.class, MotionFrame.SERIALIZER);
+    private final MotionManager firstIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
+    private final MotionManager secondIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 1), Vec3.ZERO, new Vector4d(1, 1, 0, 0)), 20);
+    private final List<Entity> alreadyHit = new ArrayList<>();
+    private final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
+    public float rollO, displacementO;
+    public double attackRange = 3;
+    public int renderLag = 0, renderLagO = 0;
+    //how the weapon floats when idle: point downwards
+    private MotionManager idlePose = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
+    private int internalIdleTimer = 0;
+    private LivingEntity owner;
+    private Deque<MotionManager> moveQueue = new ConcurrentLinkedDeque<>();
+    private int animProgress = 0;
+    private Vec3 universalOffset = new Vec3(1, 0, 0);
+    public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
+        super(type, level);
+        setHeldItem(new ItemStack(Items.IRON_SWORD));
+    }
 
     public MotionManager getIdlePose() {
         return idlePose;
@@ -82,40 +100,21 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         this.idlePose = idlePose;
     }
 
-    //how the weapon floats when idle: point downwards
-    private MotionManager idlePose = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
-    private final List<Entity> alreadyHit = new ArrayList<>();
-    private final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
-    public float rollO, displacementO;
-    public double attackRange = 3;
-    public int renderLag = 0, renderLagO=0;
-    private int internalIdleTimer=0;
-    private LivingEntity owner;
-    private Deque<MotionManager> moveQueue = new ConcurrentLinkedDeque<>();
-    private int animProgress = 0;
-
     public void setUniversalOffset(Vec3 universalOffset) {
         this.universalOffset = universalOffset;
-    }
-
-    private Vec3 universalOffset = new Vec3(1, 0, 0);
-
-    public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
-        super(type, level);
-        setHeldItem(new ItemStack(Items.IRON_SWORD));
     }
 
     public Deque<Tuple<SwingHistory, SwingHistory>> getTrailHistory() {
         return trailHistory;
     }
 
-    public boolean isIdle(){
+    public boolean isIdle() {
         return moveQueue.isEmpty();
     }
 
 
     public void queuePath(MotionManager path) {
-        internalIdleTimer=0;
+        internalIdleTimer = 0;
         //if there was another return to idle animation, remove it first
         if (moveQueue.peekLast() instanceof MotionManagers.TransitionMM)
             moveQueue.removeLast();
@@ -161,7 +160,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     }
 
     public void setOwner(LivingEntity e) {
-        if(e==null)return;
+        if (e == null) return;
         if (e instanceof Player)
             setOwnerUUID(e.getUUID());
         else entityData.set(MOB_OWNER, e.getId());
@@ -174,7 +173,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         LivingEntity owner = getOwner();
         if (owner == null) return;
         MotionManager motion = moveQueue.peek();
-        if (motion == null || motion.hasEnded(animProgress)||forceskip) {
+        if (motion == null || motion.hasEnded(animProgress) || forceskip) {
             moveQueue.poll();
             motion = moveQueue.peek();
             setIncorporeal(motion == null || motion instanceof MotionManagers.TransitionMM);
@@ -257,22 +256,24 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                 Vec3 transformedDirection = update.resolveTargetOffset(owner, universalOffset, 1);
 
                 // Move toward the desired position smoothly
-                //todo lerp
-                Vec3 currentPos=position();
+                Vec3 currentPos = position();
                 Vec3 lerp = currentPos.lerp(transformedDirection, 0.25);
                 Vec3 delta = lerp.subtract(this.position());
                 setPos(lerp);
                 setDeltaMovement(delta);
                 recalculatedOrientation = recalculateOrientation(owner, update.renderOrientation());
 
-                //provisional. Makes the weapon perform a random move
+                //provisional. Used to test movement.
 
-                animProgress++;
-                if (animProgress > 20) {
-                    queuePath(EVERYONE.get(Footwork.rand.nextInt(EVERYONE.size())));
-                    //setIncorporeal(false);
-                    while (!trailHistory.isEmpty()) trailHistory.pop();
-                }
+//                animProgress++;
+//                if (animProgress > 20) {
+//                    queuePath(EVERYONE.get(Footwork.rand.nextInt(EVERYONE.size())));
+//                    //setIncorporeal(false);
+//                    while (!trailHistory.isEmpty()) trailHistory.pop();
+//                    setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
+//                    animProgress=0;
+//                }
+
                 displacementO = getDisplacementForRender();
             }
 
@@ -289,7 +290,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
 
                 //List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0), getPosition(1), attackRange, 1.2, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
-                List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0).add(getViewVector(0).scale(-attackRange)), getPosition(1).add(getViewVector(1).scale(-attackRange)), 1.4, attackRange, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+                List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0).add(getViewVector(0).scale(attackRange)), getPosition(1).add(getViewVector(1).scale(attackRange)), 1.4, attackRange, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
                 GeneralUtils.attackTargetsWith(owner, targets, alreadyHit, getHeldItem(), Objects::nonNull);
             }
 
@@ -303,12 +304,12 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 //            setOwner(level().getNearestPlayer(this, 16));
 //        }
         internalIdleTimer++;
-        if(internalIdleTimer>1200)//reasonably sure the player doesn't need it anymore
+        if (internalIdleTimer > 1200)//reasonably sure the player doesn't need it anymore
             remove(RemovalReason.DISCARDED);
     }
 
     private void updateClientData() {
-        renderLagO=renderLag;
+        renderLagO = renderLag;
         if (!isIncorporeal()) {
             if (renderLag < 2)
                 renderLag++;
@@ -350,24 +351,24 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         Vec3 worldDirection = right.scale(quaternion.x).add(up.scale(quaternion.y)).add(forward.scale(quaternion.z)).normalize();
 
         // Step 2: Face that world direction
-        float targetYaw = (float) (Mth.atan2(worldDirection.x, worldDirection.z) * (180F / Math.PI)) % 180f;
-        float targetPitch = (float) (-Mth.atan2(worldDirection.y, Math.sqrt(worldDirection.x * worldDirection.x + worldDirection.z * worldDirection.z)) * (180F / Math.PI)) % 180f;
+        float targetYaw = (float) (-Mth.atan2(worldDirection.x, worldDirection.z) * (180F / Math.PI)) % 180f;
+        float targetPitch = (float) (Mth.atan2(worldDirection.y, Math.sqrt(worldDirection.x * worldDirection.x + worldDirection.z * worldDirection.z)) * (180F / Math.PI)) % 180f;
 
         rollO = entityData.get(ID_ROLL);
-        float lerpX = Mth.lerp(0.25f, getXRot(), targetPitch);
-        float lerpY = Mth.lerp(0.25f, getYRot(), targetYaw);
-        double lerpZ = Mth.lerp(0.25f, rollO, quaternion.w);
-        if(!Float.isFinite(lerpX)){
+        float lerpX = Mth.lerp(0.5f, getXRot(), targetPitch);
+        float lerpY = Mth.lerp(0.5f, getYRot(), targetYaw);
+        double lerpZ = Mth.lerp(0.5f, rollO, quaternion.w);
+        if (!Float.isFinite(lerpX)) {
             Footwork.LOGGER.warn("x is somehow not finite, resetting");
-            lerpX=targetPitch;
+            lerpX = targetPitch;
         }
-        if(!Float.isFinite(lerpY)){
+        if (!Float.isFinite(lerpY)) {
             Footwork.LOGGER.warn("y is somehow not finite, resetting");
-            lerpY=targetYaw;
+            lerpY = targetYaw;
         }
-        if(!Double.isFinite(lerpZ)){
+        if (!Double.isFinite(lerpZ)) {
             Footwork.LOGGER.warn("z is somehow not finite, resetting");
-            lerpZ=quaternion.w;
+            lerpZ = quaternion.w;
         }
         //fixme when facing north this will cause the weapon to speeeen
         setYRot(lerpY);
