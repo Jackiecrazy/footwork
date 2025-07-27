@@ -37,33 +37,6 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientatio
         this(dir, offset, new Vector4d(dir.x, dir.y, dir.z, rotation));
     }
 
-    /**
-     * Converts a local-space offset (x, y, z) into world-space coordinates
-     * using the player's current look direction as the forward (Z) axis.
-     *
-     * @return World-space vector to add to the player position
-     */
-    public Vec3 rebaseToVector(Vec3 basis) {
-        Vec3 offset = offset();
-        Vec3 forward = basis.normalize(); // Z axis
-        Vec3 worldUp = new Vec3(0, 1, 0);         // world Y
-
-        // Compute right (X axis)
-        Vec3 right = forward.cross(worldUp).normalize(); // right-handed X
-        if (right.lengthSqr() < 1e-4) {
-            // Handle gimbal lock (looking straight up/down)
-            right = new Vec3(1, 0, 0);
-        }
-
-        // Recompute up to ensure orthogonality (angled upward from look vector)
-        Vec3 up = right.cross(forward).normalize(); // Y axis
-
-        // Combine basis vectors
-        return right.scale(offset.x)
-                .add(up.scale(offset.y))
-                .add(forward.scale(offset.z));
-    }
-
     public Vec3 resolveTargetOffset(Entity referent, Vec3 defaultOffset, double range) {
         Vec3 forward = referent.getLookAngle().normalize();
         if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback

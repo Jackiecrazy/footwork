@@ -59,8 +59,8 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             float lerpXRot = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
             float lerpZRot = Mth.rotLerp(partialTicks, entity.rollO, entity.getRoll());
             //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-            poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw fixme when playing animations Y is flipped
-            poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
+            poseStack.mulPose(Axis.YP.rotationDegrees(lerpYRot)); // Yaw
+            poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch
             poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
             poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
             //poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
@@ -72,15 +72,15 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
 
             //actual weapon
             MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-            this.itemRenderer.renderStatic(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, entity.level(), 0);
+            this.itemRenderer.renderStatic(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, 0xF000F0, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, entity.level(), 0);
             //renderShadowWeapon(stack, poseStack, buffer);
             poseStack.popPose();
 
             //afterimage render//
             //renderAfterimages(entity, partialTicks, poseStack, buffer, packedLight, stack);
-            renderBigAfterimage(entity, partialTicks, poseStack, buffer, packedLight, stack);
+            renderBigAfterimage(entity, partialTicks, poseStack, buffer, 0xF000F0, stack);
             //renderTrail(entity, poseStack, partialTicks, buffer);
-            //renderTrailIGuess(entity, poseStack, partialTicks, buffer);
+            renderTrailIGuess(entity, poseStack, partialTicks, buffer);
         }
     }
 
@@ -102,7 +102,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         );
         int skip = 0;
         if (entity.renderLag > 0) {
-            int lerpRenderLag = (int) ((entity.renderLag - 1 + partialTicks) * FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
+            float lerpRenderLag = (Mth.lerp(partialTicks, entity.renderLagO, entity.renderLag) * FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
             for (Tuple<SwingHistory,SwingHistory> sh : entity.getTrailHistory()) {
                 from = to;
                 to = sh.getB();
@@ -132,7 +132,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                     //afterimages
 //                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
 //                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
-                    int alpha = lerpRenderLag * 32 / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS;
+                    int alpha = (int)(lerpRenderLag * 32 / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
                     renderShadowWeapon(stack, poseStack, buffer, alpha);
                     poseStack.popPose();
                     break;
