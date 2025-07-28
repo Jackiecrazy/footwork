@@ -67,7 +67,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
             poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
             // Scale and render
-            float scale = (float) Math.max(entity.attackRange / 3, 0.4);
+            float scale = (float) Math.max(entity.getAttackRange() / 3, 0.4);
             poseStack.scale(1f, scale, scale);
 
             //actual weapon
@@ -103,14 +103,14 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         int skip = 0;
         if (entity.renderLag > 0) {
             float lerpRenderLag = (Mth.lerp(partialTicks, entity.renderLagO, entity.renderLag) * FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
-            for (Tuple<SwingHistory,SwingHistory> sh : entity.getTrailHistory()) {
+            for (Tuple<SwingHistory, SwingHistory> sh : entity.getTrailHistory()) {
                 from = to;
                 to = sh.getB();
                 skip += 1;
                 if (from != null && to != null && skip >= lerpRenderLag) {
                     poseStack.pushPose();
-
-                    float moddedPartialTicks = (partialTicks % (1f / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS))*FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS;
+                    final float attackRange = entity.getAttackRange();
+                    float moddedPartialTicks = (partialTicks % (1f / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS)) * FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS;
                     Vec3 interpolate = from.position().lerp(to.position(), moddedPartialTicks);
                     poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
                     // Position and rotate as needed
@@ -121,18 +121,18 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                     poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
                     poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch, +angle to point the sword
                     poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
-                    poseStack.translate(0, 0, -0.1 * entity.attackRange);//pull pommel back a bit
-                    float scale = (float) Math.max(entity.attackRange, 0.4);
+                    poseStack.translate(0, 0, -0.1 * attackRange);//pull pommel back a bit
+                    float scale = (float) Math.max(attackRange, 0.4);
                     poseStack.scale(scale, scale, scale);//should scale here, right?
                     poseStack.translate(0, 0, -0.4);//aligning pommel to the best of my ability
                     poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
                     poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
-                    poseStack.translate(0.15 * entity.attackRange, 0, 0);//trying to put the weapon on the same axis
+                    poseStack.translate(0.15 * attackRange, 0, 0);//trying to put the weapon on the same axis
 
                     //afterimages
 //                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
 //                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
-                    int alpha = (int)(lerpRenderLag * 32 / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
+                    int alpha = (int) (lerpRenderLag * 32 / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
                     renderShadowWeapon(stack, poseStack, buffer, alpha);
                     poseStack.popPose();
                     break;
@@ -222,7 +222,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
 
         // Scale and render
-        float scale = (float) Math.max(entity.attackRange / 3, 0.4);
+        float scale = (float) Math.max(entity.getAttackRange() / 3, 0.4);
         poseStack.scale(scale, scale, scale);
 
         //afterimages
@@ -269,9 +269,9 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
     }
 
     private void renderTrailIGuess(FlyingWeaponEntity entity,
-                             PoseStack poseStack,
-                             float partialticks,
-                             MultiBufferSource buffer) {
+                                   PoseStack poseStack,
+                                   float partialticks,
+                                   MultiBufferSource buffer) {
         poseStack.pushPose();
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(FootworkRenderTypes.white));
         Vec3 interpolated = entity.getPosition(partialticks); // same as what's applied by default
@@ -282,20 +282,20 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         );
 
         Deque<Tuple<SwingHistory, SwingHistory>> points = entity.getTrailHistory();
-        if (points.size() < 2){
+        if (points.size() < 2) {
             poseStack.popPose();
             return;
         }
 
-        Tuple<SwingHistory,SwingHistory> last = null;
+        Tuple<SwingHistory, SwingHistory> last = null;
         float alphaStep = 1.0f / points.size();
         int i = 0;
 
         for (Tuple<SwingHistory, SwingHistory> point : points) {
-            float alpha = (1.0f - (i * alphaStep))/2;
+            float alpha = (1.0f - (i * alphaStep)) / 2;
 
             if (last != null && !last.equals(point)) {
-                someKindaQuad(consumer, poseStack, last.getB().position(),last.getA().position(),point.getA().position(),point.getB().position(), alpha);
+                someKindaQuad(consumer, poseStack, last.getB().position(), last.getA().position(), point.getA().position(), point.getB().position(), alpha);
             }
             last = point;
             i++;
@@ -304,11 +304,17 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.popPose();
     }
 
-    private void someKindaQuad(VertexConsumer consumer, PoseStack poseStack, Vec3 from1, Vec3 from2, Vec3 to1, Vec3 to2, float alpha) {
+    private void someKindaQuad(VertexConsumer consumer,
+                               PoseStack poseStack,
+                               Vec3 from1,
+                               Vec3 from2,
+                               Vec3 to1,
+                               Vec3 to2,
+                               float alpha) {
         PoseStack.Pose pose = poseStack.last();
         Matrix4f matrix = pose.pose();
         Matrix3f normalMatrix = pose.normal();
-        Vector3f p1 = from1.toVector3f(), p2=from2.toVector3f(), p3=to1.toVector3f(), p4=to2.toVector3f();
+        Vector3f p1 = from1.toVector3f(), p2 = from2.toVector3f(), p3 = to1.toVector3f(), p4 = to2.toVector3f();
 
         float r = 0.6f, g = 0.8f, b = 1.0f;
         int light = 15728880;
