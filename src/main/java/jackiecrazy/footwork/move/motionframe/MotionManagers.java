@@ -16,12 +16,22 @@ public class MotionManagers {
         }
     }
 
-    public record TransitionMM(MotionManager from, MotionManager to, int totalDuration,
+    public record TransitionMM(MotionFrame from, MotionFrame to, int totalDuration,
                                EasingFunction easing) implements MotionManager {
+        public TransitionMM(MotionFrame from, MotionManager to, int totalDuration,
+                            EasingFunction easing){
+            this(from, to.getStartFrame(), totalDuration, easing);
+        }
+        public TransitionMM(MotionManager from, MotionFrame to, int totalDuration,
+                            EasingFunction easing){
+            this(from.getStartFrame(), to, totalDuration, easing);
+        }
+        public TransitionMM(MotionManager from, MotionManager to, int totalDuration,
+                            EasingFunction easing){
+            this(from.getEndFrame(), to.getStartFrame(), totalDuration, easing);
+        }
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
-            MotionFrame from=from().getEndFrame();
-            MotionFrame to = to().getStartFrame();
             MotionFrame lerped = from.lerp(to, easing.ease((double) elapsedTicks / totalDuration));
             return lerped;
         }

@@ -1,0 +1,8 @@
+package jackiecrazy.footwork.entity.flyingweapon;
+
+public enum FlyingWeaponEffect {
+    WEAPON,
+    BIG_SHADOW,
+    AFTERIMAGE,
+    TRAIL
+}

@@ -68,6 +68,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private static final EntityDataAccessor<Float> ROLL = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> ATTACK_RANGE = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> MOB_OWNER = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> VISUAL_TAG = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_INTANGIBLE = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingWeaponEntity.class, MotionFrame.SERIALIZER);
@@ -76,6 +77,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private final MotionManager firstIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
     private final MotionManager secondIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 1), Vec3.ZERO, new Vector4d(1, 1, 0, 0)), 20);
     private final List<Entity> alreadyHit = new ArrayList<>();
+    //first one goes up to attack range, second does not scale
     private final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
     public float rollO, displacementO;
     public int renderLag = 0, renderLagO = 0;
@@ -85,6 +87,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
     private LivingEntity owner;
     private Deque<MotionManager> moveQueue = new ConcurrentLinkedDeque<>();
     private int animProgress = 0;
+    private MotionFrame update;
 
     public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
         super(type, level);
@@ -123,20 +126,22 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         return moveQueue.isEmpty();
     }
 
-
     public void queuePath(MotionManager path, int inTick, int outTick) {
         internalIdleTimer = 0;
         //if there was another return to idle animation, remove it first
         if (moveQueue.peekLast() instanceof MotionManagers.TransitionMM)
             moveQueue.removeLast();
         //grab the (new) end of move queue, or idle if we are currently idle
-        MotionManager last = moveQueue.peekLast();
-        if (last == null) last = idlePose;
+        //CHANGED: grab the last motion we did
+        MotionFrame last = update;
+        if (update == null) last = idlePose.getNextPoint(0);
         animProgress = 0;
         //add the transition in, actual move, and transition out
-        moveQueue.add(new MotionManagers.TransitionMM(last, path, inTick, EasingFunction.IN_OUT_CUBIC));
+        if (inTick > 0)
+            moveQueue.add(new MotionManagers.TransitionMM(last, path, inTick, EasingFunction.IN_OUT_CUBIC));
         moveQueue.add(path);
-        moveQueue.add(new MotionManagers.TransitionMM(path, idlePose, outTick, EasingFunction.LINEAR));
+        if (outTick > 0)
+            moveQueue.add(new MotionManagers.TransitionMM(path, idlePose, outTick, EasingFunction.LINEAR));
         updateMotionTargets(false);
     }
 
@@ -220,6 +225,24 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         this.entityData.define(MOB_OWNER, 0);
         this.entityData.define(UNIVERSAL_OFFSET, new Vector3f());
         this.entityData.define(ATTACK_RANGE, 3f);
+        this.entityData.define(VISUAL_TAG, 11);//binary value 1011
+    }
+
+    public int getRawVisualTag() {
+        return entityData.get(VISUAL_TAG);
+    }
+
+    public boolean shouldRender(FlyingWeaponEffect f) {
+        return ((getRawVisualTag() >> f.ordinal()) & 1) > 0;
+    }
+
+    public void setShouldRender(FlyingWeaponEffect f, boolean enable) {
+        int mask = 1 << f.ordinal();
+        if (enable) {
+            entityData.set(VISUAL_TAG, getRawVisualTag() | mask); // Set the bit
+        } else {
+            entityData.set(VISUAL_TAG, getRawVisualTag() & ~mask); // Clear the bit
+        }
     }
 
     // Custom motion logic and collision in tick()
@@ -236,7 +259,6 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         }
         if (getOwner() != null) {
             setOldPosAndRot();
-            MotionFrame update;
             Vector4d recalculatedOrientation;
 
             if (!moveQueue.isEmpty()) {
@@ -245,6 +267,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                 // Recalculate target every tick relative to player
                 animProgress++;
                 update = activeMove.getNextPoint(animProgress);
+                //todo keep the lerped frame for future movement
                 Vec3 transformedDirection = update.resolveTargetOffset(owner, getUniversalOffset(), 1);
 
                 // Move toward the desired position smoothly
@@ -282,10 +305,13 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 
 //                animProgress++;
 //                if (animProgress > 20) {
-//                    queuePath(EVERYONE.get(Footwork.rand.nextInt(EVERYONE.size())));
+//                    queuePath(EVERYONE.get(2), 2, 3);
 //                    //setIncorporeal(false);
 //                    while (!trailHistory.isEmpty()) trailHistory.pop();
-//                    setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
+//                    //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
+//                    setShouldRender(FlyingWeaponEffect.BIG_SHADOW, !shouldRender(FlyingWeaponEffect.BIG_SHADOW));
+//                    setShouldRender(FlyingWeaponEffect.TRAIL, true);
+//                    setShouldRender(FlyingWeaponEffect.AFTERIMAGE, true);
 //                    animProgress=0;
 //                }
 
@@ -305,15 +331,17 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                 Vec3 sourcePoint = idlePose.getNextPoint(0).resolveTargetOffset(owner, getUniversalOffset(), 1);
 
 
-                //List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0), getPosition(1), attackRange, 1.2, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
-                List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), 1.4, range, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+                //List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), 1.2, range, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+                List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), range, 0.5, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
                 GeneralUtils.attackTargetsWith(owner, targets, alreadyHit, getHeldItem(), Objects::nonNull);
             }
 
             // update client for trail rendering, done after block collision checks
-            entityData.set(LAST_FRAME, entityData.get(CURRENT_FRAME));
-            MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), recalculatedOrientation);
-            entityData.set(CURRENT_FRAME, reconstructed);
+            if (update != null) {
+                entityData.set(LAST_FRAME, entityData.get(CURRENT_FRAME));
+                MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), recalculatedOrientation);
+                entityData.set(CURRENT_FRAME, reconstructed);
+            }
 
         } else {
             setOwner(level().getNearestPlayer(this, 16));

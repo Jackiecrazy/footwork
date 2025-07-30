@@ -295,7 +295,10 @@ public class GeneralUtils {
     }
 
     public static void attack(LivingEntity e, Entity target) {
-        if (e instanceof Player p) p.attack(target);
+        if (e instanceof Player p){
+            p.setOnGround(false);
+            p.attack(target);
+        }
         else e.doHurtTarget(target);
     }
 
@@ -343,121 +346,121 @@ public class GeneralUtils {
 
     public static List<Entity> arcTraceEntities(Level level,
                                                 Entity owner,
-                                                Vec3 from,
-                                                Vec3 to,
+                                                Vec3 start,
+                                                Vec3 end,
                                                 double arcRadius,
-                                                double hitRadius,
+                                                double hitPadding,
                                                 Predicate<Entity> selector) {
-        Vec3 origin = owner.getEyePosition(); // or hand position
+        Vec3 origin = owner.getEyePosition();
+        Vec3 startOffset = start.subtract(origin).normalize();
+        Vec3 endOffset = end.subtract(origin).normalize();
 
-        Vec3 dirFrom = from.subtract(origin).normalize();
-        Vec3 dirTo = to.subtract(origin).normalize();
-        Vec3 bisector = dirFrom.add(dirTo).normalize();
-
-        double sweepAngleRad = Math.acos(Mth.clamp(dirFrom.dot(dirTo), -1.0, 1.0));
-        double sweepAngleHalfCos = Math.cos(sweepAngleRad / 2.0);
-
-        AABB searchBox = new AABB(from, to).expandTowards(origin).inflate(arcRadius + hitRadius);
-
-        List<Entity> entities = new ArrayList<>();
-        for (Entity target : level.getEntities(owner, searchBox, selector)) {
-            AABB targetBB = target.getBoundingBox();
-
-            // Step 1: Get closest point on the bounding box to the sweep origin
-            Vec3 closestPoint = new Vec3(Mth.clamp(origin.x, targetBB.minX, targetBB.maxX),
-                                         Mth.clamp(origin.y, targetBB.minY, targetBB.maxY),
-                                         Mth.clamp(origin.z, targetBB.minZ, targetBB.maxZ));
-
-            Vec3 toTarget = closestPoint.subtract(origin);
-            double distance = toTarget.length();
-
-            if (distance > arcRadius + hitRadius) {
-                System.out.println("skipped " + target + " due to radius");
-                continue;
-            }
-
-            Vec3 toTargetDir = toTarget.normalize();
-            double dotFrom = toTargetDir.dot(dirFrom);
-            double dotTo = toTargetDir.dot(dirTo);
-            if (dotFrom < Math.cos(sweepAngleRad) || dotTo < Math.cos(sweepAngleRad)) {
-                System.out.println("skipped " + target + " due to cosine");
-                continue;
-            }
-
-            // Get perpendicular distance from the arc
-            Vec3 closestOnArc = bisector.scale(distance);
-            double lateralDist = toTarget.subtract(closestOnArc).length();
-
-            if (lateralDist > hitRadius) {
-                System.out.println("skipped " + target + " due to distance");
-                continue;
-            }
-
-            entities.add(target);
+        // Compute arc plane normal (cross product of start and end vectors)
+        Vec3 arcNormal = startOffset.cross(endOffset).normalize();
+        if (arcNormal.lengthSqr() == 0) {
+            arcNormal = new Vec3(0, 1, 0); // fallback if start == end
         }
 
-        return entities;
+        // Estimate the full arc sweep radius
+        double maxReach = Math.max(start.subtract(origin).length(), end.subtract(origin).length()) + hitPadding;
+
+        // Build a conservative bounding box that contains the arc sweep
+        AABB sweepBox = new AABB(origin, origin).inflate(maxReach);
+
+        List<Entity> results = new ArrayList<>();
+
+        for (Entity entity : level.getEntities(owner, sweepBox, selector)) {
+            // Closest point on entity bounding box to arc origin
+            AABB entityBB = entity.getBoundingBox();
+            Vec3 closestPoint = new Vec3(
+                    Mth.clamp(origin.x, entityBB.minX, entityBB.maxX),
+                    Mth.clamp(origin.y, entityBB.minY, entityBB.maxY),
+                    Mth.clamp(origin.z, entityBB.minZ, entityBB.maxZ)
+            );
+            Vec3 toEntity = closestPoint.subtract(origin);
+            double distance = toEntity.length();
+            if (distance > arcRadius + hitPadding){
+                System.out.println("too far skip");
+                continue;
+            }
+
+            Vec3 toEntityNorm = toEntity.normalize();
+            double startDot = startOffset.dot(toEntityNorm);
+            double endDot = endOffset.dot(toEntityNorm);
+
+            // Check whether the entity is within the arc sweep.
+            // This works by checking if it's between the swept sector.
+            // Overshoots slightly allowed due to conservative conditions.
+            boolean inArc = arcNormal.dot(startOffset.cross(toEntityNorm)) >= -1e-4 &&
+                    arcNormal.dot(toEntityNorm.cross(endOffset)) >= -1e-4;
+
+            if (inArc) {
+                results.add(entity);
+                continue;
+            }
+
+            //checks if the entity is in the line
+            entityBB=entityBB;//fatten hitbox for detection
+            if(entityBB.contains(start)||entityBB.contains(end)||entityBB.clip(start, end).isPresent()){
+                results.add(entity);
+            }
+        }
+
+        return results;
     }
 
     public static List<Entity> arcTraceEntitiesOld(Level level,
                                                    Vec3 origin,
-                                                   Vec3 from,
-                                                   Vec3 to,
-                                                   double hitRadius,
-                                                   double maxRange,
+                                                   Vec3 start,
+                                                   Vec3 end,
+                                                   double radius,
+                                                   double range,
                                                    Predicate<Entity> selector) {
 
-        AABB searchBox = new AABB(from, to).inflate(maxRange);
-        List<Entity> result = new ArrayList<>();
+        AABB bounds = new AABB(start, end).expandTowards(origin).inflate(range + radius);
+        List<Entity> results = new ArrayList<>();
 
-        for (Entity target : level.getEntities((Entity) null, searchBox, selector)) {
-            AABB bb = target.getBoundingBox();
-            Vec3 closest = closestPointOnSegmentToAABB(from, to, bb);
+        Vec3 dirStart = start.subtract(origin).normalize();
+        Vec3 dirEnd = end.subtract(origin).normalize();
+        Vec3 bisector = dirStart.add(dirEnd).normalize();
 
-            double distance = closest.distanceToSqr(from);
-            if (distance > maxRange * maxRange) continue;
+        double sweepAngleRad = Math.acos(Mth.clamp(dirStart.dot(dirEnd), -1.0, 1.0));
+        double sweepAngleHalfCos = Math.cos(sweepAngleRad / 2.0);
 
-            // Check if within the radius of the capsule
-            Vec3 nearest = new Vec3(Mth.clamp(origin.x, bb.minX, bb.maxX),
-                                    Mth.clamp(origin.y, bb.minY, bb.maxY),
-                                    Mth.clamp(origin.z, bb.minZ, bb.maxZ));
-            ; // closest point on entity box to sweep line
-            if (nearest.distanceToSqr(closest) <= hitRadius * hitRadius) {
-                result.add(target);
+        for (Entity target : level.getEntities((Entity) null, bounds, selector)) {
+            AABB box = target.getBoundingBox();
+            Vec3 closest = closestPointOnSegmentToAABB(start, end, box);
+            Vec3 toTarget = closest.subtract(origin);
+            double dist = toTarget.length();
+
+            if (dist > range + radius) continue;
+
+            // Perpendicular distance from line segment
+            double stabDistance = box.distanceToSqr(closest);
+            boolean inStabRange = stabDistance <= radius * radius;
+
+            // Angular alignment (for sweeps)
+            Vec3 toTargetDir = toTarget.normalize();
+            double alignment = toTargetDir.dot(bisector);
+            boolean inSweepArc = alignment >= sweepAngleHalfCos;
+
+            if (inStabRange || inSweepArc) {
+                results.add(target);
             }
         }
 
-        return result;
+        return results;
     }
 
-    private static Vec3 closestPointOnSegmentToAABB(Vec3 segStart, Vec3 segEnd, AABB box) {
-        // Segment direction
-        Vec3 dir = segEnd.subtract(segStart);
-        double length = dir.length();
-        if (length == 0) return segStart;
+    private static Vec3 closestPointOnSegmentToAABB(Vec3 start, Vec3 end, AABB box) {
+        Vec3 seg = end.subtract(start);
+        double len = seg.length();
+        if (len == 0) return start;
 
-        Vec3 norm = dir.scale(1.0 / length);
-
-        // Project each axis independently (AABB clamp)
-        double t = 0.0;
-        double step = length / 8.0; // accuracy step — can tune this
-
-        Vec3 closest = segStart;
-        double minDistSq = Double.MAX_VALUE;
-
-        for (int i = 0; i <= 8; i++) {
-            Vec3 p = segStart.add(norm.scale(i * step));
-            Vec3 closestPoint = new Vec3(Mth.clamp(p.x, box.minX, box.maxX),
-                                         Mth.clamp(p.y, box.minY, box.maxY),
-                                         Mth.clamp(p.z, box.minZ, box.maxZ));
-            double distSq = closestPoint.distanceToSqr(p);
-            if (distSq < minDistSq) {
-                minDistSq = distSq;
-                closest = p;
-            }
-        }
-
-        return closest;
+        seg = seg.normalize();
+        Vec3 boxCenter = box.getCenter();
+        double t = Mth.clamp(boxCenter.subtract(start).dot(seg), 0, len);
+        return start.add(seg.scale(t));
     }
 
 
