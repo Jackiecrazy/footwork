@@ -455,7 +455,6 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         return super.getBoundingBoxForCulling().inflate(8.0D);
     }
 
-
     public boolean isIncorporeal() {
         return entityData.get(IS_INTANGIBLE);
     }
