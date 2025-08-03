@@ -1,32 +1,32 @@
 package jackiecrazy.footwork.move.motionframe;
 
 import jackiecrazy.footwork.utils.EasingFunction;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4d;
 
 import java.util.List;
 
-public record MotionDefinition(List<MotionFrame> frames, EasingFunction easing, int duration) {
+public record WeaponMotion(List<MotionFrame> frames, EasingFunction easing, int duration) {
+
     /*
     each tick, increase duration.
     Find the normalized duration float and ease it,
     multiply that by the number of frames to figure out approximately which frame we're supposed to be in
      */
 
-    public MotionDefinition(MotionFrame frames, EasingFunction easing, int time) {
+    public WeaponMotion(MotionFrame frames, EasingFunction easing, int time) {
         this(List.of(frames), easing, time);
     }
 
-    public MotionDefinition(MotionFrame frames, EasingFunction easing) {
+    public WeaponMotion(MotionFrame frames, EasingFunction easing) {
         this(List.of(frames), easing, 20);
     }
 
-    public MotionDefinition(Vec3 direction, Vec3 offset, Vector4d renderOrientation, EasingFunction easing) {
+    public WeaponMotion(Vec3 direction, Vec3 offset, Vector4d renderOrientation, EasingFunction easing) {
         this(new MotionFrame(direction, offset, renderOrientation), easing);
     }
 
-    public MotionDefinition(Vec3 dir, Vec3 offset, Vector4d orient) {
+    public WeaponMotion(Vec3 dir, Vec3 offset, Vector4d orient) {
         this(dir, offset, orient, EasingFunction.IN_CUBIC);
     }
 

@@ -2,8 +2,8 @@ package jackiecrazy.footwork.client.render;
 
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEffect;
-import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEntity;
 import jackiecrazy.footwork.entity.flyingweapon.SwingHistory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -29,17 +29,17 @@ import org.joml.Vector3f;
 
 import java.util.Deque;
 
-public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
+public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
     public static final Vector3f NORMAL = new Vector3f(0, 1, 0);
-    private final ItemRenderer itemRenderer;
+    protected final ItemRenderer itemRenderer;
 
-    public WeaponEntityRenderer(EntityRendererProvider.Context context) {
+    public ItemEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.itemRenderer = context.getItemRenderer();
     }
 
     @Override
-    public void render(FlyingWeaponEntity entity,
+    public void render(FlyingItemEntity entity,
                        float yaw,
                        float partialTicks,
                        PoseStack poseStack,
@@ -51,24 +51,21 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         ItemStack stack = entity.getHeldItem();
         if (!stack.isEmpty()) {
 
-            //actual weapon render//
             if (entity.shouldRender(FlyingWeaponEffect.WEAPON))
                 renderFlyingWeapon(entity, partialTicks, poseStack, stack);
-
-            //afterimage render//
             if (entity.shouldRender(FlyingWeaponEffect.AFTERIMAGE))
                 renderAfterimages(entity, partialTicks, poseStack, buffer, packedLight, stack);
             if (entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW))
                 renderBigShadowWeapon(entity, partialTicks, poseStack, buffer, 0xF000F0, stack);
-            if (entity.shouldRender(FlyingWeaponEffect.TRAIL))
-                renderTrail(entity, poseStack, partialTicks, buffer);
         }
+        if (entity.shouldRender(FlyingWeaponEffect.TRAIL))
+            renderTrail(entity, poseStack, partialTicks, buffer);
     }
 
-    private void renderFlyingWeapon(FlyingWeaponEntity entity,
-                                    float partialTicks,
-                                    PoseStack poseStack,
-                                    ItemStack stack) {
+    protected void renderFlyingWeapon(FlyingItemEntity entity,
+                                      float partialTicks,
+                                      PoseStack poseStack,
+                                      ItemStack stack) {
         poseStack.pushPose();
         if (!entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
 
@@ -98,7 +95,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
         poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
         // Scale and render
-        float scale = (float) Math.max(entity.getAttackRange() / 3, 0.4);
+        float scale = (float) Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
         poseStack.scale(1f, scale, scale);
 
         //actual weapon
@@ -108,12 +105,12 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.popPose();
     }
 
-    private void renderBigShadowWeapon(FlyingWeaponEntity entity,
-                                       float partialTicks,
-                                       PoseStack poseStack,
-                                       MultiBufferSource buffer,
-                                       int packedLight,
-                                       ItemStack stack) {
+    protected void renderBigShadowWeapon(FlyingItemEntity entity,
+                                         float partialTicks,
+                                         PoseStack poseStack,
+                                         MultiBufferSource buffer,
+                                         int packedLight,
+                                         ItemStack stack) {
         poseStack.pushPose();
         SwingHistory from;
         SwingHistory to = null;
@@ -125,53 +122,52 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                 -(interpolated.z)
         );
         int skip = 0;
-        if (entity.renderLag > 0) {
-            float lerpRenderLag = (Mth.lerp(partialTicks, entity.renderLagO, entity.renderLag) * FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
-            for (Tuple<SwingHistory, SwingHistory> sh : entity.getTrailHistory()) {
-                from = to;
-                to = sh.getB();
-                skip += 1;
-                if (from != null && to != null && skip >= lerpRenderLag) {
-                    poseStack.pushPose();
-                    final float attackRange = entity.getAttackRange();
-                    float moddedPartialTicks = (partialTicks % (1f / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS)) * FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS;
-                    Vec3 interpolate = from.position().lerp(to.position(), moddedPartialTicks);
-                    poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
-                    // Position and rotate as needed
-                    float lerpYRot = Mth.rotLerp(moddedPartialTicks, from.pitch(), to.pitch());
-                    float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
-                    float lerpZRot = Mth.rotLerp(moddedPartialTicks, from.roll(), to.roll());
-                    //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-                    poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
-                    poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch, +angle to point the sword
-                    poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
-                    poseStack.translate(0, 0, -0.1 * attackRange);//pull pommel back a bit
-                    float scale = (float) Math.max(attackRange, 0.4);
-                    poseStack.scale(scale, scale, scale);//should scale here, right?
-                    poseStack.translate(0, 0, -0.4);//aligning pommel to the best of my ability
-                    poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
-                    poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
-                    poseStack.translate(0.15 * attackRange, 0, 0);//trying to put the weapon on the same axis
+        float lerpRenderLag = (Mth.lerp(partialTicks, entity.renderLagO, entity.renderLag) * FlyingItemEntity.CLIENT_SMOOTHING_SUBTICKS);
+        int lerpAlpha = (int)(Mth.lerp(partialTicks, entity.alphaO, entity.alpha));
+        for (Tuple<SwingHistory, SwingHistory> sh : entity.getTrailHistory()) {
+            from = to;
+            to = sh.getB();
+            skip += 1;
+            if (from != null && to != null && skip >= lerpRenderLag) {
+                poseStack.pushPose();
+                float moddedPartialTicks = (partialTicks % (1f / FlyingItemEntity.CLIENT_SMOOTHING_SUBTICKS)) * FlyingItemEntity.CLIENT_SMOOTHING_SUBTICKS;
+                final float attackRange = Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange());
+                float scale = (float) Math.max(attackRange, 0.4);
+                Vec3 interpolate = from.position().lerp(to.position(), moddedPartialTicks);
+                poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
+                // Position and rotate as needed
+                float lerpYRot = Mth.rotLerp(moddedPartialTicks, from.pitch(), to.pitch());
+                float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
+                float lerpZRot = Mth.rotLerp(moddedPartialTicks, from.roll(), to.roll());
+                //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
+                poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+                poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch, +angle to point the sword
+                poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
+                poseStack.scale(scale, scale, scale);//should scale here, right?
+                poseStack.translate(0, 0, 0.2);//aligning pommel to the best of my ability
+                poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
+                poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
+                poseStack.translate(0,-0.25, 0);//trying to put the weapon on the same axis
 
-                    //afterimages
+                //poseStack.translate(0.425, -0.45, 0);//Obsolete. trying to put the weapon on the same axis
+
+                //afterimages
 //                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
 //                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
-                    int alpha = (int) (lerpRenderLag * 64 / FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS);
-                    renderShadowWeapon(stack, poseStack, buffer, alpha);
-                    poseStack.popPose();
-                    break;
-                }
+                renderShadowWeapon(stack, poseStack, buffer, lerpAlpha);
+                poseStack.popPose();
+                break;
             }
         }
         poseStack.popPose();
     }
 
-    private void renderAfterimages(FlyingWeaponEntity entity,
-                                   float partialTicks,
-                                   PoseStack poseStack,
-                                   MultiBufferSource buffer,
-                                   int packedLight,
-                                   ItemStack stack) {
+    protected void renderAfterimages(FlyingItemEntity entity,
+                                     float partialTicks,
+                                     PoseStack poseStack,
+                                     MultiBufferSource buffer,
+                                     int packedLight,
+                                     ItemStack stack) {
         poseStack.pushPose();
         float alpha = 1f;
         SwingHistory sh0;
@@ -189,7 +185,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
             //if the big shadow is rendered, the afterimage is kept where the weapon is, otherwise it scales out
             sh1 = entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW) ? sh.getB() : sh.getA();
             skip += 1;
-            final int threshold = FlyingWeaponEntity.CLIENT_SMOOTHING_SUBTICKS;
+            final int threshold = FlyingItemEntity.CLIENT_SMOOTHING_SUBTICKS;
             if (sh0 != null && skip >= threshold) {
                 skip %= threshold;
                 alpha *= 0.7f;
@@ -199,17 +195,10 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.popPose();
     }
 
-    private void renderShadowWeapon(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource, int alpha) {
-        //VertexConsumer consumer = bufferSource.getBuffer(FootworkRenderTypes.GHOST_ITEM);
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS));
-        VertexConsumer whiteTinted = new VertexConsumerWrapper(consumer) {
-            @Override
-            public VertexConsumer color(int r, int g, int b, int a) {
-                return super.color(0, 0, 0, alpha); // force semi-translucent black
-            }
-        };
+    protected void renderShadowWeapon(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource, int alpha) {
+        poseStack.pushPose();
         BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
-        model.applyTransform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, poseStack, false);
+        /*model.applyTransform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, poseStack, false);
 
         itemRenderer.renderModelLists(
                 model,
@@ -218,19 +207,29 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
                 OverlayTexture.NO_OVERLAY,
                 poseStack,
                 whiteTinted
+        );*/
+        itemRenderer.render(
+                stack,
+                ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
+                false,
+                poseStack,
+                new ColorMultiBufferSource(bufferSource, 0,0,0,alpha/255f),
+                0xf00f0,
+                OverlayTexture.NO_OVERLAY,
+                model  // or null
         );
-
+        poseStack.popPose();
     }
 
-    private void renderAfterimage(FlyingWeaponEntity entity,
-                                  float partialTicks,
-                                  PoseStack poseStack,
-                                  MultiBufferSource buffer,
-                                  int packedLight,
-                                  ItemStack stack,
-                                  SwingHistory from,
-                                  SwingHistory to,
-                                  float alpha) {
+    protected void renderAfterimage(FlyingItemEntity entity,
+                                    float partialTicks,
+                                    PoseStack poseStack,
+                                    MultiBufferSource buffer,
+                                    int packedLight,
+                                    ItemStack stack,
+                                    SwingHistory from,
+                                    SwingHistory to,
+                                    float alpha) {
         poseStack.pushPose();
 
         Vec3 interpolate = from.position().lerp(to.position(), partialTicks);
@@ -248,7 +247,7 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
 
         // Scale and render
-        float scale = (float) Math.max(entity.getAttackRange() / 3, 0.4);
+        float scale = (float) Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
         poseStack.scale(scale, scale, scale);
 
         //afterimages
@@ -257,10 +256,10 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.popPose();
     }
 
-    private void renderTrail(FlyingWeaponEntity entity,
-                             PoseStack poseStack,
-                             float partialticks,
-                             MultiBufferSource buffer) {
+    protected void renderTrail(FlyingItemEntity entity,
+                               PoseStack poseStack,
+                               float partialticks,
+                               MultiBufferSource buffer) {
         poseStack.pushPose();
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(FootworkRenderTypes.white));
         Vec3 interpolated = entity.getPosition(partialticks); // same as what's applied by default
@@ -293,13 +292,13 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
         poseStack.popPose();
     }
 
-    private void drawQuad(VertexConsumer consumer,
-                          PoseStack poseStack,
-                          Vec3 from1,
-                          Vec3 from2,
-                          Vec3 to1,
-                          Vec3 to2,
-                          float alpha) {
+    protected void drawQuad(VertexConsumer consumer,
+                            PoseStack poseStack,
+                            Vec3 from1,
+                            Vec3 from2,
+                            Vec3 to1,
+                            Vec3 to2,
+                            float alpha) {
         PoseStack.Pose pose = poseStack.last();
         Matrix4f matrix = pose.pose();
         Matrix3f normalMatrix = pose.normal();
@@ -316,13 +315,13 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
 
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull FlyingWeaponEntity entity) {
+    public @NotNull ResourceLocation getTextureLocation(@NotNull FlyingItemEntity entity) {
         return TextureAtlas.LOCATION_BLOCKS; // Not needed, since we're rendering an ItemStack
     }
 
-    public class AlphaMultiBufferSource implements MultiBufferSource {
-        private final MultiBufferSource original;
-        private final float alpha;
+    public static class AlphaMultiBufferSource implements MultiBufferSource {
+        protected final MultiBufferSource original;
+        protected final float alpha;
 
         public AlphaMultiBufferSource(MultiBufferSource original, float alpha) {
             this.original = original;
@@ -331,21 +330,48 @@ public class WeaponEntityRenderer extends EntityRenderer<FlyingWeaponEntity> {
 
         @Override
         public VertexConsumer getBuffer(RenderType type) {
-            return new AlphaVertexConsumer(original.getBuffer(type), alpha);
+            return new CustomVertexConsumer(original.getBuffer(type), alpha);
         }
     }
 
-    public class AlphaVertexConsumer implements VertexConsumer {
-        private final VertexConsumer base;
-        private final float alpha;
+    public static class ColorMultiBufferSource implements MultiBufferSource {
+        protected final MultiBufferSource original;
+        protected final float r, g, b, alpha;
 
-        public AlphaVertexConsumer(VertexConsumer base, float alpha) {
+        public ColorMultiBufferSource(MultiBufferSource original, float r, float g, float b, float alpha) {
+            this.original = original;
+            this.alpha = alpha;
+            this.r=r;this.g=g;this.b=b;
+        }
+
+        @Override
+        public VertexConsumer getBuffer(RenderType type) {
+            return new CustomVertexConsumer(original.getBuffer(type),r,g,b, alpha);
+        }
+    }
+
+    public static class CustomVertexConsumer implements VertexConsumer {
+        protected final VertexConsumer base;
+        protected final float alpha;
+        protected final float re, gr, bl;
+
+        public CustomVertexConsumer(VertexConsumer base, float r, float g, float b, float alpha) {
+            re = r;
+            gr = g;
+            bl = b;
             this.base = base;
             this.alpha = alpha;
         }
 
+        public CustomVertexConsumer(VertexConsumer base, float alpha) {
+            this(base, -1, -1, -1, alpha);
+        }
+
         @Override
         public VertexConsumer color(int r, int g, int b, int a) {
+            if (re >= 0) r = (int) (re * 255);
+            if (gr >= 0) g = (int) (gr * 255);
+            if (bl >= 0) b = (int) (bl * 255);
             // Override with custom alpha
             return base.color(r, g, b, (int) (alpha * 255));
         }

@@ -281,48 +281,12 @@ public class GeneralUtils {
         return raytraceEntities(world, (Entity) attacker, range);
     }
 
-    private static void quickSwap(LivingEntity e, ItemStack stack) {
-        ItemStack main = e.getMainHandItem();
-        boolean wasSilent = e.isSilent();
-        e.setSilent(true);
-        e.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        e.setSilent(wasSilent);
-
-        main.getAttributeModifiers(EquipmentSlot.MAINHAND).forEach((att, mod) -> Optional.ofNullable(e.getAttribute(att)).ifPresent((mai) -> mai.removeModifier(mod)));
-        stack.getAttributeModifiers(EquipmentSlot.MAINHAND).forEach((att, mod) -> Optional.ofNullable(e.getAttribute(att)).ifPresent((mai) -> {
-            if (!mai.hasModifier(mod)) mai.addTransientModifier(mod);
-        }));
-    }
-
     public static void attack(LivingEntity e, Entity target) {
         if (e instanceof Player p){
             p.setOnGround(false);
             p.attack(target);
         }
         else e.doHurtTarget(target);
-    }
-
-    public static void attackTargetsWith(LivingEntity e,
-                                         List<Entity> targets,
-                                         List<Entity> ignoreList,
-                                         ItemStack stack,
-                                         Predicate<Entity> predicate) {
-        int ticks = e.attackStrengthTicker;
-        ItemStack main = e.getMainHandItem();
-        try {
-            quickSwap(e, stack);
-            for (Entity target : targets)
-                if (predicate.test(target) && !ignoreList.contains(target)) {
-                    ignoreList.add(target);
-                    e.attackStrengthTicker = 99999;
-                    attack(e, target);
-                }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            quickSwap(e, main);
-            e.attackStrengthTicker = ticks;
-        }
     }
 
     public static List<Entity> raytraceEntities(Level world, Entity attacker, double range) {

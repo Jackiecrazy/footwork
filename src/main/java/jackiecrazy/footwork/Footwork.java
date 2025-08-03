@@ -8,8 +8,8 @@ import jackiecrazy.footwork.capability.stylish.IStyleCapability;
 import jackiecrazy.footwork.capability.timeslow.ITimeChange;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.client.particle.FootworkParticles;
+import jackiecrazy.footwork.client.render.ItemEntityRenderer;
 import jackiecrazy.footwork.client.render.NothingRender;
-import jackiecrazy.footwork.client.render.WeaponEntityRenderer;
 import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
@@ -98,7 +98,7 @@ public class Footwork {
 
     public void onClientSetup(FMLClientSetupEvent event) {
         EntityRenderers.register(FootworkEntities.DUMMY.get(), NothingRender::new);
-        EntityRenderers.register(FootworkEntities.WEAPON.get(), WeaponEntityRenderer::new);
+        EntityRenderers.register(FootworkEntities.WEAPON.get(), ItemEntityRenderer::new);
 
     }
 

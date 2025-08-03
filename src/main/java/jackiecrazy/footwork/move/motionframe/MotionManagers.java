@@ -1,7 +1,6 @@
 package jackiecrazy.footwork.move.motionframe;
 
 import jackiecrazy.footwork.utils.EasingFunction;
-import net.minecraft.world.entity.Entity;
 
 public class MotionManagers {
     public record FixedMM(MotionFrame frame, int duration) implements MotionManager {
@@ -55,7 +54,7 @@ public class MotionManagers {
         }
     }
 
-    public record DefinitionMM(MotionDefinition def) implements MotionManager {
+    public record DefinitionMM(WeaponMotion def) implements MotionManager {
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
             return def.interpret(elapsedTicks);

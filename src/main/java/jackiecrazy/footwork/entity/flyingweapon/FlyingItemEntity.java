@@ -1,13 +1,12 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.motionframe.MotionDefinition;
+import jackiecrazy.footwork.move.motionframe.WeaponMotion;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
 import jackiecrazy.footwork.utils.EasingFunction;
 import jackiecrazy.footwork.utils.GeneralUtils;
-import jackiecrazy.footwork.utils.TargetingUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -34,62 +33,62 @@ import org.joml.Vector4d;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-public class FlyingWeaponEntity extends Entity implements OwnableEntity {
+public abstract class FlyingItemEntity extends Entity implements OwnableEntity {
     public static final int MAX_TRAIL_LENGTH = 15;
     public static final int CLIENT_SMOOTHING_SUBTICKS = 7;
-    protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    private static final List<MotionFrame> TWIST_THE_KNIFE = List.of(new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), 135), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.3)), new MotionFrame(new Vec3(1, -1, 1), new Vec3(0, 0, 1), -60));
-    private static final List<MotionFrame> STAB = List.of(
+    protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    protected static final List<MotionFrame> STAB = List.of(
             new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, -1)),
             new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)),
             new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4))
     );
-    private static final List<MotionFrame> CIRCLE = List.of(
+    protected static final List<MotionFrame> CIRCLE = List.of(
             new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)),
             new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), new Vector4d(-1, 0, 0, 90)),
             new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 90)),
             new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), new Vector4d(1, 0, 0, 90)),
             new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)));
-    private static final List<MotionFrame> SLASH = List.of(
+    protected static final List<MotionFrame> SLASH = List.of(
             new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1)),
             new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45)));
-    private static final List<MotionFrame> BACKSLASH = List.of(
+    protected static final List<MotionFrame> BACKSLASH = List.of(
             new MotionFrame(new Vec3(-1, 0.6, 1), new Vec3(0, 0, 1), -45),
             new MotionFrame(new Vec3(1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(1, -1, 1, -45)));
-    private static final List<MotionFrame> CHOP = List.of(
+    protected static final List<MotionFrame> CHOP = List.of(
             new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)),
             new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1)));
-    private static final List<MotionManager> EVERYONE = List.of(
-            new MotionManagers.DefinitionMM(new MotionDefinition(CIRCLE, EasingFunction.IN_OUT_CUBIC, 30)),
-            new MotionManagers.DefinitionMM(new MotionDefinition(STAB, EasingFunction.IN_CUBIC, 30)),
-            new MotionManagers.DefinitionMM(new MotionDefinition(SLASH, EasingFunction.IN_OUT_CUBIC, 30)),
-            new MotionManagers.DefinitionMM(new MotionDefinition(BACKSLASH, EasingFunction.IN_OUT_CUBIC, 30)),
-            new MotionManagers.DefinitionMM(new MotionDefinition(CHOP, EasingFunction.IN_CUBIC, 30)));
-    private static final EntityDataAccessor<Float> ROLL = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> ATTACK_RANGE = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Integer> MOB_OWNER = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> VISUAL_TAG = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> IS_INTANGIBLE = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.ITEM_STACK);
-    private static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingWeaponEntity.class, MotionFrame.SERIALIZER);
-    private static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingWeaponEntity.class, MotionFrame.SERIALIZER);
-    private static final EntityDataAccessor<Vector3f> UNIVERSAL_OFFSET = SynchedEntityData.defineId(FlyingWeaponEntity.class, EntityDataSerializers.VECTOR3);
-    private final MotionManager firstIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
-    private final MotionManager secondIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 1), Vec3.ZERO, new Vector4d(1, 1, 0, 0)), 20);
-    private final List<Entity> alreadyHit = new ArrayList<>();
+    protected static final List<MotionManager> EVERYONE = List.of(
+            new MotionManagers.DefinitionMM(new WeaponMotion(CIRCLE, EasingFunction.IN_OUT_CUBIC, 30)),
+            new MotionManagers.DefinitionMM(new WeaponMotion(STAB, EasingFunction.IN_CUBIC, 30)),
+            new MotionManagers.DefinitionMM(new WeaponMotion(SLASH, EasingFunction.IN_OUT_CUBIC, 30)),
+            new MotionManagers.DefinitionMM(new WeaponMotion(BACKSLASH, EasingFunction.IN_OUT_CUBIC, 30)),
+            new MotionManagers.DefinitionMM(new WeaponMotion(CHOP, EasingFunction.IN_CUBIC, 30)));
+    protected static final EntityDataAccessor<Float> ROLL = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.FLOAT);
+    protected static final EntityDataAccessor<Float> ATTACK_RANGE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.FLOAT);
+    protected static final EntityDataAccessor<Integer> MOB_OWNER = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Integer> VISUAL_TAG = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Boolean> IS_INTANGIBLE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
+    protected static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
+    protected static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
+    protected static final EntityDataAccessor<Vector3f> UNIVERSAL_OFFSET = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
+    protected final MotionManager firstIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
+    protected final MotionManager secondIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 1), Vec3.ZERO, new Vector4d(1, 1, 0, 0)), 20);
     //first one goes up to attack range, second does not scale
-    private final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
-    public float rollO, displacementO;
+    protected final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
+    public float rollO, displacementO, sizeO;
     public int renderLag = 0, renderLagO = 0;
+    public int alpha = 0, alphaO = 0;
     //how the weapon floats when idle: point downwards
-    private MotionManager idlePose = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
-    private int internalIdleTimer = 0;
-    private LivingEntity owner;
-    private Deque<MotionManager> moveQueue = new ConcurrentLinkedDeque<>();
-    private int animProgress = 0;
-    private MotionFrame update;
+    protected MotionManager idlePose = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
+    protected int internalIdleTimer = 0;
+    protected LivingEntity owner;
+    protected Deque<MotionManager> moveQueue = new ConcurrentLinkedDeque<>();
+    protected int animProgress = 0;
+    protected MotionFrame update;
+    private Vector4d recalculatedOrientation;
 
-    public FlyingWeaponEntity(EntityType<? extends FlyingWeaponEntity> type, Level level) {
+    public FlyingItemEntity(EntityType<? extends FlyingItemEntity> type, Level level) {
         super(type, level);
         setHeldItem(new ItemStack(Items.IRON_SWORD));
     }
@@ -110,11 +109,11 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         entityData.set(UNIVERSAL_OFFSET, universalOffset.toVector3f());
     }
 
-    public float getAttackRange() {
+    public float getInteractionRange() {
         return entityData.get(ATTACK_RANGE);
     }
 
-    public void setAttackRange(float range) {
+    public void setInteractionRange(float range) {
         entityData.set(ATTACK_RANGE, range);
     }
 
@@ -150,7 +149,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         return entityData.get(DATA_OWNERUUID_ID).orElse(null);
     }
 
-    private void setOwnerUUID(UUID to) {
+    protected void setOwnerUUID(UUID to) {
         entityData.set(DATA_OWNERUUID_ID, Optional.of(to));
     }
 
@@ -182,18 +181,17 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         else entityData.set(MOB_OWNER, e.getId());
         owner = e;
         if (e.getAttribute(ForgeMod.ENTITY_REACH.get()) != null)
-            setAttackRange((float) e.getAttributeValue(ForgeMod.ENTITY_REACH.get()));
+            setInteractionRange((float) e.getAttributeValue(ForgeMod.ENTITY_REACH.get()));
     }
 
-    private void updateMotionTargets(boolean forceskip) {
+    protected void updateMotionTargets(boolean forceskip) {
         LivingEntity owner = getOwner();
         if (owner == null) return;
         MotionManager motion = moveQueue.peek();
         if (motion == null || motion.hasEnded(animProgress) || forceskip) {
             moveQueue.poll();
-            motion = moveQueue.peek();
-            setIncorporeal(motion == null || motion instanceof MotionManagers.TransitionMM);
-            alreadyHit.clear();
+            //motion = moveQueue.peek();
+            //setTransitioning(motion == null || motion instanceof MotionManagers.TransitionMM);
             animProgress = 0;
         }
     }
@@ -259,49 +257,67 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         }
         if (getOwner() != null) {
             setOldPosAndRot();
-            Vector4d recalculatedOrientation;
 
             if (!moveQueue.isEmpty()) {
-                MotionManager activeMove = moveQueue.peek();
-                //motion path test
-                // Recalculate target every tick relative to player
-                animProgress++;
-                update = activeMove.getNextPoint(animProgress);
-                //todo keep the lerped frame for future movement
-                Vec3 transformedDirection = update.resolveTargetOffset(owner, getUniversalOffset(), 1);
-
-                // Move toward the desired position smoothly
-                Vec3 delta = transformedDirection.subtract(this.position());
-
-                this.setPos(transformedDirection);
-                setDeltaMovement(delta);
-                recalculatedOrientation = recalculateOrientation(owner, update.renderOrientation(), 1f);
-
-                if (activeMove.hasEnded(animProgress)) {//end current path, execute next path (either transition or next path)
-                    updateMotionTargets(false);
-                } else if (activeMove != idlePose) {
-                    //still animating, keep frames on
-                    //setIncorporeal(false);
-                    displacementO = getDisplacementForRender();
-                }
-                //entityData.set(ID_DISPLACE, (float) Math.max(0, lerped.offset().length() * attackRange-1));
+                executeMoveQueue();
 
             } else {
-                //idle animation, float next to the player
-                update = idlePose.getNextPoint(0);
-                Vec3 transformedDirection = update.resolveTargetOffset(owner, getUniversalOffset(), 1);
+                returnToIdle();
+            }
 
-                // Move toward the desired position smoothly
-                Vec3 currentPos = position();
-                //final double snappiness = Mth.clamp(5/transformedDirection.distanceToSqr(currentPos), 0.25, 1);
-                final float snappiness = 0.25f;
-                Vec3 lerp = currentPos.lerp(transformedDirection, snappiness);
-                Vec3 delta = lerp.subtract(currentPos);
-                setPos(lerp);
-                setDeltaMovement(delta);
-                recalculatedOrientation = recalculateOrientation(owner, update.renderOrientation(), (float) snappiness);
+            // Collision and attack logic
+            handleBlockCollisions();
+            handleEntityCollisions();
 
-                //provisional. Used to test movement.
+            // update client for trail rendering, done after block collision checks
+            if (update != null) {
+                entityData.set(LAST_FRAME, entityData.get(CURRENT_FRAME));
+                MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), recalculatedOrientation);
+                entityData.set(CURRENT_FRAME, reconstructed);
+            }
+
+        }
+    }
+
+    protected void handleEntityCollisions() {
+        if (!transitioning()) {
+            final float range = getInteractionRange();
+            List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), range, 0.5, tg -> true);//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+            onHitEntity(targets);
+        }
+    }
+
+    protected abstract void onHitEntity(List<Entity> targets);
+
+    protected void handleBlockCollisions() {
+        if (!transitioning()) {
+            final float range = getInteractionRange();
+            HitResult hit = level().clip(new ClipContext(getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+            if (hit.getType() == HitResult.Type.BLOCK) {
+                BlockHitResult blockHit = (BlockHitResult) hit;
+                BlockPos blockPos = blockHit.getBlockPos();
+                Direction hitFace = blockHit.getDirection();
+                onHitBlock(blockPos, hitFace, blockHit.getLocation());
+            }
+        }
+    }
+
+    protected void returnToIdle() {
+        //idle animation, float next to the player
+        update = idlePose.getNextPoint(0);
+        Vec3 transformedDirection = update.resolveTargetOffset(owner, getUniversalOffset(), 1);
+
+        // Move toward the desired position smoothly
+        Vec3 currentPos = position();
+        //final double snappiness = Mth.clamp(5/transformedDirection.distanceToSqr(currentPos), 0.25, 1);
+        final float snappiness = 0.25f;
+        Vec3 lerp = currentPos.lerp(transformedDirection, snappiness);
+        Vec3 delta = lerp.subtract(currentPos);
+        setPos(lerp);
+        setDeltaMovement(delta);
+        recalculatedOrientation = recalculateOrientation(owner, update.renderOrientation(), (float) snappiness);
+
+        //provisional. Used to test movement.
 
 //                animProgress++;
 //                if (animProgress > 20) {
@@ -315,48 +331,49 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
 //                    animProgress=0;
 //                }
 
-                displacementO = getDisplacementForRender();
-            }
-
-            // Collision and attack logic
-            if (!isIncorporeal()) {
-                final float range = getAttackRange();
-                HitResult hit = level().clip(new ClipContext(getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-                if (hit.getType() == HitResult.Type.BLOCK) {
-                    BlockHitResult blockHit = (BlockHitResult) hit;
-                    BlockPos blockPos = blockHit.getBlockPos();
-                    Direction hitFace = blockHit.getDirection();
-                    onHitBlock(blockPos, hitFace, blockHit.getLocation());
-                }
-                Vec3 sourcePoint = idlePose.getNextPoint(0).resolveTargetOffset(owner, getUniversalOffset(), 1);
-
-
-                //List<Entity> targets = GeneralUtils.arcTraceEntitiesOld(level(), sourcePoint, getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), 1.2, range, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
-                List<Entity> targets = GeneralUtils.arcTraceEntities(level(), owner, getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), range, 0.5, tg -> tg != owner && !TargetingUtils.isAlly(tg, owner) && !tg.isInvulnerable());//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
-                GeneralUtils.attackTargetsWith(owner, targets, alreadyHit, getHeldItem(), Objects::nonNull);
-            }
-
-            // update client for trail rendering, done after block collision checks
-            if (update != null) {
-                entityData.set(LAST_FRAME, entityData.get(CURRENT_FRAME));
-                MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), recalculatedOrientation);
-                entityData.set(CURRENT_FRAME, reconstructed);
-            }
-
-        } else {
-            setOwner(level().getNearestPlayer(this, 16));
-        }
-        internalIdleTimer++;
-        if (internalIdleTimer > 1200)//reasonably sure the player doesn't need it anymore
-            remove(RemovalReason.DISCARDED);
+        displacementO = getDisplacementForRender();
     }
 
-    private void updateClientData() {
+    protected void executeMoveQueue() {
+        MotionManager activeMove = moveQueue.peek();
+        //motion path test
+        // Recalculate target every tick relative to player
+        animProgress++;
+        //keep the lerped frame for future movement
+        update = activeMove.getNextPoint(animProgress);
+        Vec3 transformedDirection = update.resolveTargetOffset(owner, getUniversalOffset(), 1);
+
+        // Move toward the desired position smoothly
+        Vec3 delta = transformedDirection.subtract(this.position());
+
+        this.setPos(transformedDirection);
+        setDeltaMovement(delta);
+        recalculatedOrientation = recalculateOrientation(owner, update.renderOrientation(), 1f);
+
+        if (activeMove.hasEnded(animProgress)) {//end current path, execute next path (either transition or next path)
+            updateMotionTargets(false);
+        } else if (activeMove != idlePose) {
+            //still animating, keep frames on
+            //setIncorporeal(false);
+            displacementO = getDisplacementForRender();
+        }
+        //entityData.set(ID_DISPLACE, (float) Math.max(0, lerped.offset().length() * attackRange-1));
+    }
+
+    protected void updateClientData() {
         renderLagO = renderLag;
-        if (!isIncorporeal()) {
+        sizeO = getInteractionRange();
+        if (!transitioning()) {
             if (renderLag < 2)
                 renderLag++;
-        } else if (renderLag > 0) renderLag--;
+        } else {
+            if (renderLag > 0) renderLag--;
+            //trailHistory.clear();//todo find a better way to do this
+        }
+        alphaO = alpha;
+        if (shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
+            if (alpha < 130) alpha += 35;
+        } else if (alpha > 0) alpha -= 35;
         //lerp 5 points between each tick
         if (getOwner() != null)
             for (int i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
@@ -364,7 +381,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
                 MotionFrame to = entityData.get(CURRENT_FRAME);
                 MotionFrame lerped = from.lerp(to, (double) i / CLIENT_SMOOTHING_SUBTICKS);
                 Vec3 universalOffset = getUniversalOffset();
-                Vec3 trailPosition = lerped.resolveTargetOffset(owner, universalOffset, getAttackRange());
+                Vec3 trailPosition = lerped.resolveTargetOffset(owner, universalOffset, getInteractionRange());
                 SwingHistory trail = new SwingHistory(trailPosition, (float) lerped.renderOrientation().z, (float) lerped.renderOrientation().y, (float) lerped.renderOrientation().x);
                 Vec3 shadowPosition = lerped.resolveTargetOffset(owner, universalOffset, 1);
                 SwingHistory shadow = new SwingHistory(shadowPosition, (float) lerped.renderOrientation().z, (float) lerped.renderOrientation().y, (float) lerped.renderOrientation().x);
@@ -376,9 +393,7 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         }
     }
 
-    private void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location) {
-        //setPos(location);
-    }
+    protected abstract void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location);
 
     public Vector4d recalculateOrientation(LivingEntity owner, Vector4d quaternion, float snappiness) {
         // Step 1: Convert visualOrientation to world-space direction
@@ -395,13 +410,14 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         Vec3 worldDirection = right.scale(quaternion.x).add(up.scale(quaternion.y)).add(forward.scale(quaternion.z)).normalize();
 
         // Step 2: Face that world direction
-        float targetYaw = (float) (-Mth.atan2(worldDirection.x, worldDirection.z) * (180F / Math.PI)) % 180f;
-        float targetPitch = (float) (Mth.atan2(worldDirection.y, Math.sqrt(worldDirection.x * worldDirection.x + worldDirection.z * worldDirection.z)) * (180F / Math.PI)) % 180f;
+        float targetYaw = (float) (-Mth.atan2(worldDirection.x, worldDirection.z) * (180F / Math.PI));
+        float targetPitch = (float) (Mth.atan2(worldDirection.y, Math.sqrt(worldDirection.x * worldDirection.x + worldDirection.z * worldDirection.z)) * (180F / Math.PI));
 
         rollO = entityData.get(ROLL);
         float lerpX = Mth.lerp(snappiness, getXRot(), targetPitch);
         float lerpY = Mth.lerp(snappiness, getYRot(), targetYaw);
         double lerpZ = Mth.lerp(snappiness, rollO, quaternion.w);
+        //detect drastic changes that imply the weapon reached a 180 location
         if (!Float.isFinite(lerpX)) {
             Footwork.LOGGER.warn("x is somehow not finite, resetting");
             lerpX = targetPitch;
@@ -455,11 +471,11 @@ public class FlyingWeaponEntity extends Entity implements OwnableEntity {
         return super.getBoundingBoxForCulling().inflate(8.0D);
     }
 
-    public boolean isIncorporeal() {
+    public boolean transitioning() {
         return entityData.get(IS_INTANGIBLE);
     }
 
-    public void setIncorporeal(boolean incorporeal) {
+    public void setTransitioning(boolean incorporeal) {
         entityData.set(IS_INTANGIBLE, incorporeal);
     }
 }
