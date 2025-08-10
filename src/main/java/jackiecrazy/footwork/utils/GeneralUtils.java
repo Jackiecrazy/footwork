@@ -282,11 +282,10 @@ public class GeneralUtils {
     }
 
     public static void attack(LivingEntity e, Entity target) {
-        if (e instanceof Player p){
+        if (e instanceof Player p) {
             p.setOnGround(false);
             p.attack(target);
-        }
-        else e.doHurtTarget(target);
+        } else e.doHurtTarget(target);
     }
 
     public static List<Entity> raytraceEntities(Level world, Entity attacker, double range) {
@@ -335,7 +334,7 @@ public class GeneralUtils {
 
         for (Entity entity : level.getEntities(owner, sweepBox, selector)) {
             // Closest point on entity bounding box to arc origin
-            AABB entityBB = entity.getBoundingBox();
+            AABB entityBB = entity.getBoundingBox().inflate(hitPadding);
             Vec3 closestPoint = new Vec3(
                     Mth.clamp(origin.x, entityBB.minX, entityBB.maxX),
                     Mth.clamp(origin.y, entityBB.minY, entityBB.maxY),
@@ -343,8 +342,7 @@ public class GeneralUtils {
             );
             Vec3 toEntity = closestPoint.subtract(origin);
             double distance = toEntity.length();
-            if (distance > arcRadius + hitPadding){
-                System.out.println("too far skip");
+            if (distance > arcRadius) {
                 continue;
             }
 
@@ -364,8 +362,8 @@ public class GeneralUtils {
             }
 
             //checks if the entity is in the line
-            entityBB=entityBB;//fatten hitbox for detection
-            if(entityBB.contains(start)||entityBB.contains(end)||entityBB.clip(start, end).isPresent()){
+            if (entityBB.contains(start) || entityBB.contains(end) || entityBB.contains(origin) ||
+                    entityBB.intersects(start, end) || entityBB.intersects(origin, start) || entityBB.intersects(origin, end)) {
                 results.add(entity);
             }
         }

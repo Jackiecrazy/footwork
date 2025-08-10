@@ -21,7 +21,7 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.pipeline.VertexConsumerWrapper;
+import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -67,21 +67,21 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                       PoseStack poseStack,
                                       ItemStack stack) {
         poseStack.pushPose();
-        if (!entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
-
-            Vec3 interpolated = entity.getPosition(partialTicks); // same as what's applied by default
-            poseStack.translate(
-                    -(interpolated.x),
-                    -(interpolated.y),
-                    -(interpolated.z)
-            );
-            interpolated = entity.getTrailHistory().getFirst().getA().position();
-            poseStack.translate(
-                    (interpolated.x),
-                    (interpolated.y),
-                    (interpolated.z)
-            );
-        }
+//        if (!entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
+//
+//            Vec3 interpolated = entity.getPosition(partialTicks); // same as what's applied by default
+//            poseStack.translate(
+//                    -(interpolated.x),
+//                    -(interpolated.y),
+//                    -(interpolated.z)
+//            );
+//            interpolated = entity.getTrailHistory().getFirst().getA().position();
+//            poseStack.translate(
+//                    (interpolated.x),
+//                    (interpolated.y),
+//                    (interpolated.z)
+//            );
+//        }
         // Position and rotate as needed
         float lerpYRot = Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot());
         float lerpXRot = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
@@ -154,7 +154,9 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 //afterimages
 //                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
 //                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
+
                 renderShadowWeapon(stack, poseStack, buffer, lerpAlpha);
+
                 poseStack.popPose();
                 break;
             }
@@ -183,7 +185,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         for (Tuple<SwingHistory, SwingHistory> sh : entity.getTrailHistory()) {
             sh0 = sh1;
             //if the big shadow is rendered, the afterimage is kept where the weapon is, otherwise it scales out
-            sh1 = entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW) ? sh.getB() : sh.getA();
+            sh1 = sh.getB();//entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW) ? sh.getB() : sh.getA();
             skip += 1;
             final int threshold = FlyingItemEntity.CLIENT_SMOOTHING_SUBTICKS;
             if (sh0 != null && skip >= threshold) {
@@ -198,26 +200,25 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
     protected void renderShadowWeapon(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource, int alpha) {
         poseStack.pushPose();
         BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
-        /*model.applyTransform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, poseStack, false);
-
-        itemRenderer.renderModelLists(
-                model,
-                stack,
-                0xF000F0,//max brightness
-                OverlayTexture.NO_OVERLAY,
-                poseStack,
-                whiteTinted
-        );*/
+        ResourceLocation a=model.isCustomRenderer()?FootworkRenderTypes.white:model.getParticleIcon(ModelData.EMPTY).atlasLocation();
         itemRenderer.render(
                 stack,
                 ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
                 false,
                 poseStack,
-                new ColorMultiBufferSource(bufferSource, 0,0,0,alpha/255f),
+                type -> {
+                    // Let the vanilla glint passes use their normal consumer (so glint still shows)
+                    if (type == RenderType.entityGlint() || type == RenderType.entityGlintDirect()) {
+                        return bufferSource.getBuffer(type);
+                    }
+                    // Otherwise use the requested RenderType but wrap it to tint/alpha it
+                    return new CustomVertexConsumer(bufferSource.getBuffer(type), 0, 0, 0, alpha);
+                },
                 0xf00f0,
                 OverlayTexture.NO_OVERLAY,
                 model  // or null
         );
+        //fixme doesn't show up if enchanted
         poseStack.popPose();
     }
 
@@ -250,9 +251,13 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         float scale = (float) Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
         poseStack.scale(scale, scale, scale);
 
+        BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
+        ResourceLocation a=model.isCustomRenderer()?FootworkRenderTypes.white:model.getParticleIcon(ModelData.EMPTY).atlasLocation();
         //afterimages
-        MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
-        itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
+        MultiBufferSource bufferWithAlpha = type -> {
+            return new CustomVertexConsumer(buffer.getBuffer(RenderType.entityTranslucentCull(a)), alpha);
+        };
+        itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, model);
         poseStack.popPose();
     }
 
@@ -317,37 +322,6 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull FlyingItemEntity entity) {
         return TextureAtlas.LOCATION_BLOCKS; // Not needed, since we're rendering an ItemStack
-    }
-
-    public static class AlphaMultiBufferSource implements MultiBufferSource {
-        protected final MultiBufferSource original;
-        protected final float alpha;
-
-        public AlphaMultiBufferSource(MultiBufferSource original, float alpha) {
-            this.original = original;
-            this.alpha = alpha;
-        }
-
-        @Override
-        public VertexConsumer getBuffer(RenderType type) {
-            return new CustomVertexConsumer(original.getBuffer(type), alpha);
-        }
-    }
-
-    public static class ColorMultiBufferSource implements MultiBufferSource {
-        protected final MultiBufferSource original;
-        protected final float r, g, b, alpha;
-
-        public ColorMultiBufferSource(MultiBufferSource original, float r, float g, float b, float alpha) {
-            this.original = original;
-            this.alpha = alpha;
-            this.r=r;this.g=g;this.b=b;
-        }
-
-        @Override
-        public VertexConsumer getBuffer(RenderType type) {
-            return new CustomVertexConsumer(original.getBuffer(type),r,g,b, alpha);
-        }
     }
 
     public static class CustomVertexConsumer implements VertexConsumer {
