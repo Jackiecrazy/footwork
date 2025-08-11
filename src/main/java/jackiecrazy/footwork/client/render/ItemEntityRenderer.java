@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -18,8 +19,13 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
@@ -58,8 +64,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             if (entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW))
                 renderBigShadowWeapon(entity, partialTicks, poseStack, buffer, 0xF000F0, stack);
         }
-        if (entity.shouldRender(FlyingWeaponEffect.TRAIL))
-            renderTrail(entity, poseStack, partialTicks, buffer);
+        if (entity.shouldRender(FlyingWeaponEffect.TRAIL)) renderTrail(entity, poseStack, partialTicks, buffer);
     }
 
     protected void renderFlyingWeapon(FlyingItemEntity entity,
@@ -100,8 +105,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
 
         //actual weapon
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        this.itemRenderer.renderStatic(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, 0xF000F0, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, entity.level(), 0);
-        //renderShadowWeapon(stack, poseStack, buffer);
+        final int packedlight = 0xf000f0;
+        renderStackProperly(stack, poseStack, bufferSource, packedlight, itemRenderer.getModel(stack, entity.level(), null, 0));
         poseStack.popPose();
     }
 
@@ -116,14 +121,10 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         SwingHistory to = null;
         //cancel all natural entity offsets first
         Vec3 interpolated = entity.getPosition(partialTicks); // same as what's applied by default
-        poseStack.translate(
-                -(interpolated.x),
-                -(interpolated.y),
-                -(interpolated.z)
-        );
+        poseStack.translate(-(interpolated.x), -(interpolated.y), -(interpolated.z));
         int skip = 0;
         float lerpRenderLag = (Mth.lerp(partialTicks, entity.renderLagO, entity.renderLag) * FlyingItemEntity.CLIENT_SMOOTHING_SUBTICKS);
-        int lerpAlpha = (int)(Mth.lerp(partialTicks, entity.alphaO, entity.alpha));
+        int lerpAlpha = (int) (Mth.lerp(partialTicks, entity.alphaO, entity.alpha));
         for (Tuple<SwingHistory, SwingHistory> sh : entity.getTrailHistory()) {
             from = to;
             to = sh.getB();
@@ -147,7 +148,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 poseStack.translate(0, 0, 0.2);//aligning pommel to the best of my ability
                 poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
                 poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
-                poseStack.translate(0,-0.25, 0);//trying to put the weapon on the same axis
+                poseStack.translate(0, -0.25, 0);//trying to put the weapon on the same axis
 
                 //poseStack.translate(0.425, -0.45, 0);//Obsolete. trying to put the weapon on the same axis
 
@@ -176,11 +177,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         SwingHistory sh1 = null;
         //cancel all natural entity offsets first
         Vec3 interpolated = entity.getPosition(partialTicks); // same as what's applied by default
-        poseStack.translate(
-                -(interpolated.x),
-                -(interpolated.y),
-                -(interpolated.z)
-        );
+        poseStack.translate(-(interpolated.x), -(interpolated.y), -(interpolated.z));
         int skip = 0;
         for (Tuple<SwingHistory, SwingHistory> sh : entity.getTrailHistory()) {
             sh0 = sh1;
@@ -200,26 +197,83 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
     protected void renderShadowWeapon(ItemStack stack, PoseStack poseStack, MultiBufferSource bufferSource, int alpha) {
         poseStack.pushPose();
         BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
-        ResourceLocation a=model.isCustomRenderer()?FootworkRenderTypes.white:model.getParticleIcon(ModelData.EMPTY).atlasLocation();
-        itemRenderer.render(
-                stack,
-                ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
-                false,
-                poseStack,
-                type -> {
-                    // Let the vanilla glint passes use their normal consumer (so glint still shows)
-                    if (type == RenderType.entityGlint() || type == RenderType.entityGlintDirect()) {
-                        return bufferSource.getBuffer(type);
-                    }
-                    // Otherwise use the requested RenderType but wrap it to tint/alpha it
-                    return new CustomVertexConsumer(bufferSource.getBuffer(type), 0, 0, 0, alpha);
-                },
-                0xf00f0,
-                OverlayTexture.NO_OVERLAY,
-                model  // or null
-        );
-        //fixme doesn't show up if enchanted
+        ResourceLocation a = model.isCustomRenderer() ? FootworkRenderTypes.white : model.getParticleIcon(ModelData.EMPTY).atlasLocation();
+//        itemRenderer.render(
+//                stack,
+//                ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
+//                false,
+//                poseStack,
+//                type -> new CustomVertexConsumer(bufferSource.getBuffer(RenderType.entityTranslucentCull(a)),0,0,0, alpha),
+//                0xf00f0,
+//                OverlayTexture.NO_OVERLAY,
+//                model  // or null
+//        );
+        final int packedlight = 0xf00f0;
+
+        //create the shadow MBS
+        final MultiBufferSource bf = type -> {
+            // Let the vanilla glint passes use their normal consumer (so glint still shows)
+            if (type == RenderType.entityGlint() || type == RenderType.entityGlintDirect()) {
+                return bufferSource.getBuffer(type);
+            }
+            RenderType rt = type;
+            if (model.isCustomRenderer()||stack.getItem() instanceof BlockItem) rt = RenderType.entityTranslucentCull(a);
+            // Otherwise use the requested RenderType but wrap it to tint/alpha it
+            return new CustomVertexConsumer(bufferSource.getBuffer(rt), 0, 0, 0, alpha/256f);
+        };
+
+        renderStackProperly(stack, poseStack, bf, packedlight, model);
         poseStack.popPose();
+    }
+
+    private void renderStackProperly(ItemStack stack,
+                           PoseStack poseStack,
+                           MultiBufferSource bf,
+                           int packedlight,
+                           BakedModel model) {
+        if (stack.getItem() instanceof BlockItem blockItem) {
+            Block block = blockItem.getBlock();
+            BlockState base = block.defaultBlockState();
+            BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
+
+            // Push transform for positioning
+            if (block instanceof DoorBlock) {
+                poseStack.pushPose();
+                poseStack.translate(-0.5, -0.5, -0.5);
+                BlockState lower = base;
+                BlockState upper;
+                try {
+                    lower = base.setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER);
+                    upper = base.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
+                } catch (IllegalArgumentException e) {
+                    // If properties aren't present for some reason, fallback to default halves
+                    lower = base;
+                    upper = base;
+                }
+
+                // render lower at origin
+                brd.renderSingleBlock(lower, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY,//itemRenderer.getModel(stack, entity.level(), null, packedlight).getModelData(),
+                                      null);
+
+                // render upper one block above
+                poseStack.translate(0.0, 1.0, 0.0);
+                brd.renderSingleBlock(upper, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY,//itemRenderer.getModel(stack, entity.level(), null, packedlight).getModelData(),
+                                      null);
+                poseStack.popPose();
+            } else {
+                poseStack.pushPose();
+                poseStack.translate(-0.5, 0, -0.5);
+
+                // Use the block renderer
+                brd.renderSingleBlock(base, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY,//itemRenderer.getModel(stack, entity.level(), null, packedlight).getModelData(),
+                                      null);
+
+                poseStack.popPose();
+            }
+        } else {
+            itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
+            );
+        }
     }
 
     protected void renderAfterimage(FlyingItemEntity entity,
@@ -252,12 +306,21 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         poseStack.scale(scale, scale, scale);
 
         BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
-        ResourceLocation a=model.isCustomRenderer()?FootworkRenderTypes.white:model.getParticleIcon(ModelData.EMPTY).atlasLocation();
+        ResourceLocation a = model.isCustomRenderer() ? FootworkRenderTypes.white : model.getParticleIcon(ModelData.EMPTY).atlasLocation();
         //afterimages
-        MultiBufferSource bufferWithAlpha = type -> {
-            return new CustomVertexConsumer(buffer.getBuffer(RenderType.entityTranslucentCull(a)), alpha);
+        final MultiBufferSource bufferWithAlpha = type -> {
+            // Let the vanilla glint passes use their normal consumer (so glint still shows)
+            if (type == RenderType.entityGlint() || type == RenderType.entityGlintDirect()) {
+                return buffer.getBuffer(type);
+            }
+            RenderType rt = type;
+            if (model.isCustomRenderer()||stack.getItem() instanceof BlockItem) rt = RenderType.entityTranslucentCull(a);
+            // Otherwise use the requested RenderType but wrap it to tint/alpha it
+            return new CustomVertexConsumer(buffer.getBuffer(rt), alpha);
         };
-        itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, model);
+        //fixme enchanting causes afterimages to not show up
+        renderStackProperly(stack, poseStack, bufferWithAlpha, packedLight, model);
+        //itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, model);
         poseStack.popPose();
     }
 
@@ -268,11 +331,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         poseStack.pushPose();
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(FootworkRenderTypes.white));
         Vec3 interpolated = entity.getPosition(partialticks); // same as what's applied by default
-        poseStack.translate(
-                -(interpolated.x),
-                -(interpolated.y),
-                -(interpolated.z)
-        );
+        poseStack.translate(-(interpolated.x), -(interpolated.y), -(interpolated.z));
 
         Deque<Tuple<SwingHistory, SwingHistory>> points = entity.getTrailHistory();
         if (points.size() < 2) {

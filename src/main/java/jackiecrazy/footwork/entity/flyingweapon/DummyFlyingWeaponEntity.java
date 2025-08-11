@@ -23,12 +23,12 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     public DummyFlyingWeaponEntity(EntityType<? extends FlyingItemEntity> type,
                                    Level level) {
         super(type, level);
-        final ItemStack stack = new ItemStack(Items.IRON_SWORD);
+        final ItemStack stack = new ItemStack(Items.IRON_DOOR);
         stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION,1);
         setHeldItem(stack);
         //setUniversalOffset(new Vec3(0,0,4));
-        setIdlePose(new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), new Vector4d(0, 0, -1, 0)), 10));
-        this.setUniversalOffset(Vec3.ZERO);
+        setIdlePose(new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), new Vector4d(0, 1, 0, 0)), 10));
+        this.setUniversalOffset(new Vec3(-1.3,0,0));
     }
 
     @Override
@@ -50,17 +50,22 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     public void tick() {
         //setInteractionRange(3 + 2 * Mth.sin(Mth.DEG_TO_RAD * tickCount * 10));
         setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
-        setShouldRender(FlyingWeaponEffect.AFTERIMAGE, false);
-        setShouldRender(FlyingWeaponEffect.TRAIL, true);
+        setShouldRender(FlyingWeaponEffect.AFTERIMAGE, true);
+        setShouldRender(FlyingWeaponEffect.TRAIL, false);
         if (getOwner() == null) {
             setOwner(level().getNearestPlayer(this, 16));
         }
         if (!level().isClientSide && getMotionReferent() == null || getMotionReferent() == getOwner()) {
             for (Entity e : level().getEntities(this, this.getBoundingBox().inflate(16), a -> !TargetingUtils.isAlly(a, this))) {
-                if (!(e instanceof FlyingItemEntity))
+                if (!(e instanceof FlyingItemEntity)) {
                     setMotionReferent(e);
-                break;
+                    setUniversalOffset(Vec3.ZERO);
+                    break;
+                }
             }
+        }
+        if(getMotionReferent()==getOwner()){
+            setUniversalOffset(new Vec3(1.3,0,0));
         }
 
         super.tick();
