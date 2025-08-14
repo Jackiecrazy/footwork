@@ -52,6 +52,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
     protected static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
     protected static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     protected static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
+    //fixme not precise enough
     protected static final EntityDataAccessor<Vector3f> UNIVERSAL_OFFSET = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
     protected final MotionManager firstIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
     protected final MotionManager secondIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 1), Vec3.ZERO, new Vector4d(1, 1, 0, 0)), 20);
@@ -249,7 +250,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
         }
         if (getMotionReferent() == null||!getMotionReferent().isAlive()) setMotionReferent(getOwner());
         if (getOwner() != null && getMotionReferent() != null) {
-            setOldPosAndRot();
+            entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), (int) getRoll()));
 
             if (!moveQueue.isEmpty()) {
                 executeMoveQueue();
@@ -266,7 +267,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
 
             // update client for trail rendering, done after block collision checks
             if (update != null) {
-                entityData.set(LAST_FRAME, entityData.get(CURRENT_FRAME));
+                //entityData.set(LAST_FRAME, entityData.get(CURRENT_FRAME));
                 MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), recalculatedOrientation);
                 entityData.set(CURRENT_FRAME, reconstructed);
             }
@@ -311,6 +312,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
         Vec3 currentPos = position();
         //final double snappiness = Mth.clamp(5/transformedDirection.distanceToSqr(currentPos), 0.25, 1);
         final float snappiness = 0.2f;//todo 0.25f make this a variable
+        //fixme still choppy...
         Vec3 lerp = currentPos.lerp(transformedDirection, snappiness);
         Vec3 delta = lerp.subtract(currentPos);
         setPos(lerp);
@@ -353,22 +355,25 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
             if (renderLag < 2) renderLag++;
         } else {
             if (renderLag > 0) renderLag--;
-            //trailHistory.clear();//todo find a better way to do this
         }
         alphaO = alpha;
         if (shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
             if (alpha < 130) alpha += 35;
         } else if (alpha > 0) alpha -= 35;
         //lerp 5 points between each tick
+        MotionFrame from = entityData.get(LAST_FRAME);//position, orientation, roll
+        MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (pitch, roll, yaw... in theory)
         if (getMotionReferent() != null) for (int i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
-            MotionFrame from = entityData.get(LAST_FRAME);
-            MotionFrame to = entityData.get(CURRENT_FRAME);
+
             MotionFrame lerped = from.lerp(to, (double) i / CLIENT_SMOOTHING_SUBTICKS);
             Vec3 universalOffset = getUniversalOffset();
+            //trail, max range
             Vec3 trailPosition = lerped.resolveTargetOffset(getMotionReferent(), universalOffset, getInteractionRange());
             SwingHistory trail = new SwingHistory(trailPosition, (float) lerped.renderOrientation().z, (float) lerped.renderOrientation().y, (float) lerped.renderOrientation().x);
+            //shadow, range 1
             Vec3 shadowPosition = lerped.resolveTargetOffset(getMotionReferent(), universalOffset, 1);
             SwingHistory shadow = new SwingHistory(shadowPosition, (float) lerped.renderOrientation().z, (float) lerped.renderOrientation().y, (float) lerped.renderOrientation().x);
+
             trailHistory.addFirst(new Tuple<>(trail, shadow));
             //fixme why tf do I need to flip pitch and yaw???
         }

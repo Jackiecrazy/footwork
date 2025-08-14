@@ -87,7 +87,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
 //                    (interpolated.z)
 //            );
 //        }
-        // Position and rotate as needed
+        // rotation
         float lerpYRot = Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot());
         float lerpXRot = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
         float lerpZRot = Mth.rotLerp(partialTicks, entity.rollO, entity.getRoll());
