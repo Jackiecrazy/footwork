@@ -93,7 +93,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         float lerpZRot = Mth.rotLerp(partialTicks, entity.rollO, entity.getRoll());
         //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
         poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
-        poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch
+        poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch
         poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
         poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
         //poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
@@ -137,12 +137,12 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 Vec3 interpolate = from.position().lerp(to.position(), moddedPartialTicks);
                 poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
                 // Position and rotate as needed
-                float lerpYRot = Mth.rotLerp(moddedPartialTicks, from.pitch(), to.pitch());
-                float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
+                float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.pitch(), to.pitch());
+                float lerpYRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
                 float lerpZRot = Mth.rotLerp(moddedPartialTicks, from.roll(), to.roll());
                 //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
                 poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
-                poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch, +angle to point the sword
+                poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
                 poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
                 poseStack.scale(scale, scale, scale);//should scale here, right?
                 poseStack.translate(0, 0, 0.2);//aligning pommel to the best of my ability
@@ -290,12 +290,12 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         Vec3 interpolate = from.position().lerp(to.position(), partialTicks);
         poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
         // Position and rotate as needed
-        float lerpYRot = Mth.rotLerp(partialTicks, from.pitch(), to.pitch());
-        float lerpXRot = Mth.rotLerp(partialTicks, from.yaw(), to.yaw());
+        float lerpXRot = Mth.rotLerp(partialTicks, from.pitch(), to.pitch());
+        float lerpYRot = Mth.rotLerp(partialTicks, from.yaw(), to.yaw());
         float lerpZRot = Mth.rotLerp(partialTicks, from.roll(), to.roll());
         //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
         poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
-        poseStack.mulPose(Axis.XP.rotationDegrees(-lerpXRot));  // Pitch, +angle to point the sword
+        poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
         poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
         poseStack.translate(0, 0, -0.4);//adjust weapon offset so the tip is roughly at the entity
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment

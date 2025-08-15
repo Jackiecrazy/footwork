@@ -6,7 +6,7 @@ import org.joml.Vector4d;
 
 import java.util.List;
 
-public record WeaponMotion(List<MotionFrame> frames, EasingFunction easing, int duration) {
+public record MotionGroup(List<MotionFrame> frames, EasingFunction easing, int duration) {
 
     /*
     each tick, increase duration.
@@ -14,19 +14,19 @@ public record WeaponMotion(List<MotionFrame> frames, EasingFunction easing, int 
     multiply that by the number of frames to figure out approximately which frame we're supposed to be in
      */
 
-    public WeaponMotion(MotionFrame frames, EasingFunction easing, int time) {
+    public MotionGroup(MotionFrame frames, EasingFunction easing, int time) {
         this(List.of(frames), easing, time);
     }
 
-    public WeaponMotion(MotionFrame frames, EasingFunction easing) {
+    public MotionGroup(MotionFrame frames, EasingFunction easing) {
         this(List.of(frames), easing, 20);
     }
 
-    public WeaponMotion(Vec3 direction, Vec3 offset, Vector4d renderOrientation, EasingFunction easing) {
+    public MotionGroup(Vec3 direction, Vec3 offset, Vector4d renderOrientation, EasingFunction easing) {
         this(new MotionFrame(direction, offset, renderOrientation), easing);
     }
 
-    public WeaponMotion(Vec3 dir, Vec3 offset, Vector4d orient) {
+    public MotionGroup(Vec3 dir, Vec3 offset, Vector4d orient) {
         this(dir, offset, orient, EasingFunction.IN_CUBIC);
     }
 
@@ -43,7 +43,7 @@ public record WeaponMotion(List<MotionFrame> frames, EasingFunction easing, int 
 
         // Determine current segment and local progress
         int segment = Math.min((int) (easedProgress / segmentLength), segmentCount - 1);
-        double localT = (easedProgress - segment * segmentLength) / segmentLength;//FIXME?
+        double localT = (easedProgress - segment * segmentLength) / segmentLength;
 
         MotionFrame start = frames().get(segment);
         MotionFrame end = frames().get(segment + 1);

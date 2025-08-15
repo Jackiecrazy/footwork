@@ -8,7 +8,7 @@ import org.joml.Vector4d;
 
 public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientation) {
 
-    public static final EntityDataSerializer<MotionFrame> SERIALIZER = new EntityDataSerializer<MotionFrame>() {
+    public static final EntityDataSerializer<MotionFrame> SERIALIZER = new EntityDataSerializer<>() {
         @Override
         public void write(FriendlyByteBuf buf, MotionFrame frame) {
             buf.writeVector3f(frame.direction.toVector3f());

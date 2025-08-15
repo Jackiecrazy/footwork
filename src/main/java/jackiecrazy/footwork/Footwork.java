@@ -14,6 +14,7 @@ import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
+import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.networking.FootworkChannel;
 import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
 import jackiecrazy.footwork.potion.FootworkEffects;
@@ -72,6 +73,7 @@ public class Footwork {
     private void packets(FMLCommonSetupEvent e){
         FootworkChannel.INSTANCE.registerMessage(1, UpdateTimeSlowPacket.class, new UpdateTimeSlowPacket.UpdateClientEncoder(), new UpdateTimeSlowPacket.UpdateClientDecoder(), new UpdateTimeSlowPacket.UpdateClientHandler());
         EntityDataSerializers.registerSerializer(MotionFrame.SERIALIZER);
+        EntityDataSerializers.registerSerializer(MotionManager.SERIALIZER);
     }
 
     private void setup(final RegisterCapabilitiesEvent event) {

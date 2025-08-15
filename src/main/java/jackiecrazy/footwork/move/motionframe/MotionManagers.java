@@ -54,7 +54,7 @@ public class MotionManagers {
         }
     }
 
-    public record DefinitionMM(WeaponMotion def) implements MotionManager {
+    public record DefinitionMM(MotionGroup def) implements MotionManager {
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
             return def.interpret(elapsedTicks);

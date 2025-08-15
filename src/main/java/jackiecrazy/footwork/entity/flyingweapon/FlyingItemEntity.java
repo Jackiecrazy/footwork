@@ -1,7 +1,6 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
-import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.motionframe.WeaponMotion;
+import jackiecrazy.footwork.move.motionframe.MotionGroup;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
@@ -31,9 +30,10 @@ import org.joml.Vector3f;
 import org.joml.Vector4d;
 
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-public abstract class FlyingItemEntity extends Entity implements OwnableEntity,Targeting {
+public abstract class FlyingItemEntity extends Entity implements OwnableEntity, Targeting {
     public static final int MAX_TRAIL_LENGTH = 15;
     public static final int CLIENT_SMOOTHING_SUBTICKS = 7;
     protected static final List<MotionFrame> STAB = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, -1)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)));
@@ -41,7 +41,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
     protected static final List<MotionFrame> SLASH = List.of(new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45)));
     protected static final List<MotionFrame> BACKSLASH = List.of(new MotionFrame(new Vec3(-1, 0.6, 1), new Vec3(0, 0, 1), -45), new MotionFrame(new Vec3(1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(1, -1, 1, -45)));
     protected static final List<MotionFrame> CHOP = List.of(new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1)));
-    protected static final List<MotionManager> EVERYONE = List.of(new MotionManagers.DefinitionMM(new WeaponMotion(CIRCLE, EasingFunction.IN_OUT_CUBIC, 3)), new MotionManagers.DefinitionMM(new WeaponMotion(STAB, EasingFunction.IN_CUBIC, 3)), new MotionManagers.DefinitionMM(new WeaponMotion(SLASH, EasingFunction.IN_OUT_CUBIC, 3)), new MotionManagers.DefinitionMM(new WeaponMotion(BACKSLASH, EasingFunction.IN_OUT_CUBIC, 3)), new MotionManagers.DefinitionMM(new WeaponMotion(CHOP, EasingFunction.IN_CUBIC, 3)));
+    protected static final List<MotionManager> EVERYONE = List.of(new MotionManagers.DefinitionMM(new MotionGroup(CIRCLE, EasingFunction.IN_OUT_CUBIC, 3)), new MotionManagers.DefinitionMM(new MotionGroup(STAB, EasingFunction.IN_CUBIC, 3)), new MotionManagers.DefinitionMM(new MotionGroup(SLASH, EasingFunction.IN_OUT_CUBIC, 3)), new MotionManagers.DefinitionMM(new MotionGroup(BACKSLASH, EasingFunction.IN_OUT_CUBIC, 3)), new MotionManagers.DefinitionMM(new MotionGroup(CHOP, EasingFunction.IN_CUBIC, 3)));
     protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     protected static final EntityDataAccessor<Float> ROLL = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.FLOAT);
     protected static final EntityDataAccessor<Float> ATTACK_RANGE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.FLOAT);
@@ -54,15 +54,13 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
     protected static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     //fixme not precise enough
     protected static final EntityDataAccessor<Vector3f> UNIVERSAL_OFFSET = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
-    protected final MotionManager firstIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
-    protected final MotionManager secondIdle = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 1), Vec3.ZERO, new Vector4d(1, 1, 0, 0)), 20);
     //first one goes up to attack range, second does not scale
     protected final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
     public float rollO, displacementO, sizeO;
     public int renderLag = 0, renderLagO = 0;
     public int alpha = 0, alphaO = 0;
     //how the weapon floats when idle: point downwards
-    protected MotionManager idlePose = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 20);
+    protected MotionManager idlePose = new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 5);
     protected int internalIdleTimer = 0;
     protected LivingEntity owner;
     protected Deque<MotionManager> moveQueue = new ConcurrentLinkedDeque<>();
@@ -163,14 +161,14 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
 
     public Entity getMotionReferent() {
         final int id = entityData.get(TARGET_ID);
-        if(target==null||target.getId()!= id)
-            target=level().getEntity(id);
+        if (target == null || target.getId() != id)
+            target = level().getEntity(id);
         return target;
     }
 
     public void setMotionReferent(Entity track) {
         target = track;
-        int id = target==null?-1:target.getId();
+        int id = target == null ? -1 : target.getId();
         entityData.set(TARGET_ID, id);
     }
 
@@ -241,16 +239,17 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
     public void tick() {
         super.tick();
         setGlowingTag(false);
+        entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), new Vector4d(getXRot(), getYRot(), getRoll(), 0)));
         // Movement logic
         if (level().isClientSide) {
             rollO = getRoll();
             displacementO = getDisplacementForRender();
             updateClientData();
+            //todo how can the client get ahold of moveset data for smoothing?
             return;
         }
-        if (getMotionReferent() == null||!getMotionReferent().isAlive()) setMotionReferent(getOwner());
+        if (getMotionReferent() == null || !getMotionReferent().isAlive()) setMotionReferent(getOwner());
         if (getOwner() != null && getMotionReferent() != null) {
-            entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), (int) getRoll()));
 
             if (!moveQueue.isEmpty()) {
                 executeMoveQueue();
@@ -260,7 +259,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
             }
 
             // Collision and attack logic
-            if(!level().isClientSide()) {
+            if (!level().isClientSide()) {
                 handleBlockCollisions();
                 handleEntityCollisions();
             }
@@ -311,8 +310,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
         // Move toward the desired position smoothly
         Vec3 currentPos = position();
         //final double snappiness = Mth.clamp(5/transformedDirection.distanceToSqr(currentPos), 0.25, 1);
-        final float snappiness = 0.2f;//todo 0.25f make this a variable
-        //fixme still choppy...
+        final float snappiness = 1f/idlePose.getDuration();//todo 0.25f make this a variable
+        //fixme it's gonna be choppy unless I sync to client
+        // sync first frame and last frame unless it's a full definitionmm
         Vec3 lerp = currentPos.lerp(transformedDirection, snappiness);
         Vec3 delta = lerp.subtract(currentPos);
         setPos(lerp);
@@ -361,24 +361,38 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
             if (alpha < 130) alpha += 35;
         } else if (alpha > 0) alpha -= 35;
         //lerp 5 points between each tick
-        MotionFrame from = entityData.get(LAST_FRAME);//position, orientation, roll
-        MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (pitch, roll, yaw... in theory)
-        if (getMotionReferent() != null) for (int i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
-
-            MotionFrame lerped = from.lerp(to, (double) i / CLIENT_SMOOTHING_SUBTICKS);
+        if (getMotionReferent() != null) {
             Vec3 universalOffset = getUniversalOffset();
-            //trail, max range
-            Vec3 trailPosition = lerped.resolveTargetOffset(getMotionReferent(), universalOffset, getInteractionRange());
-            SwingHistory trail = new SwingHistory(trailPosition, (float) lerped.renderOrientation().z, (float) lerped.renderOrientation().y, (float) lerped.renderOrientation().x);
-            //shadow, range 1
-            Vec3 shadowPosition = lerped.resolveTargetOffset(getMotionReferent(), universalOffset, 1);
-            SwingHistory shadow = new SwingHistory(shadowPosition, (float) lerped.renderOrientation().z, (float) lerped.renderOrientation().y, (float) lerped.renderOrientation().x);
+            MotionFrame from = entityData.get(LAST_FRAME);//position, look, (xrot, yrot, roll)
+            MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (xrot, yrot, zrot... in theory)
+            Vec3 fromTrailPos = from.direction().add(from.offset().scale(getInteractionRange()));
+            //this is NOT accurate!
+            Vec3 fromShadowPos = from.direction();
+            Vec3 toTrailPos = to.resolveTargetOffset(getMotionReferent(), universalOffset, getInteractionRange());
+            Vec3 toShadowPos = to.resolveTargetOffset(getMotionReferent(), universalOffset, 1);
+            for (double i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
+                //fixme weapon trembles for some reason
+                double partialTick = i / CLIENT_SMOOTHING_SUBTICKS;
 
-            trailHistory.addFirst(new Tuple<>(trail, shadow));
-            //fixme why tf do I need to flip pitch and yaw???
-        }
-        while (trailHistory.size() > MAX_TRAIL_LENGTH * CLIENT_SMOOTHING_SUBTICKS) {
-            trailHistory.removeLast();
+                //trail, max range
+                float lerpX = (float) Mth.lerp(partialTick, from.renderOrientation().x, to.renderOrientation().x);
+                float lerpY = (float) Mth.lerp(partialTick, from.renderOrientation().y, to.renderOrientation().y);
+                float lerpZ = (float) Mth.lerp(partialTick, from.renderOrientation().z, to.renderOrientation().z);
+                Vec3 trailPosition = fromTrailPos.lerp(toTrailPos, partialTick);
+                SwingHistory trail = new SwingHistory(trailPosition, lerpX, lerpY, lerpZ);
+
+                //shadow, range 1
+                lerpX = (float) Mth.lerp(partialTick, from.renderOrientation().x, to.renderOrientation().x);
+                lerpY = (float) Mth.lerp(partialTick, from.renderOrientation().y, to.renderOrientation().y);
+                lerpZ = (float) Mth.lerp(partialTick, from.renderOrientation().z, to.renderOrientation().z);
+                trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
+                SwingHistory shadow = new SwingHistory(trailPosition, lerpX, lerpZ, lerpY);
+
+                trailHistory.addFirst(new Tuple<>(trail, shadow));
+            }
+            while (trailHistory.size() > MAX_TRAIL_LENGTH * CLIENT_SMOOTHING_SUBTICKS) {
+                trailHistory.removeLast();
+            }
         }
     }
 
@@ -388,9 +402,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
         // Step 1: Convert visualOrientation to world-space direction
         // This assumes visualOrientation is like a local-space forward vector (e.g., (0, 0, 1))
 
-        Vec3 worldDirection=getDeltaMovement();
+        Vec3 worldDirection = getDeltaMovement();
         // Get player's rotation as a basis
-        if(referent==getOwner()) {
+        if (referent == getOwner()) {
             Vec3 forward = referent.getLookAngle().normalize();
             if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
 
@@ -401,31 +415,29 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
             worldDirection = right.scale(quaternion.x).add(up.scale(quaternion.y)).add(forward.scale(quaternion.z)).normalize();
         }
         // Step 2: Face that world direction
-        float targetYaw = (float) (-Mth.atan2(worldDirection.x, worldDirection.z) * (180F / Math.PI));
-        float targetPitch = (float) (Mth.atan2(worldDirection.y, Math.sqrt(worldDirection.x * worldDirection.x + worldDirection.z * worldDirection.z)) * (180F / Math.PI));
-
+        float targetPitch = (float) Mth.wrapDegrees(-Mth.atan2(worldDirection.y, Math.sqrt(worldDirection.x * worldDirection.x + worldDirection.z * worldDirection.z)) * (180F / Math.PI));
+        float targetYaw = (float) Mth.wrapDegrees(-Mth.atan2(worldDirection.x, worldDirection.z) * (180F / Math.PI));
         rollO = entityData.get(ROLL);
         float lerpX = Mth.lerp(snappiness, getXRot(), targetPitch);
         float lerpY = Mth.lerp(snappiness, getYRot(), targetYaw);
         double lerpZ = Mth.lerp(snappiness, rollO, quaternion.w);
         //detect drastic changes that imply the weapon reached a 180 location
-        if (!Float.isFinite(lerpX)) {
-            Footwork.LOGGER.warn("x is somehow not finite, resetting");
-            lerpX = targetPitch;
-        }
-        if (!Float.isFinite(lerpY)) {
-            Footwork.LOGGER.warn("y is somehow not finite, resetting");
-            lerpY = targetYaw;
-        }
-        if (!Double.isFinite(lerpZ)) {
-            Footwork.LOGGER.warn("z is somehow not finite, resetting");
-            lerpZ = quaternion.w;
-        }
-        //fixme when facing north this will cause the weapon to speeeen
+//        if (!Float.isFinite(lerpX)) {
+//            Footwork.LOGGER.warn("x is somehow not finite, resetting");
+//            lerpX = targetPitch;
+//        }
+//        if (!Float.isFinite(lerpY)) {
+//            Footwork.LOGGER.warn("y is somehow not finite, resetting");
+//            lerpY = targetYaw;
+//        }
+//        if (!Double.isFinite(lerpZ)) {
+//            Footwork.LOGGER.warn("z is somehow not finite, resetting");
+//            lerpZ = quaternion.w;
+//        }
         setYRot(lerpY);
         setXRot(lerpX);
         entityData.set(ROLL, (float) lerpZ);
-        return new Vector4d(lerpX, lerpZ, lerpY, 0);
+        return new Vector4d(getXRot(), getYRot(), lerpZ, 0);
     }
 
 
@@ -472,6 +484,6 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity,T
 
     @Override
     public @Nullable LivingEntity getTarget() {
-        return getMotionReferent() instanceof LivingEntity le?le:null;
+        return getMotionReferent() instanceof LivingEntity le ? le : null;
     }
 }
