@@ -48,6 +48,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final EntityDataAccessor<Integer> MOB_OWNER = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> TARGET_ID = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> VISUAL_TAG = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Integer> IDLE_TICK = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Boolean> IS_INTANGIBLE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
     protected static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
@@ -215,6 +216,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         this.entityData.define(UNIVERSAL_OFFSET, new Vector3f());
         this.entityData.define(ATTACK_RANGE, 3f);
         this.entityData.define(VISUAL_TAG, 11);//binary value 1011
+        this.entityData.define(IDLE_TICK, 10);
     }
 
     public int getRawVisualTag() {
@@ -246,16 +248,19 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             displacementO = getDisplacementForRender();
             updateClientData();
             //todo how can the client get ahold of moveset data for smoothing?
+            // answer: don't. It's painful. Just sync whether it's idle
             return;
         }
         if (getMotionReferent() == null || !getMotionReferent().isAlive()) setMotionReferent(getOwner());
         if (getOwner() != null && getMotionReferent() != null) {
 
             if (!moveQueue.isEmpty()) {
+                entityData.set(IDLE_TICK, 0);
                 executeMoveQueue();
 
             } else {
-                returnToIdle();
+                entityData.set(IDLE_TICK, idlePose.getDuration());
+                returnToIdle(idlePose.getDuration());
             }
 
             // Collision and attack logic
@@ -279,7 +284,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             final float range = getInteractionRange();
             List<Entity> selfTarget = level().getEntities(getOwner(), getBoundingBox().inflate(0.2f), e -> e != getOwner() && e.isAlive() && e.isAttackable());
             List<Entity> viewTarget = level().getEntities(getOwner(), getBoundingBox().move(getLookAngle().scale(range)).inflate(0.2f), e -> e != getOwner() && e.isAlive() && e.isAttackable());
-            List<Entity> targets = GeneralUtils.arcTraceEntities(level(), getMotionReferent(), getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), range, range / 3, Entity::isAttackable);//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
+            List<Entity> targets = GeneralUtils.arcTraceEntities(level(), getMotionReferent(), getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), range, 0.5, Entity::isAttackable);//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
 
             selfTarget.addAll(viewTarget);
             selfTarget.addAll(targets);
@@ -302,7 +307,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         }
     }
 
-    protected void returnToIdle() {
+    protected void returnToIdle(int duration) {
+        if(getMotionReferent()==null)return;
         //idle animation, float next to the player
         update = idlePose.getNextPoint(0);
         Vec3 transformedDirection = update.resolveTargetOffset(getMotionReferent(), getUniversalOffset(), 1);
@@ -310,9 +316,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         // Move toward the desired position smoothly
         Vec3 currentPos = position();
         //final double snappiness = Mth.clamp(5/transformedDirection.distanceToSqr(currentPos), 0.25, 1);
-        final float snappiness = 1f/idlePose.getDuration();//todo 0.25f make this a variable
-        //fixme it's gonna be choppy unless I sync to client
-        // sync first frame and last frame unless it's a full definitionmm
+        final float snappiness = 1f / duration;//todo 0.25f make this a variable
         Vec3 lerp = currentPos.lerp(transformedDirection, snappiness);
         Vec3 delta = lerp.subtract(currentPos);
         setPos(lerp);
@@ -360,6 +364,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
             if (alpha < 130) alpha += 35;
         } else if (alpha > 0) alpha -= 35;
+        if (entityData.get(IDLE_TICK) > 0) {
+            returnToIdle(entityData.get(IDLE_TICK));
+        }
         //lerp 5 points between each tick
         if (getMotionReferent() != null) {
             Vec3 universalOffset = getUniversalOffset();

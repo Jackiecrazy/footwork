@@ -7,7 +7,6 @@ import jackiecrazy.footwork.utils.GeneralUtils;
 import jackiecrazy.footwork.utils.TargetingUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
@@ -17,9 +16,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4d;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DummyFlyingWeaponEntity extends FlyingItemEntity {
+    private final ArrayList<Entity> alreadyHit=new ArrayList<>();
     public DummyFlyingWeaponEntity(EntityType<? extends FlyingItemEntity> type,
                                    Level level) {
         super(type, level);
@@ -35,9 +36,12 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     protected void onHitEntity(List<Entity> targets) {
         if (!level().isClientSide)
             targets.forEach(a -> {
-                a.setSecondsOnFire(1);
-                a.invulnerableTime = 0;
-                GeneralUtils.attack(getOwner(), a);
+                if(!alreadyHit.contains(a)) {
+                    a.setSecondsOnFire(1);
+                    a.invulnerableTime = 0;
+                    GeneralUtils.attack(getOwner(), a);
+                    alreadyHit.add(a);
+                }
             });
     }
 
@@ -56,7 +60,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         if (getOwner() == null) {
             setOwner(level().getNearestPlayer(this, 16));
         }
-        if (!level().isClientSide && getMotionReferent() == null || getMotionReferent() == getOwner()) {
+        if (!level().isClientSide &&isIdle() && getMotionReferent() == null || getMotionReferent() == getOwner()) {
             for (Entity e : level().getEntities(this, this.getBoundingBox().inflate(16), a -> !TargetingUtils.isAlly(a, this))) {
                 if (!(e instanceof FlyingItemEntity)) {
                     setMotionReferent(e);
@@ -73,19 +77,21 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     }
 
     @Override
-    protected void returnToIdle() {
-        super.returnToIdle();
-        setTransitioning(false);
+    protected void returnToIdle(int duration) {
+        super.returnToIdle(duration);
+        setTransitioning(true);
+        alreadyHit.clear();
         //provisional. Used to test movement.
 
         animProgress++;
-        if (animProgress > 20) {
-            queuePath(EVERYONE.get(Footwork.rand.nextInt(EVERYONE.size())), 2, 3);
-            setTransitioning(false);
-            while (!trailHistory.isEmpty()) trailHistory.pop();
-            //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
-            animProgress = 0;
-        }
+//        if (animProgress > 20) {
+//            setTransitioning(false);
+//            queuePath(EVERYONE.get(Footwork.rand.nextInt(EVERYONE.size())), 2, 3);
+//            setTransitioning(false);
+//            while (!trailHistory.isEmpty()) trailHistory.pop();
+//            //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
+//            animProgress = 0;
+//        }
         //recalculatedOrientation = recalculateOrientation(null, update.renderOrientation(), (float) 0.1f);
     }
 
