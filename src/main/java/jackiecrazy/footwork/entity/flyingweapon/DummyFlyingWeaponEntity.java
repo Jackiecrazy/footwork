@@ -2,7 +2,9 @@ package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
+import jackiecrazy.footwork.move.motionframe.MotionGroup;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
+import jackiecrazy.footwork.utils.EasingFunction;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import jackiecrazy.footwork.utils.TargetingUtils;
 import net.minecraft.core.BlockPos;
@@ -53,23 +55,23 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     @Override
     public void tick() {
         //setInteractionRange(3 + 2 * Mth.sin(Mth.DEG_TO_RAD * tickCount * 10));
-        setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
+        setShouldRender(FlyingWeaponEffect.BIG_SHADOW, false);
         setShouldRender(FlyingWeaponEffect.AFTERIMAGE, false);
-        setShouldRender(FlyingWeaponEffect.TRAIL, false);
+        setShouldRender(FlyingWeaponEffect.TRAIL, true);
         setShouldRender(FlyingWeaponEffect.WEAPON, true);
         if (getOwner() == null) {
             setOwner(level().getNearestPlayer(this, 16));
         }
-        if (!level().isClientSide &&isIdle() && getMotionReferent() == null || getMotionReferent() == getOwner()) {
-            for (Entity e : level().getEntities(this, this.getBoundingBox().inflate(16), a -> !TargetingUtils.isAlly(a, this))) {
-                if (!(e instanceof FlyingItemEntity)) {
-                    setMotionReferent(e);
-                    setUniversalOffset(Vec3.ZERO);
-                    break;
-                }
-            }
-        }
-        if(getMotionReferent()==getOwner()){
+//        if (!level().isClientSide &&isIdle() && getMotionTarget() == null || getMotionTarget() == getOwner()) {
+//            for (Entity e : level().getEntities(this, this.getBoundingBox().inflate(16), a -> !TargetingUtils.isAlly(a, this))) {
+//                if (!(e instanceof FlyingItemEntity)) {
+//                    setMotionTarget(e);
+//                    setUniversalOffset(Vec3.ZERO);
+//                    break;
+//                }
+//            }
+//        }
+        if(getMotionTarget()==getOwner()){
             setUniversalOffset(new Vec3(1.3,0,0));
         }
 
@@ -79,20 +81,28 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     @Override
     protected void returnToIdle(int duration) {
         super.returnToIdle(duration);
+        //lock(getOwner());
         setTransitioning(true);
         alreadyHit.clear();
         //provisional. Used to test movement.
 
         animProgress++;
-//        if (animProgress > 20) {
-//            setTransitioning(false);
-//            queuePath(EVERYONE.get(Footwork.rand.nextInt(EVERYONE.size())), 2, 3);
-//            setTransitioning(false);
-//            while (!trailHistory.isEmpty()) trailHistory.pop();
-//            //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
-//            animProgress = 0;
-//        }
+        if (animProgress > 20) {
+            setInteractionRange(6);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(SLASH, EasingFunction.IN_OUT_CUBIC, 30)),30,30);
+            setTransitioning(false);
+            while (!trailHistory.isEmpty()) trailHistory.pop();
+            //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
+            animProgress = 0;
+            lock(getOwner());
+            setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
+        }
         //recalculatedOrientation = recalculateOrientation(null, update.renderOrientation(), (float) 0.1f);
+    }
+
+    @Override
+    public void unlock() {
+        super.unlock();
     }
 
     @Override

@@ -309,12 +309,12 @@ public class GeneralUtils {
 
     public static List<Entity> arcTraceEntities(Level level,
                                                 Entity owner,
+                                                Vec3 origin,
                                                 Vec3 start,
                                                 Vec3 end,
                                                 double arcRadius,
                                                 double hitPadding,
                                                 Predicate<Entity> selector) {
-        Vec3 origin = owner.getEyePosition();
         Vec3 startOffset = start.subtract(origin).normalize();
         Vec3 endOffset = end.subtract(origin).normalize();
 

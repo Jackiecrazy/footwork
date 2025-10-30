@@ -2,6 +2,7 @@ package jackiecrazy.footwork.move.motionframe;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4d;
@@ -36,10 +37,11 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientatio
         this(dir, offset, new Vector4d(dir.x, dir.y, dir.z, rotation));
     }
 
-    public Vec3 resolveTargetOffset(Entity referent, Vec3 defaultOffset, double range) {
-        Vec3 forward = referent.getLookAngle().normalize();
-        if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
+    public Vec3 resolveTargetOffset(Tuple<Vec3, Vec3> bundle, Vec3 defaultOffset, double range) {
+        return resolveTargetOffset(bundle.getA(), bundle.getB(), defaultOffset, range);
+    }
 
+    public Vec3 resolveTargetOffset(Vec3 position, Vec3 forward, Vec3 defaultOffset, double range) {
         // Create right and up basis vectors
         Vec3 globalUp = new Vec3(0, 1, 0);
         Vec3 right = forward.cross(globalUp).normalize();
@@ -66,9 +68,14 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientatio
                 .add(newUp.scale(offset.y * range))
                 .add(lookAdjusted.scale(offset.z * range));
 
-        Vec3 handOrigin = referent.position().add(0, 1.0, 0); // approx. hand height
+        return position.add(adjustedDefault).add(offsetWorld);
+    }
 
-        return handOrigin.add(adjustedDefault).add(offsetWorld);
+    public Vec3 resolveTargetOffset(Entity referent, Vec3 defaultOffset, double range) {
+        Vec3 forward = referent.getLookAngle().normalize();
+        if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
+
+        return resolveTargetOffset(forward, referent.position().add(0, 1, 0), defaultOffset, range);
     }
 
     public MotionFrame lerp(MotionFrame with, double partial) {

@@ -100,8 +100,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
         poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
         // Scale and render
-        float scale = (float) Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
-        poseStack.scale(1f, scale, scale);
+        float scale = 1;// (float) Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
+        poseStack.scale(scale, scale, scale);
 
         //actual weapon
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -217,9 +217,10 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 return bufferSource.getBuffer(type);
             }
             RenderType rt = type;
-            if (model.isCustomRenderer()||stack.getItem() instanceof BlockItem) rt = RenderType.entityTranslucentCull(a);
+            if (model.isCustomRenderer() || stack.getItem() instanceof BlockItem)
+                rt = RenderType.entityTranslucentCull(a);
             // Otherwise use the requested RenderType but wrap it to tint/alpha it
-            return new CustomVertexConsumer(bufferSource.getBuffer(rt), 0, 0, 0, alpha/256f);
+            return new CustomVertexConsumer(bufferSource.getBuffer(rt), 0, 0, 0, alpha / 256f);
         };
 
         renderStackProperly(stack, poseStack, bf, packedlight, model);
@@ -227,10 +228,10 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
     }
 
     private void renderStackProperly(ItemStack stack,
-                           PoseStack poseStack,
-                           MultiBufferSource bf,
-                           int packedlight,
-                           BakedModel model) {
+                                     PoseStack poseStack,
+                                     MultiBufferSource bf,
+                                     int packedlight,
+                                     BakedModel model) {
         if (stack.getItem() instanceof BlockItem blockItem) {
             Block block = blockItem.getBlock();
             BlockState base = block.defaultBlockState();
@@ -314,7 +315,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 return buffer.getBuffer(type);
             }
             RenderType rt = type;
-            if (model.isCustomRenderer()||stack.getItem() instanceof BlockItem) rt = RenderType.entityTranslucentCull(a);
+            if (model.isCustomRenderer() || stack.getItem() instanceof BlockItem)
+                rt = RenderType.entityTranslucentCull(a);
             // Otherwise use the requested RenderType but wrap it to tint/alpha it
             return new CustomVertexConsumer(buffer.getBuffer(rt), alpha);
         };
@@ -346,7 +348,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         for (Tuple<SwingHistory, SwingHistory> point : points) {
             float alpha = (1.0f - (i * alphaStep)) / 2;
 
-            if (last != null && !last.equals(point)) {
+            if (last != null && !last.equals(point) && point.getA().corporeal()) {
                 drawQuad(consumer, poseStack, last.getB().position(), last.getA().position(), point.getA().position(), point.getB().position(), alpha);
             }
             last = point;

@@ -10,13 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface MotionManager {
+
     EntityDataSerializer<MotionManager> SERIALIZER = new EntityDataSerializer<>() {
 
         @Override
         public void write(FriendlyByteBuf buf, MotionManager mm) {
             //write 20 frames in total, spread out over the duration. If duration<20, write as many as needed
             buf.writeInt(mm.getDuration());
-            final int increments = mm.getDuration() / 20;
+            final int increments = Math.max(1, mm.getDuration() / 20);
             int numOfFrames = mm.getDuration() / (increments + 1);
             buf.writeInt(numOfFrames);
             for (int x = 0; x < numOfFrames; x += increments) {
@@ -37,7 +38,7 @@ public interface MotionManager {
 
         @Override
         public MotionManager copy(MotionManager mm) {
-            return new MotionManagers.FixedMM(new MotionFrame(Vec3.ZERO, Vec3.ZERO, 0), 10);
+            return new MotionManagers.FixedMM(new MotionFrame(mm.getStartFrame().direction(), mm.getStartFrame().offset(), mm.getStartFrame().renderOrientation()), mm.getDuration());
         }
     };
 

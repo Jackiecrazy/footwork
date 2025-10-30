@@ -33,6 +33,7 @@ public interface IStyleCapability {
     void addCombo(float amount, String source);
     //how freshness?
     void resetCombo();
+    void refresh();
 
     int getTriggerTime(boolean melee);
     void setTriggerTime(int time, boolean melee);

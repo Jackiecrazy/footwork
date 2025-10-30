@@ -44,7 +44,7 @@ public class NoStyleCap implements IStyleCapability {
 
     @Override
     public float getCombo() {
-        return 0;
+        return 1;
     }
 
     @Override
@@ -54,6 +54,11 @@ public class NoStyleCap implements IStyleCapability {
 
     @Override
     public void resetCombo() {
+
+    }
+
+    @Override
+    public void refresh() {
 
     }
 

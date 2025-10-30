@@ -13,6 +13,7 @@ import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
+import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.networking.FootworkChannel;
@@ -74,6 +75,7 @@ public class Footwork {
         FootworkChannel.INSTANCE.registerMessage(1, UpdateTimeSlowPacket.class, new UpdateTimeSlowPacket.UpdateClientEncoder(), new UpdateTimeSlowPacket.UpdateClientDecoder(), new UpdateTimeSlowPacket.UpdateClientHandler());
         EntityDataSerializers.registerSerializer(MotionFrame.SERIALIZER);
         EntityDataSerializers.registerSerializer(MotionManager.SERIALIZER);
+        EntityDataSerializers.registerSerializer(FlyingItemEntity.STATESERIALIZER);
     }
 
     private void setup(final RegisterCapabilitiesEvent event) {
