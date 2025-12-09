@@ -4,6 +4,7 @@ import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.particle.ScalingParticleType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -14,7 +15,7 @@ import java.awt.*;
 public class ParticleUtils {
     public static final Vector3f gravel = new Vector3f(Vec3.fromRGB24(-8356741).toVector3f());
 
-    public static void playSweepParticle(ParticleType<ScalingParticleType> type, LivingEntity e, Vec3 vec, int angle, double size, Color c, double vertFromFoot) {
+    public static void playSweepParticle(ParticleType<ScalingParticleType> type, Entity e, Vec3 vec, int angle, double size, Color c, double vertFromFoot) {
         double xSize = size, ySize = 1;
         int time = 8;
         if (type == FootworkParticles.IMPACT.get()) {
@@ -47,11 +48,11 @@ public class ParticleUtils {
 
     }
 
-    public static void playSweepParticle(ParticleType<ScalingParticleType> type, LivingEntity e, Vec3 vec, int angle, double size, double vertFromFoot) {
+    public static void playSweepParticle(ParticleType<ScalingParticleType> type, Entity e, Vec3 vec, int angle, double size, double vertFromFoot) {
         playSweepParticle(type, e, e.position(), angle, size, Color.WHITE, vertFromFoot);
     }
 
-    public static void playSweepParticle(ParticleType<ScalingParticleType> type, LivingEntity e, int angle, double size, double vertFromFoot) {
+    public static void playSweepParticle(ParticleType<ScalingParticleType> type, Entity e, int angle, double size, double vertFromFoot) {
         playSweepParticle(type, e, e.position(), angle, size, vertFromFoot);
     }
 

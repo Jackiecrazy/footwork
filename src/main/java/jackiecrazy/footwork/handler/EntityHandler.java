@@ -86,11 +86,6 @@ public class EntityHandler {
 
         //damage recording, skip all else
         ICombatCapability cap = CombatData.getCap(uke);
-        if(cap.getDamageRecordTime()>0){
-            cap.recordDamage(e.getAmount());
-            e.setCanceled(true);
-            return;
-        }
 
         //damage amping from vulnerable
         if (uke.hasEffect(FootworkEffects.VULNERABLE.get()) && !isPhysicalAttack(ds))

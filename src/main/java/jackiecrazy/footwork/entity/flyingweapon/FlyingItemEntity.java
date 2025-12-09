@@ -39,12 +39,17 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public static final EntityDataSerializer<STATE> STATESERIALIZER = EntityDataSerializer.simpleEnum(STATE.class);
     public static final int MAX_TRAIL_LENGTH = 6;
     public static final int CLIENT_SMOOTHING_SUBTICKS = 7;
-    private int version=0;
     protected static final List<MotionFrame> STAB = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, -1)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)));
     protected static final List<MotionFrame> CIRCLE = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)), new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), new Vector4d(-1, 0, 0, 90)), new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 90)), new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), new Vector4d(1, 0, 0, 90)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)));
     protected static final List<MotionFrame> SLASH = List.of(new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45)));
     protected static final List<MotionFrame> BACKSLASH = List.of(new MotionFrame(new Vec3(-1, 0.6, 1), new Vec3(0, 0, 1), -45), new MotionFrame(new Vec3(1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(1, -1, 1, -45)));
-    protected static final List<MotionFrame> CHOP = List.of(new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1)));
+    protected static final List<MotionFrame> CHOP = List.of(new MotionFrame(new Vec3(0, 1, -1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1)));
+    protected static final List<MotionFrame> LOOP = List.of(
+            //new MotionFrame(new Vec3(0, -1, 0), new Vec3(0, 0, 1)),
+            new MotionFrame(new Vec3(1, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 180)),
+            new MotionFrame(new Vec3(0, 1, 0.1), new Vec3(0, 0, 1), 0),
+            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
+            new MotionFrame(new Vec3(-1, -2, 1), new Vec3(0, 0, 1)));
     protected static final List<MotionManager> EVERYONE = List.of(new MotionManagers.DefinitionMM(new MotionGroup(CIRCLE, EasingFunction.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(STAB, EasingFunction.IN_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(SLASH, EasingFunction.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(BACKSLASH, EasingFunction.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(CHOP, EasingFunction.IN_CUBIC, 30)));
     protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     protected static final EntityDataAccessor<Float> ROLL = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.FLOAT);
@@ -67,6 +72,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     //how the weapon floats when idle: point downwards
     protected static final EntityDataAccessor<MotionManager> IDLE_POSE = SynchedEntityData.defineId(FlyingItemEntity.class, MotionManager.SERIALIZER);
     protected static final EntityDataAccessor<STATE> CURRENT_STATE = SynchedEntityData.defineId(FlyingItemEntity.class, STATESERIALIZER);
+    private static final Vector4d nothing = new Vector4d();
     //first one goes up to attack range, second does not scale
     protected final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
     public float rollO, displacementO, sizeO;
@@ -78,6 +84,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected int animProgress = 0;
     protected MotionFrame update;
     protected Vector4d recalculatedOrientation;
+    private int version = 0;
     private Entity target, tether;
 
     public FlyingItemEntity(EntityType<? extends FlyingItemEntity> type, Level level) {
@@ -106,7 +113,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setInteractionRange(float range) {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         entityData.set(ATTACK_RANGE, range);
     }
 
@@ -115,7 +122,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public boolean isIdle() {
-        return moveQueue.isEmpty();
+        return moveQueue.isEmpty() && getState() == STATE.FOLLOW;
     }
 
     public void queuePath(MotionManager path) {
@@ -149,7 +156,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     protected void setOwnerUUID(UUID to) {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         entityData.set(DATA_OWNERUUID_ID, Optional.of(to));
     }
 
@@ -173,7 +180,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setOwner(LivingEntity e) {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         if (e == null) return;
         if (e instanceof Player) setOwnerUUID(e.getUUID());
         else entityData.set(MOB_OWNER, e.getId());
@@ -190,7 +197,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setMotionTarget(Entity track) {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         target = track;
         int id = target == null ? -1 : target.getId();
         entityData.set(TARGET_ID, id);
@@ -221,7 +228,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setHeldItem(ItemStack stack) {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         entityData.set(HELD, stack);
         //throw new IllegalArgumentException();
         //System.out.println("set stack to "+stack.getItem());
@@ -275,14 +282,15 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         }
     }
 
-    public void flushTrailHistory(){
-        entityData.set(LAST_UPD,getEntityData().get(LAST_UPD)+1);
+    public void flushTrailHistory() {
+        entityData.set(LAST_UPD, getEntityData().get(LAST_UPD) + 1);
     }
 
     public void setShouldRender(FlyingWeaponEffect... ff) {
         if (level().isClientSide()) return;
         int finalMask = 0;
         for (FlyingWeaponEffect f : ff) {
+            if (ff == null) continue;
             int mask = 1 << f.ordinal();
             finalMask |= mask;
         }
@@ -295,11 +303,12 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         super.tick();
         setGlowingTag(false);
         entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), new Vector4d(getXRot(), getYRot(), getRoll(), 0)));
-        updateTetheringVelocity();
         // Movement logic
         if (level().isClientSide) {
             rollO = getRoll();
             displacementO = getDisplacementForRender();
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            updateTetheringVelocity();
             updateClientData();
             //how can the client get ahold of moveset data for smoothing?
             // answer: don't. It's painful. Just sync whether it's idle
@@ -313,11 +322,19 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 animProgress++;
                 executeMoveQueue();
 
-            } else {
+            } else if (getState() == STATE.THROW_TRACK) {
+                trackingFly();
+            } else if (getState() == STATE.THROW_NATURAL) {
+                naturallyFly();
+            } else if (isIdle()) {
                 //idle state
                 entityData.set(IDLE_TICK, getIdlePose().getDuration());
                 returnToIdle(getIdlePose().getDuration());
             }
+
+            //move set here to ensure orientation is not messed up first
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            updateTetheringVelocity();
 
             // Collision and attack logic
             if (!level().isClientSide()) {
@@ -331,8 +348,17 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), recalculatedOrientation);
                 entityData.set(CURRENT_FRAME, reconstructed);
             }
-
         }
+    }
+
+    private void trackingFly() {
+        if (getDeltaMovement().lengthSqr() > 0.003)
+            recalculatedOrientation = recalculateOrientation(nothing, 1);
+    }
+
+    private void naturallyFly() {
+        if (getDeltaMovement().lengthSqr() > 0.003)
+            recalculatedOrientation = recalculateOrientation(nothing, 1);
     }
 
     protected void handleEntityCollisions() {
@@ -348,19 +374,23 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         }
     }
 
-    public STATE getState(){
+    public STATE getState() {
         return getEntityData().get(CURRENT_STATE);
     }
 
+    public void setState(STATE s) {
+        getEntityData().set(CURRENT_STATE, s);
+    }
+
     public void lock(Entity to) {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         getEntityData().set(CURRENT_STATE, STATE.FIXED_POINT);
-        getEntityData().set(LOCK_POS, to.position().add(0,to.getBbHeight()/2,0).toVector3f());
+        getEntityData().set(LOCK_POS, to.position().add(0, to.getBbHeight() / 2, 0).toVector3f());
         getEntityData().set(LOCK_LOOK, to.getLookAngle().toVector3f());
     }
 
     public void unlock() {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         getEntityData().set(CURRENT_STATE, STATE.FOLLOW);
     }
 
@@ -394,17 +424,17 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         Vec3 lerp = currentPos.lerp(transformedDirection, snappiness);
         Vec3 delta = lerp.subtract(currentPos);
         setPos(lerp);
-        setDeltaMovement(delta);
+        //setDeltaMovement(delta);
         //reconstruct the right new position
         recalculatedOrientation = recalculateOrientation(update.renderOrientation(), (float) snappiness);
-        update=new MotionFrame(lerp.subtract(bundle.getA()), new Vec3(0,0,0), reverseEngineer(recalculatedOrientation));
+        update = new MotionFrame(lerp.subtract(bundle.getA()), new Vec3(0, 0, 0), reverseEngineer(recalculatedOrientation));
 
         displacementO = getDisplacementForRender();
     }
 
     protected void executeMoveQueue() {
         MotionManager activeMove = moveQueue.peek();
-        if(activeMove==null)return;
+        if (activeMove == null) return;
         //motion path test
         // Recalculate target every tick relative to player
         //keep the lerped frame for future movement
@@ -417,11 +447,11 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
         this.setPos(transformedDirection);
         //make the first anim progress also reset the last frame
-        setDeltaMovement(delta);
+        //setDeltaMovement(delta);
         recalculatedOrientation = recalculateOrientation(update.renderOrientation(), 1f);
 
         //prevent recursion
-        if(animProgress==0)return;
+        if (animProgress == 0) return;
 
         if (activeMove.hasEnded(animProgress)) {//end current path, execute next path (either transition or next path)
             updateMotionTargets(false);
@@ -446,7 +476,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 return new Tuple<>(position(), getDeltaMovement());
             }
             default -> {
-                return new Tuple<>(getOwner().position().add(0,getOwner().getBbHeight()/2,0), getOwner().getLookAngle());//fixme
+                return new Tuple<>(getOwner().position().add(0, getOwner().getBbHeight() / 2, 0), getOwner().getLookAngle());//fixme
             }
         }
     }
@@ -459,6 +489,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             if (alpha < 130) alpha += 35;
         } else if (alpha > 0) alpha -= 35;
         if (entityData.get(IDLE_TICK) > 0) {
+            //special case, idle needs smooth animations
             returnToIdle(entityData.get(IDLE_TICK));
         }
         //lerp 5 points between each tick
@@ -467,7 +498,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             Vec3 universalOffset = getUniversalOffset();
             MotionFrame from = entityData.get(LAST_FRAME);//position, look, (xrot, yrot, roll)
             MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (xrot, yrot, zrot... in theory)
-            double dist=transitioning()?-1:getInteractionRange()-1;//the -1 here is necessary to counteract the base
+            double dist = transitioning() ? -1 : getInteractionRange() - 1;//the -1 here is necessary to counteract the base
             Vec3 fromTrailPos = from.direction().add(from.offset().scale(dist));
             //this is NOT accurate!
             Vec3 fromShadowPos = from.direction();
@@ -497,9 +528,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             }
         }
         //flush
-        if(getEntityData().get(LAST_UPD)!=version){
+        if (getEntityData().get(LAST_UPD) != version) {
             trailHistory.clear();
-            version=getEntityData().get(LAST_UPD);
+            version = getEntityData().get(LAST_UPD);
         }
     }
 
@@ -513,7 +544,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             LivingEntity referent = getOwner();
             forward = referent.getLookAngle().normalize();
             if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
-        } else if (getState()== STATE.FIXED_POINT) {
+        } else if (getState() == STATE.FIXED_POINT) {
             forward = new Vec3(getEntityData().get(LOCK_LOOK));
         }
         if (forward != null) {
@@ -547,15 +578,15 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     private Vector4d reverseEngineer(Vector4d returned) {
         // Extract pitch/yaw/roll from the returned vector (matches your recalc output)
         double pitchDeg = returned.x; // you returned new Vector4d(getXRot(), getYRot(), rollZ, 0)
-        double yawDeg   = returned.y;
-        double rollDeg  = returned.z; // or returned.w if you use w for roll; adapt accordingly
+        double yawDeg = returned.y;
+        double rollDeg = returned.z; // or returned.w if you use w for roll; adapt accordingly
 
         // Step A: recreate the world-space forward direction from pitch/yaw.
         // Recall: your recalc used targetPitch = -atan2(worldY, sqrt(x^2+z^2))
         // and targetYaw = -atan2(worldX, worldZ).
         // The inverse mapping is:
         double pitchRad = Math.toRadians(-pitchDeg); // note the negative used previously
-        double yawRad   = Math.toRadians(-yawDeg);
+        double yawRad = Math.toRadians(-yawDeg);
 
         double cosPitch = Math.cos(pitchRad);
         double worldX = Math.sin(yawRad) * cosPitch;
@@ -565,23 +596,27 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
         // Step B: compute owner's basis axes in world-space.
         // Forward is the owner's look direction. Use same convention as your resolve code:
-        Vec3 ownerForward = stateDependentOffset(new Vector4d(0,0,1,0));
+        Vec3 ownerForward = stateDependentOffset(new Vector4d(0, 0, 1, 0));
         Vec3 worldUp = new Vec3(0, 1, 0);
         Vec3 ownerRight = ownerForward.cross(worldUp).normalize();
         Vec3 ownerUp = ownerRight.cross(ownerForward).normalize();
 
         // Step C: express worldDir in owner's local coordinates (dot with axes)
         double localX = ownerRight.x * worldDir.x + ownerRight.y * worldDir.y + ownerRight.z * worldDir.z;
-        double localY = ownerUp.x    * worldDir.x + ownerUp.y    * worldDir.y + ownerUp.z    * worldDir.z;
+        double localY = ownerUp.x * worldDir.x + ownerUp.y * worldDir.y + ownerUp.z * worldDir.z;
         double localZ = ownerForward.x * worldDir.x + ownerForward.y * worldDir.y + ownerForward.z * worldDir.z;
 
         // Optional: renormalize the local vector if you rely on it being unit-length
-        double len = Math.sqrt(localX*localX + localY*localY + localZ*localZ);
+        double len = Math.sqrt(localX * localX + localY * localY + localZ * localZ);
         if (len > 1e-9) {
-            localX /= len; localY /= len; localZ /= len;
+            localX /= len;
+            localY /= len;
+            localZ /= len;
         } else {
             // fallback: forward in local space
-            localX = 0; localY = 0; localZ = 1;
+            localX = 0;
+            localY = 0;
+            localZ = 1;
         }
 
         // Step D: pack into the same Vector4d shape your MotionFrame expects:
@@ -599,12 +634,18 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             setOwnerUUID(tag.getUUID("ownerUUID"));
             owner = getOwner();
         }
+        setState(STATE.values()[tag.getInt("state")]);
+        entityData.set(VISUAL_TAG, tag.getInt("visuals"));
+        setInteractionRange(tag.getFloat("range"));
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         if (!getHeldItem().isEmpty()) tag.put("Item", getHeldItem().save(new CompoundTag()));
         if (getOwnerUUID() != null) tag.putUUID("ownerUUID", getOwnerUUID());
+        tag.putInt("state", getState().ordinal());
+        tag.putInt("visuals", getRawVisualTag());
+        tag.putFloat("range", getInteractionRange());
     }
 
     @Override
@@ -613,8 +654,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     @Override
-    public boolean isAttackable() {
-        return false;
+    public boolean skipAttackInteraction(Entity p_20357_) {
+        return true;
     }
 
     @Override
@@ -627,7 +668,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setTransitioning(boolean incorporeal) {
-        if(level().isClientSide())return;
+        if (level().isClientSide()) return;
         entityData.set(IS_INTANGIBLE, incorporeal);
     }
 

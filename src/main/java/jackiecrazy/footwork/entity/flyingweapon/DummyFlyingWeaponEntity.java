@@ -26,7 +26,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     public DummyFlyingWeaponEntity(EntityType<? extends FlyingItemEntity> type,
                                    Level level) {
         super(type, level);
-        final ItemStack stack = new ItemStack(Items.IRON_SWORD);
+        final ItemStack stack = new ItemStack(Items.IRON_AXE);
         stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION,1);
         setHeldItem(stack);
         //setUniversalOffset(new Vec3(0,0,4));
@@ -89,7 +89,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         animProgress++;
         if (animProgress > 20) {
             setInteractionRange(6);
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(SLASH, EasingFunction.IN_OUT_CUBIC, 30)),30,30);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(LOOP, EasingFunction.IN_OUT_CUBIC, 100)),0,0);
             setTransitioning(false);
             while (!trailHistory.isEmpty()) trailHistory.pop();
             //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);

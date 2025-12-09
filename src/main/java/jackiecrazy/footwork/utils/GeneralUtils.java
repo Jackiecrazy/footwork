@@ -6,7 +6,6 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
-import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -87,11 +86,17 @@ public class GeneralUtils {
 
     @Nonnull
     public static HitResult raytraceAnything(Level world, LivingEntity attacker, double range) {
+        return raytraceAnything(world, attacker, range, EntitySelector.ENTITY_STILL_ALIVE);
+    }
+
+    @Nonnull
+    public static HitResult raytraceAnything(Level world, LivingEntity attacker, double range,
+                                             Predicate<Entity> predicate) {
         Vec3 start = attacker.getEyePosition(0.5f);
         Vec3 look = attacker.getLookAngle().scale(range + 2);
         Vec3 end = start.add(look);
         Entity entity = null;
-        List<Entity> list = world.getEntities(attacker, attacker.getBoundingBox().expandTowards(look.x, look.y, look.z).inflate(1.0D), EntitySelector.ENTITY_STILL_ALIVE);
+        List<Entity> list = world.getEntities(attacker, attacker.getBoundingBox().expandTowards(look.x, look.y, look.z).inflate(1.0D), predicate);
         double d0 = 0.0D;
 
         for (Entity entity1 : list) {
@@ -126,10 +131,21 @@ public class GeneralUtils {
                                              boolean doEntities,
                                              ClipContext.Block block,
                                              ClipContext.Fluid fluid) {
+        return raytraceAnything(world, start, direction, distance, doEntities, block, fluid, EntitySelector.ENTITY_STILL_ALIVE);
+    }
+
+    @Nonnull
+    public static HitResult raytraceAnything(Level world,
+                                             Vec3 start,
+                                             Vec3 direction,
+                                             double distance,
+                                             boolean doEntities,
+                                             ClipContext.Block block,
+                                             ClipContext.Fluid fluid, Predicate<Entity> predicate) {
         Vec3 end = start.add(direction);
         if (doEntities) {
             Entity entity = null;
-            List<Entity> list = world.getEntities((Entity) null, new AABB(start, end).inflate(1.0D), EntitySelector.ENTITY_STILL_ALIVE);
+            List<Entity> list = world.getEntities((Entity) null, new AABB(start, end).inflate(1.0D), predicate);
             double d0 = 0.0D;
 
             for (Entity entity1 : list) {

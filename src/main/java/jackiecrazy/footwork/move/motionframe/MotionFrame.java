@@ -1,10 +1,15 @@
 package jackiecrazy.footwork.move.motionframe;
 
+import jackiecrazy.footwork.utils.DirAxialQuat;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix3d;
+import org.joml.Quaterniond;
+import org.joml.Vector3d;
 import org.joml.Vector4d;
 
 public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientation) {
@@ -78,8 +83,33 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientatio
         return resolveTargetOffset(forward, referent.position().add(0, 1, 0), defaultOffset, range);
     }
 
+//    public MotionFrame lerp(MotionFrame with, double partial) {
+//        Vector4d copy = new Vector4d(renderOrientation);
+//        return new MotionFrame(direction.lerp(with.direction, partial), offset.lerp(with.offset, partial), copy.lerp(with.renderOrientation, partial));
+//    }
+
     public MotionFrame lerp(MotionFrame with, double partial) {
-        Vector4d copy = new Vector4d(renderOrientation);
-        return new MotionFrame(direction.lerp(with.direction, partial), offset.lerp(with.offset, partial), copy.lerp(with.renderOrientation, partial));
+        Vec3 dir = this.direction.lerp(with.direction, partial);
+        Vec3 offset = this.offset.lerp(with.offset, partial);
+
+        Vector4d from = this.renderOrientation;
+        Vector4d to = with.renderOrientation;
+        //QUIRK: due to
+        Vector4d out = new Vector4d(
+                lerpAngleDeg(from.x, to.x, partial), // pitch
+                lerpAngleDeg(from.y, to.y, partial), // yaw
+                lerpAngleDeg(from.z, to.z, partial), // roll
+                Mth.lerp(partial, from.w, to.w)      // axial rotation (or other)
+        );
+
+        return new MotionFrame(dir, offset, out);
     }
+
+    /** Lerp angles (in degrees) across wrap boundaries cleanly. */
+    private static float lerpAngleDeg(double from, double to, double partial) {
+        double delta = Mth.wrapDegrees(to - from);
+        return (float)(from + delta * partial);
+    }
+
+
 }
