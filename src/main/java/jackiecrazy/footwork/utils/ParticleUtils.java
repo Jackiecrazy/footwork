@@ -15,7 +15,11 @@ import java.awt.*;
 public class ParticleUtils {
     public static final Vector3f gravel = new Vector3f(Vec3.fromRGB24(-8356741).toVector3f());
 
-    public static void playSweepParticle(ParticleType<ScalingParticleType> type, Entity e, Vec3 vec, int angle, double size, Color c, double vertFromFoot) {
+    public static void playSweepParticle(ParticleType<ScalingParticleType> type, LivingEntity e, Vec3 vec, int angle, double size, Color c, double vertFromFoot) {
+        playSweepParticle(type,(Entity) e,vec,angle,size,c,vertFromFoot);
+    }
+
+        public static void playSweepParticle(ParticleType<ScalingParticleType> type, Entity e, Vec3 vec, int angle, double size, Color c, double vertFromFoot) {
         double xSize = size, ySize = 1;
         int time = 8;
         if (type == FootworkParticles.IMPACT.get()) {

@@ -27,6 +27,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
@@ -90,6 +91,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public FlyingItemEntity(EntityType<? extends FlyingItemEntity> type, Level level) {
         super(type, level);
         setHeldItem(new ItemStack(Items.IRON_SWORD));
+        noPhysics = true;
     }
 
     public MotionManager getIdlePose() {
@@ -394,7 +396,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         getEntityData().set(CURRENT_STATE, STATE.FOLLOW);
     }
 
-    protected abstract void onHitEntity(List<Entity> targets);
+    protected abstract boolean onHitEntity(List<Entity> targets);
 
     protected void handleBlockCollisions() {
         if (!transitioning()) {
@@ -693,7 +695,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     @Override
-    public @Nullable Vec3 getTetheredOffset() {
+    public @NotNull Vec3 getTetheredOffset() {
         return Vec3.ZERO;
     }
 

@@ -1,12 +1,10 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
-import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionGroup;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
 import jackiecrazy.footwork.utils.EasingFunction;
 import jackiecrazy.footwork.utils.GeneralUtils;
-import jackiecrazy.footwork.utils.TargetingUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +18,7 @@ import org.joml.Vector4d;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     private final ArrayList<Entity> alreadyHit=new ArrayList<>();
@@ -35,16 +34,19 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     }
 
     @Override
-    protected void onHitEntity(List<Entity> targets) {
+    protected boolean onHitEntity(List<Entity> targets) {
+        AtomicBoolean hit= new AtomicBoolean(false);
         if (!level().isClientSide)
             targets.forEach(a -> {
                 if(!alreadyHit.contains(a)) {
                     a.setSecondsOnFire(1);
                     a.invulnerableTime = 0;
                     GeneralUtils.attack(getOwner(), a);
+                    hit.set(true);
                     alreadyHit.add(a);
                 }
             });
+        return hit.get();
     }
 
     @Override
