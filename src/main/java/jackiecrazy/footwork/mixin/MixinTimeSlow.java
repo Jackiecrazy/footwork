@@ -18,11 +18,12 @@ public abstract class MixinTimeSlow {
 
     @Redirect(method = "rideTick", at=@At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;tick()V"))
     private void slow(Entity ent) {
+        int tickResult = TimeSlowData.getCap(ent).tickDown(ent.tickCount);
+        //players just get a modification to their fall speed
         if (ent instanceof Player){
             tick();
             return;
         }
-        int tickResult = TimeSlowData.getCap(ent).tickDown(ent.tickCount);
         while(tickResult>=0){
             ent.tick();
             tickResult--;

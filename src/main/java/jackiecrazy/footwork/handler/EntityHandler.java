@@ -46,7 +46,9 @@ public class EntityHandler {
 
     @SubscribeEvent
     public static void caps(AttachCapabilitiesEvent<Entity> e) {
-        e.addCapability(new ResourceLocation("footwork:timeslow"), new TimeSlowData());
+        if (e.getObject() instanceof LivingEntity en)
+            e.addCapability(new ResourceLocation("footwork:timeslow"), new TimeSlowData(en));
+        else e.addCapability(new ResourceLocation("footwork:timeslow"), new TimeSlowData());
     }
 
     @SubscribeEvent

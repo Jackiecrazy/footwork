@@ -185,8 +185,8 @@ public class GeneralUtils {
         return Math.min(me, you);
     }
 
-    public static float getMaxHealthBeforeWounding(LivingEntity of) {
-        return of.getMaxHealth();
+    public static float getActualHealth(LivingEntity of) {
+        return of.getHealth()-CombatData.getCap(of).getRecordedDamage();
     }
 
     /**
@@ -215,6 +215,14 @@ public class GeneralUtils {
         double z = from.getZ() - to.getZ();
         z = Math.max(Math.abs(z) - (from.getBbWidth() / 2), 0);
         return x * x + y * y + z * z;
+    }
+
+    public static Vec3 getExactCollision(Entity ent, Vec3 start, Vec3 end){
+        AABB box = ent.getBoundingBox().inflate(0.3); // optional forgiveness
+
+        Optional<Vec3> hit = box.clip(start, end);
+
+        return hit.orElse(start);
     }
 
     public static Entity raytraceEntity(Level world, LivingEntity attacker, double range) {

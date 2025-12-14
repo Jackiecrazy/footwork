@@ -18,6 +18,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class TimeSlowData implements ICapabilitySerializable<Tag> {
+    public TimeSlowData(LivingEntity bound) {
+        this.instance = new TimeCapability(bound);
+    }
+
+    public TimeSlowData() {
+    }
+
     private static ITimeChange OHNO = new TimeCapability();
 
     public static Capability<ITimeChange> CAP = CapabilityManager.get(new CapabilityToken<>() {

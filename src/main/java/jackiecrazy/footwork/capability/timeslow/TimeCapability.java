@@ -3,17 +3,28 @@ package jackiecrazy.footwork.capability.timeslow;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.common.ForgeMod;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class TimeCapability implements ITimeChange {
+    private static final UUID GRAVITY=UUID.fromString("e2118f5c-8a42-43c2-bf39-6e6264a26ca5");
     private final ArrayList<Tuple<Integer, Double>> modify = new ArrayList<>();
     private double speed = 1;
     private int longest;
     private double partialTick = 0;
+    WeakReference<LivingEntity> bind;
 
     public TimeCapability() {
+    }
+
+    public TimeCapability(LivingEntity bindTo) {
+        bind=new WeakReference<>(bindTo);
     }
 
     private void recalculateSpeed() {
@@ -24,6 +35,11 @@ public class TimeCapability implements ITimeChange {
             if (entry.getA() > longest) longest = entry.getA();
         }
         speed = spd;
+        if(bind!=null&&bind.get() instanceof Player p){
+            p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).removeModifier(GRAVITY);
+            p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).addTransientModifier(new AttributeModifier(GRAVITY, "time slow", speed-1, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        }
+
     }
 
     @Override
