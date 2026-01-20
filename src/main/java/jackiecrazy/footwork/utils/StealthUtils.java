@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.utils;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import jackiecrazy.footwork.event.EntityAwarenessEvent;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.core.BlockPos;
@@ -11,8 +13,13 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 
+import java.util.concurrent.TimeUnit;
+
 public class StealthUtils {
     public static StealthUtils INSTANCE = new StealthUtils();//this will be usurped by the stealth one when appropriate
+
+    //a cache of awareness, written into and purged very quickly
+    //private static final Cache<LivingEntity, Awareness> cache= CacheBuilder.newBuilder().weakKeys().expireAfterWrite(1, TimeUnit.MILLISECONDS).build();
 
     public Awareness getAwareness(LivingEntity attacker, LivingEntity target) {
         if (target != null && attacker != target) {

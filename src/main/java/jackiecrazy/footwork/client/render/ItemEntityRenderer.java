@@ -346,13 +346,14 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         int i = 0;
 
         for (Tuple<SwingHistory, SwingHistory> point : points) {
+            i++;
+            //if(i%FlyingItemEntity.!=0)continue;
             float alpha = (1.0f - (i * alphaStep)) / 2;
 
             if (last != null && !last.equals(point) && point.getA().corporeal()) {
                 drawQuad(consumer, poseStack, last.getB().position(), last.getA().position(), point.getA().position(), point.getB().position(), alpha);
             }
             last = point;
-            i++;
         }
 
         poseStack.popPose();

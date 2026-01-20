@@ -60,19 +60,6 @@ public interface ICombatCapability {
 
     float addPosture(float amount);
 
-    float consumePosture(LivingEntity assailant, float amount, boolean breach, float removeRally);
-
-    default float consumePosture(LivingEntity assailant, float amount, boolean breach) {
-        return consumePosture(assailant, amount, breach, 0);
-    }
-
-    default float consumePosture(LivingEntity assailant, float amount) {
-        return consumePosture(assailant, amount, true);
-    }
-
-    default float consumePosture(float amount) {
-        return consumePosture(null, amount);
-    }
 
     float getRally();
 
@@ -83,6 +70,20 @@ public interface ICombatCapability {
     }
 
     void rally(float quantity);
+
+    float consumePosture(LivingEntity assailant, float amount, BreachLevel breach);
+
+    default float consumePosture(LivingEntity assailant, float amount, boolean breach) {
+        return consumePosture(assailant, amount, breach ? BreachLevel.STUN : BreachLevel.NO);
+    }
+
+    default float consumePosture(LivingEntity assailant, float amount) {
+        return consumePosture(assailant, amount, BreachLevel.NO);
+    }
+
+    default float consumePosture(float amount) {
+        return consumePosture(null, amount);
+    }
 
     void tickProc(String key, double stat);
 
@@ -162,13 +163,11 @@ public interface ICombatCapability {
 
     void setIframe(int time);
 
-    int getDamageRecordTime();
-
     float getRecordedDamage();
 
-    void startRecordingDamage(int time);
-
     void recordDamage(float amount);
+
+    void retconDamage(float quantity);
 
     void stopRecording(DamageSource countAs);
 
@@ -184,6 +183,11 @@ public interface ICombatCapability {
 
     void setHandBind(InteractionHand hand, int time);
 
+    default void bindHands(int time){
+        setHandBind(InteractionHand.MAIN_HAND, time);
+        setHandBind(InteractionHand.OFF_HAND, time);
+    }
+
     CompoundTag write();
 
     void read(CompoundTag from);
@@ -191,4 +195,10 @@ public interface ICombatCapability {
     boolean isOffhandAttack();
 
     void setOffhandAttack(boolean offhandAttack);
+
+    enum BreachLevel {
+        NO,
+        STUN,
+        KNOCKDOWN
+    }
 }

@@ -1,36 +1,36 @@
 package jackiecrazy.footwork.move.motionframe;
 
-import jackiecrazy.footwork.utils.DirAxialQuat;
+import com.mojang.math.Axis;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3d;
 import org.joml.Quaterniond;
-import org.joml.Vector3d;
 import org.joml.Vector4d;
 
-public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientation) {
+public record MotionFrame(Vec3 direction, Vec3 offset, Quaterniond renderOrientation) {
 
     public static final EntityDataSerializer<MotionFrame> SERIALIZER = new EntityDataSerializer<>() {
         @Override
         public void write(FriendlyByteBuf buf, MotionFrame frame) {
             buf.writeVector3f(frame.direction.toVector3f());
             buf.writeVector3f(frame.offset.toVector3f());
-            buf.writeVector3f(new Vec3(frame.renderOrientation.x, frame.renderOrientation.y, frame.renderOrientation.z).toVector3f());
+            buf.writeDouble(frame.renderOrientation.x);
+            buf.writeDouble(frame.renderOrientation.y);
+            buf.writeDouble(frame.renderOrientation.z);
             buf.writeDouble(frame.renderOrientation.w);
         }
 
         @Override
         public MotionFrame read(FriendlyByteBuf buf) {
-            return new MotionFrame(new Vec3(buf.readVector3f()), new Vec3(buf.readVector3f()), new Vector4d(buf.readVector3f(), buf.readDouble()));
+            return new MotionFrame(new Vec3(buf.readVector3f()), new Vec3(buf.readVector3f()), new Quaterniond(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble()));
         }
 
         @Override
         public MotionFrame copy(MotionFrame mf) {
-            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Vector4d(mf.renderOrientation));
+            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Quaterniond(mf.renderOrientation));
         }
     };
 
@@ -40,6 +40,24 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientatio
 
     public MotionFrame(Vec3 dir, Vec3 offset, int rotation) {
         this(dir, offset, new Vector4d(dir.x, dir.y, dir.z, rotation));
+    }
+
+    public MotionFrame(Vec3 dir, Vec3 offset, Vector4d orthodox) {
+        this(dir, offset, new Quaterniond(orthodox.x,orthodox.y,orthodox.z, orthodox.w));
+    }
+
+    private static Quaterniond convertLegacy(Vector4d old){
+        Vec3 forward = new Vec3(old.x,old.y,old.z).normalize();
+
+// Choose a stable up reference
+        Vec3 up = Math.abs(forward.dot(Axis.YP)) > 0.99
+                ? Vec3.XP
+                : Vec3.YP;
+
+// Construct orthonormal basis
+        Vec3 right = forward.cross(up).normalize();
+        up = right.cross(forward).normalize();
+
     }
 
     public Vec3 resolveTargetOffset(Tuple<Vec3, Vec3> bundle, Vec3 defaultOffset, double range) {
@@ -92,15 +110,10 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Vector4d renderOrientatio
         Vec3 dir = this.direction.lerp(with.direction, partial);
         Vec3 offset = this.offset.lerp(with.offset, partial);
 
-        Vector4d from = this.renderOrientation;
-        Vector4d to = with.renderOrientation;
+        Quaterniond from = this.renderOrientation;
+        Quaterniond to = with.renderOrientation;
         //QUIRK: due to
-        Vector4d out = new Vector4d(
-                lerpAngleDeg(from.x, to.x, partial), // pitch
-                lerpAngleDeg(from.y, to.y, partial), // yaw
-                lerpAngleDeg(from.z, to.z, partial), // roll
-                Mth.lerp(partial, from.w, to.w)      // axial rotation (or other)
-        );
+        Quaterniond out = from.nlerp(to, partial, new Quaterniond());
 
         return new MotionFrame(dir, offset, out);
     }

@@ -18,7 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class TimeSlowData implements ICapabilitySerializable<Tag> {
-    public TimeSlowData(LivingEntity bound) {
+    public TimeSlowData(Entity bound) {
         this.instance = new TimeCapability(bound);
     }
 

@@ -1,11 +1,15 @@
 package jackiecrazy.footwork.capability.timeslow;
 
+import jackiecrazy.footwork.networking.FootworkChannel;
+import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -18,12 +22,12 @@ public class TimeCapability implements ITimeChange {
     private double speed = 1;
     private int longest;
     private double partialTick = 0;
-    WeakReference<LivingEntity> bind;
+    WeakReference<Entity> bind;
 
     public TimeCapability() {
     }
 
-    public TimeCapability(LivingEntity bindTo) {
+    public TimeCapability(Entity bindTo) {
         bind=new WeakReference<>(bindTo);
     }
 
@@ -35,9 +39,13 @@ public class TimeCapability implements ITimeChange {
             if (entry.getA() > longest) longest = entry.getA();
         }
         speed = spd;
-        if(bind!=null&&bind.get() instanceof Player p){
-            p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).removeModifier(GRAVITY);
-            p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).addTransientModifier(new AttributeModifier(GRAVITY, "time slow", speed-1, AttributeModifier.Operation.MULTIPLY_TOTAL));
+        if(bind!=null){
+            final Entity bound = bind.get();
+            if(bound instanceof Player p) {
+                p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).removeModifier(GRAVITY);
+                p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).addTransientModifier(new AttributeModifier(GRAVITY, "time slow", speed - 1, AttributeModifier.Operation.MULTIPLY_TOTAL));
+            }
+            FootworkChannel.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> bound), new UpdateTimeSlowPacket(bound.getId(), spd));
         }
 
     }

@@ -59,11 +59,6 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public float consumePosture(LivingEntity assailant, float amount, boolean breach, float removeRally) {
-        return 0;
-    }
-
-    @Override
     public float getRally() {
         return 0;
     }
@@ -75,6 +70,16 @@ public class DummyCombatCap implements ICombatCapability {
 
     @Override
     public void rally(float quantity) {
+
+    }
+
+    @Override
+    public float consumePosture(LivingEntity assailant, float amount, BreachLevel bl) {
+        return 0;
+    }
+
+    @Override
+    public void retconDamage(float quantity) {
 
     }
 
@@ -224,18 +229,8 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public int getDamageRecordTime() {
-        return 0;
-    }
-
-    @Override
     public float getRecordedDamage() {
         return 0;
-    }
-
-    @Override
-    public void startRecordingDamage(int time) {
-
     }
 
     @Override

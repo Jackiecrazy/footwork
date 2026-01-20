@@ -124,7 +124,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public boolean isIdle() {
-        return moveQueue.isEmpty() && getState() == STATE.FOLLOW;
+        return moveQueue.isEmpty();
     }
 
     public void queuePath(MotionManager path) {
@@ -230,7 +230,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setHeldItem(ItemStack stack) {
-        if (level().isClientSide()) return;
+        //if (level().isClientSide()) return;
         entityData.set(HELD, stack);
         //throw new IllegalArgumentException();
         //System.out.println("set stack to "+stack.getItem());
@@ -571,6 +571,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         float lerpX = Mth.lerp(snappiness, getXRot(), targetPitch);
         float lerpY = Mth.lerp(snappiness, getYRot(), targetYaw);
         double lerpZ = Mth.lerp(snappiness, rollO, quaternion.w);
+        //todo if behind the reference point???
+
         setYRot(lerpY);
         setXRot(lerpX);
         entityData.set(ROLL, (float) lerpZ);

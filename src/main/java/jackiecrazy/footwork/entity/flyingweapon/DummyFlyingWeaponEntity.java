@@ -59,7 +59,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         //setInteractionRange(3 + 2 * Mth.sin(Mth.DEG_TO_RAD * tickCount * 10));
         setShouldRender(FlyingWeaponEffect.BIG_SHADOW, false);
         setShouldRender(FlyingWeaponEffect.AFTERIMAGE, false);
-        setShouldRender(FlyingWeaponEffect.TRAIL, true);
+        setShouldRender(FlyingWeaponEffect.TRAIL, false);
         setShouldRender(FlyingWeaponEffect.WEAPON, true);
         if (getOwner() == null) {
             setOwner(level().getNearestPlayer(this, 16));
@@ -90,12 +90,16 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
 
         animProgress++;
         if (animProgress > 20) {
+            List<MotionFrame> loop=List.of(
+                    new MotionFrame(new Vec3(0.4, 0.6, -1), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -0.4, 1, 45)));
             setInteractionRange(6);
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(LOOP, EasingFunction.IN_OUT_CUBIC, 100)),0,0);
+            animProgress = 0;
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(CIRCLE, EasingFunction.LINEAR, 60)),0,0);
             setTransitioning(false);
             while (!trailHistory.isEmpty()) trailHistory.pop();
             //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
-            animProgress = 0;
             lock(getOwner());
             setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
         }
