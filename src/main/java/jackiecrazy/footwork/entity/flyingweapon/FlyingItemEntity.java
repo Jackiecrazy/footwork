@@ -29,6 +29,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
 
@@ -53,7 +55,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             new MotionFrame(new Vec3(-1, -2, 1), new Vec3(0, 0, 1)));
     protected static final List<MotionManager> EVERYONE = List.of(new MotionManagers.DefinitionMM(new MotionGroup(CIRCLE, EasingFunction.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(STAB, EasingFunction.IN_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(SLASH, EasingFunction.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(BACKSLASH, EasingFunction.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(CHOP, EasingFunction.IN_CUBIC, 30)));
     protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    protected static final EntityDataAccessor<Float> ROLL = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.FLOAT);
+    protected static final EntityDataAccessor<Quaternionf> ROLL = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.QUATERNION);
     protected static final EntityDataAccessor<Float> ATTACK_RANGE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.FLOAT);
     protected static final EntityDataAccessor<Integer> MOB_OWNER = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> TARGET_ID = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
@@ -73,10 +75,11 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     //how the weapon floats when idle: point downwards
     protected static final EntityDataAccessor<MotionManager> IDLE_POSE = SynchedEntityData.defineId(FlyingItemEntity.class, MotionManager.SERIALIZER);
     protected static final EntityDataAccessor<STATE> CURRENT_STATE = SynchedEntityData.defineId(FlyingItemEntity.class, STATESERIALIZER);
-    private static final Vector4d nothing = new Vector4d();
+    private static final Quaternionf nothing = new Quaternionf(0,0,0,1);
     //first one goes up to attack range, second does not scale
     protected final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
-    public float rollO, displacementO, sizeO;
+    public Quaternionf rollO=new Quaternionf();
+    public float displacementO, sizeO;
     public int renderLag = 0, renderLagO = 0;
     public int alpha = 0, alphaO = 0;
     protected int internalIdleTimer = 0;
@@ -236,7 +239,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         //System.out.println("set stack to "+stack.getItem());
     }
 
-    public float getRoll() {
+    public Quaternionf getRoll() {
         return entityData.get(ROLL);
     }
 
@@ -246,7 +249,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     @Override
     protected void defineSynchedData() {
-        this.entityData.define(ROLL, 0f);
+        this.entityData.define(ROLL, new Quaternionf(0,0,1,0));
         this.entityData.define(IS_INTANGIBLE, true);
         this.entityData.define(LAST_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(CURRENT_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
@@ -304,7 +307,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public void tick() {
         super.tick();
         setGlowingTag(false);
-        entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), new Vector4d(getXRot(), getYRot(), getRoll(), 0)));
+        entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), getRoll()));
         // Movement logic
         if (level().isClientSide) {
             rollO = getRoll();
@@ -496,7 +499,6 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         }
         //lerp 5 points between each tick
         if (getMotionTarget() != null) {
-            //fixme interpolations don't calculate from the right to frame during idle, directly store to and from in idle handling?
             Vec3 universalOffset = getUniversalOffset();
             MotionFrame from = entityData.get(LAST_FRAME);//position, look, (xrot, yrot, roll)
             MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (xrot, yrot, zrot... in theory)
@@ -538,7 +540,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     protected abstract void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location);
 
-    public Vec3 stateDependentOffset(Vector4d quaternion) {
+    public Quaternionf stateDependentOrientation(Quaternionf quaternion) {
         // Get player's rotation as a basis
         Vec3 forward = null;
         if (getState() == STATE.FOLLOW) {
@@ -550,33 +552,58 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             forward = new Vec3(getEntityData().get(LOCK_LOOK));
         }
         if (forward != null) {
+            Vec3 f = forward.normalize();
+
+            Quaternionf lookQuat= new Quaternionf()
+                    .rotateTo(
+                            0, 0, 1,
+                            (float) f.x, (float) f.y, (float) f.z
+                    );
             // Create right and up basis vectors
-            Vec3 globalUp = new Vec3(0, 1, 0);
-            Vec3 right = forward.cross(globalUp).normalize();
-            Vec3 up = right.cross(forward).normalize();  // Ensure orthogonal
-            return right.scale(quaternion.x).add(up.scale(quaternion.y)).add(forward.scale(quaternion.z)).normalize();
+//            Vec3 globalUp = new Vec3(0, 1, 0);
+//            Vec3 right = forward.cross(globalUp).normalize();
+//            Vec3 up = right.cross(forward).normalize();  // Ensure orthogonal
+//            return right.scale(quaternion.x).add(up.scale(quaternion.y)).add(forward.scale(quaternion.z)).normalize();
+            return new Quaternionf(lookQuat).mul(quaternion);
         }
-        return getDeltaMovement();
+        return new Quaternionf(getDeltaMovement().x,getDeltaMovement().y,getDeltaMovement().z,1);
     }
 
-    public Vector4d recalculateOrientation(Vector4d quaternion, float snappiness) {
+    public static Quaternionf lookQuatFromVec(Vec3 forward) {
+        Vec3 f = forward.normalize();
+
+        // If almost opposite of +Z, rotate 180° around Y
+        if (f.dot(new Vec3(0, 0, 1)) < -0.9999) {
+            return new Quaternionf().rotateY((float) Math.PI);
+        }
+
+        return new Quaternionf()
+                .rotateTo(
+                        0, 0, 1,
+                        (float) f.x, (float) f.y, (float) f.z
+                );
+    }
+
+
+    public Vector4d recalculateOrientation(Quaternionf quaternion, float snappiness) {
         // Step 1: Convert visualOrientation to world-space direction
         // This assumes visualOrientation is like a local-space forward vector (e.g., (0, 0, 1))
-        Vec3 worldDirection = stateDependentOffset(quaternion);
+        Quaternionf worldDirection = stateDependentOrientation(quaternion);
+        Vector3f fwd = new Vector3f(0, 0, 1);
+        worldDirection.transform(fwd);
 
         // Step 2: Face that world direction
-        float targetPitch = (float) Mth.wrapDegrees(-Mth.atan2(worldDirection.y, Math.sqrt(worldDirection.x * worldDirection.x + worldDirection.z * worldDirection.z)) * (180F / Math.PI));
-        float targetYaw = (float) Mth.wrapDegrees(-Mth.atan2(worldDirection.x, worldDirection.z) * (180F / Math.PI));
+        float targetPitch = (float) Mth.wrapDegrees(-Mth.atan2(fwd.y, Math.sqrt(fwd.x * fwd.x + fwd.z * fwd.z)) * (180F / Math.PI));
+        float targetYaw = (float) Mth.wrapDegrees(-Mth.atan2(fwd.x, fwd.z) * (180F / Math.PI));
         rollO = entityData.get(ROLL);
         float lerpX = Mth.lerp(snappiness, getXRot(), targetPitch);
         float lerpY = Mth.lerp(snappiness, getYRot(), targetYaw);
-        double lerpZ = Mth.lerp(snappiness, rollO, quaternion.w);
-        //todo if behind the reference point???
+        Quaternionf lerpRot=getRoll().slerp(worldDirection, snappiness, new Quaternionf());
 
         setYRot(lerpY);
         setXRot(lerpX);
-        entityData.set(ROLL, (float) lerpZ);
-        return new Vector4d(getXRot(), getYRot(), lerpZ, 0);
+        entityData.set(ROLL, lerpRot);
+        return new Vector4d(getXRot(), getYRot(), 0, 0);
     }
 
     private Vector4d reverseEngineer(Vector4d returned) {
@@ -600,7 +627,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
         // Step B: compute owner's basis axes in world-space.
         // Forward is the owner's look direction. Use same convention as your resolve code:
-        Vec3 ownerForward = stateDependentOffset(new Vector4d(0, 0, 1, 0));
+        Vec3 ownerForward = getOwner().getForward();//stateDependentOrientation(new Quaternionf(0, 0, 1, 0));
         Vec3 worldUp = new Vec3(0, 1, 0);
         Vec3 ownerRight = ownerForward.cross(worldUp).normalize();
         Vec3 ownerUp = ownerRight.cross(ownerForward).normalize();

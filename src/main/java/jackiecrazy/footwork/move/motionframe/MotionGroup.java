@@ -6,13 +6,49 @@ import org.joml.Vector4d;
 
 import java.util.List;
 
-public record MotionGroup(List<MotionFrame> frames, EasingFunction easing, int duration) {
+public class MotionGroup {
+
+    private final List<MotionFrame> frames;
+    private final EasingFunction easing;
+    private final int duration;
+
+    public List<MotionFrame> frames() {
+        return frames;
+    }
+
+    public EasingFunction easing() {
+        return easing;
+    }
+
+    public int duration() {
+        return duration;
+    }
+
+    private final double[] lengths;
 
     /*
     each tick, increase duration.
     Find the normalized duration float and ease it,
     multiply that by the number of frames to figure out approximately which frame we're supposed to be in
      */
+
+    public MotionGroup(List<MotionFrame> frames, EasingFunction easing, int duration){
+        this.frames=frames;
+        this.easing=easing;
+        this.duration=duration;
+
+        lengths = new double[frames.size() - 1];
+        double totalLength = 0;
+
+        for (int i = 0; i < frames.size() - 1; i++) {
+            lengths[i] = frames.get(i).resolveTargetOffset()
+                    .distanceTo(frames.get(i+1).resolveTargetOffset());
+            totalLength += lengths[i];
+        }
+        for (int i = 0; i < lengths.length; i++) {
+            lengths[i] /=totalLength;
+        }
+    }
 
     public MotionGroup(MotionFrame frames, EasingFunction easing, int time) {
         this(List.of(frames), easing, time);

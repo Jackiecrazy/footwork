@@ -31,6 +31,7 @@ import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Deque;
@@ -88,13 +89,16 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
 //            );
 //        }
         // rotation
-        float lerpYRot = Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot());
-        float lerpXRot = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
-        float lerpZRot = Mth.rotLerp(partialTicks, entity.rollO, entity.getRoll());
+//        float lerpYRot = Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot());
+//        float lerpXRot = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
+//        float lerpZRot = Mth.rotLerp(partialTicks, entity.rollO, entity.getRoll());
+        Quaternionf quat=entity.rollO.slerp(entity.getRoll(), partialTicks, new Quaternionf());
         //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-        poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
-        poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch
-        poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
+//        poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
+//        poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch
+//        poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
+
+        poseStack.mulPose(quat);
         poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
         //poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment

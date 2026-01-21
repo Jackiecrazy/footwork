@@ -91,16 +91,23 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         animProgress++;
         if (animProgress > 20) {
             List<MotionFrame> loop=List.of(
-                    new MotionFrame(new Vec3(0.4, 0.6, -1), new Vec3(0, 0, 1)),
                     new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
-                    new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -0.4, 1, 45)));
+                    new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)));
+            List<MotionFrame> chop=List.of(
+                    new MotionFrame(new Vec3(0, 0.6, -1), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(0, 1, 0), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(0, -0.4, 0), new Vec3(0, 0, 1)));
             setInteractionRange(6);
             animProgress = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(CIRCLE, EasingFunction.LINEAR, 60)),0,0);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(loop, EasingFunction.LINEAR, 60)),0,0);
             setTransitioning(false);
             while (!trailHistory.isEmpty()) trailHistory.pop();
             //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
-            lock(getOwner());
+            //lock(getOwner());
             setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
         }
         //recalculatedOrientation = recalculateOrientation(null, update.renderOrientation(), (float) 0.1f);

@@ -8,9 +8,11 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaterniond;
+import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
 import org.joml.Vector4d;
 
-public record MotionFrame(Vec3 direction, Vec3 offset, Quaterniond renderOrientation) {
+public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrientation) {
 
     public static final EntityDataSerializer<MotionFrame> SERIALIZER = new EntityDataSerializer<>() {
         @Override
@@ -25,12 +27,12 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaterniond renderOrienta
 
         @Override
         public MotionFrame read(FriendlyByteBuf buf) {
-            return new MotionFrame(new Vec3(buf.readVector3f()), new Vec3(buf.readVector3f()), new Quaterniond(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble()));
+            return new MotionFrame(new Vec3(buf.readVector3f()), new Vec3(buf.readVector3f()), new Quaternionf(buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble()));
         }
 
         @Override
         public MotionFrame copy(MotionFrame mf) {
-            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Quaterniond(mf.renderOrientation));
+            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Quaternionf(mf.renderOrientation));
         }
     };
 
@@ -43,25 +45,42 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaterniond renderOrienta
     }
 
     public MotionFrame(Vec3 dir, Vec3 offset, Vector4d orthodox) {
-        this(dir, offset, new Quaterniond(orthodox.x,orthodox.y,orthodox.z, orthodox.w));
+        this(dir, offset, buildLocalRotation(orthodox));
     }
 
-    private static Quaterniond convertLegacy(Vector4d old){
-        Vec3 forward = new Vec3(old.x,old.y,old.z).normalize();
+    public static Quaternionf buildLocalRotation(Vector4d o) {
+        double rollDeg = o.w;
+        Vec3 fwd = new Vec3(o.x, o.y, o.z).normalize();
 
-// Choose a stable up reference
-        Vec3 up = Math.abs(forward.dot(Axis.YP)) > 0.99
-                ? Vec3.XP
-                : Vec3.YP;
+        // Build rotation from +Z → direction
+        Quaternionf q = new Quaternionf()
+                .rotateTo(0, 0, 1, (float) fwd.x, (float) fwd.y, (float) fwd.z);
 
-// Construct orthonormal basis
-        Vec3 right = forward.cross(up).normalize();
-        up = right.cross(forward).normalize();
+        // Apply axial roll around local forward
+        if (rollDeg != 0.0) {
+            q.rotateAxis(
+                    (float) Math.toRadians(rollDeg),
+                    (float) fwd.x, (float) fwd.y, (float) fwd.z
+            );
+        }
 
+        return q;
+    }
+
+    /**
+     * Lerp angles (in degrees) across wrap boundaries cleanly.
+     */
+    private static float lerpAngleDeg(double from, double to, double partial) {
+        double delta = Mth.wrapDegrees(to - from);
+        return (float) (from + delta * partial);
     }
 
     public Vec3 resolveTargetOffset(Tuple<Vec3, Vec3> bundle, Vec3 defaultOffset, double range) {
         return resolveTargetOffset(bundle.getA(), bundle.getB(), defaultOffset, range);
+    }
+
+    public Vec3 resolveTargetOffset(){
+        return resolveTargetOffset(Vec3.ZERO, new Vec3(0,0,1), Vec3.ZERO, 1);
     }
 
     public Vec3 resolveTargetOffset(Vec3 position, Vec3 forward, Vec3 defaultOffset, double range) {
@@ -94,6 +113,11 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaterniond renderOrienta
         return position.add(adjustedDefault).add(offsetWorld);
     }
 
+//    public MotionFrame lerp(MotionFrame with, double partial) {
+//        Vector4d copy = new Vector4d(renderOrientation);
+//        return new MotionFrame(direction.lerp(with.direction, partial), offset.lerp(with.offset, partial), copy.lerp(with.renderOrientation, partial));
+//    }
+
     public Vec3 resolveTargetOffset(Entity referent, Vec3 defaultOffset, double range) {
         Vec3 forward = referent.getLookAngle().normalize();
         if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
@@ -101,27 +125,15 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaterniond renderOrienta
         return resolveTargetOffset(forward, referent.position().add(0, 1, 0), defaultOffset, range);
     }
 
-//    public MotionFrame lerp(MotionFrame with, double partial) {
-//        Vector4d copy = new Vector4d(renderOrientation);
-//        return new MotionFrame(direction.lerp(with.direction, partial), offset.lerp(with.offset, partial), copy.lerp(with.renderOrientation, partial));
-//    }
-
     public MotionFrame lerp(MotionFrame with, double partial) {
         Vec3 dir = this.direction.lerp(with.direction, partial);
         Vec3 offset = this.offset.lerp(with.offset, partial);
 
-        Quaterniond from = this.renderOrientation;
-        Quaterniond to = with.renderOrientation;
-        //QUIRK: due to
-        Quaterniond out = from.nlerp(to, partial, new Quaterniond());
+        Quaternionf from = this.renderOrientation;
+        Quaternionf to = with.renderOrientation;
+        Quaternionf out = from.slerp(to, (float)partial, new Quaternionf());
 
         return new MotionFrame(dir, offset, out);
-    }
-
-    /** Lerp angles (in degrees) across wrap boundaries cleanly. */
-    private static float lerpAngleDeg(double from, double to, double partial) {
-        double delta = Mth.wrapDegrees(to - from);
-        return (float)(from + delta * partial);
     }
 
 
