@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.ITetherAnchor;
 import jackiecrazy.footwork.move.motionframe.MotionGroup;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
@@ -7,6 +8,7 @@ import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
 import jackiecrazy.footwork.utils.EasingFunction;
 import jackiecrazy.footwork.utils.GeneralUtils;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -350,7 +352,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             // update client for trail rendering, done after block collision checks
             if (update != null) {
                 //entityData.set(LAST_FRAME, entityData.get(CURRENT_FRAME));
-                MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), recalculatedOrientation);
+                MotionFrame reconstructed = new MotionFrame(update.direction(), update.offset(), getRoll());
                 entityData.set(CURRENT_FRAME, reconstructed);
             }
         }
@@ -432,7 +434,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         //setDeltaMovement(delta);
         //reconstruct the right new position
         recalculatedOrientation = recalculateOrientation(update.renderOrientation(), (float) snappiness);
-        update = new MotionFrame(lerp.subtract(bundle.getA()), new Vec3(0, 0, 0), reverseEngineer(recalculatedOrientation));
+        update = new MotionFrame(lerp.subtract(bundle.getA()), new Vec3(0, 0, 0), recalculatedOrientation);
 
         displacementO = getDisplacementForRender();
     }
@@ -512,18 +514,12 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 double partialTick = i / CLIENT_SMOOTHING_SUBTICKS;
 
                 //trail, max range
-                float lerpX = (float) Mth.lerp(partialTick, from.renderOrientation().x, to.renderOrientation().x);
-                float lerpY = (float) Mth.lerp(partialTick, from.renderOrientation().y, to.renderOrientation().y);
-                float lerpZ = (float) Mth.lerp(partialTick, from.renderOrientation().z, to.renderOrientation().z);
                 Vec3 trailPosition = fromTrailPos.lerp(toTrailPos, partialTick);
-                SwingHistory trail = new SwingHistory(trailPosition, !transitioning(), lerpX, lerpY, lerpZ);//yes, this is correct, stop asking
+                SwingHistory trail = new SwingHistory(trailPosition, !transitioning(), from.renderOrientation().slerp(to.renderOrientation(), (float)partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 //shadow, range 1
-                lerpX = (float) Mth.lerp(partialTick, from.renderOrientation().x, to.renderOrientation().x);
-                lerpY = (float) Mth.lerp(partialTick, from.renderOrientation().y, to.renderOrientation().y);
-                lerpZ = (float) Mth.lerp(partialTick, from.renderOrientation().z, to.renderOrientation().z);
                 trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
-                SwingHistory shadow = new SwingHistory(trailPosition, !transitioning(), lerpX, lerpZ, lerpY);//yes, this is correct, stop asking
+                SwingHistory shadow = new SwingHistory(trailPosition, !transitioning(), from.renderOrientation().slerp(to.renderOrientation(), (float)partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 trailHistory.addFirst(new Tuple<>(trail, shadow));
             }
@@ -540,11 +536,10 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     protected abstract void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location);
 
-    public Quaternionf stateDependentOrientation(Quaternionf quaternion) {
+    public Vec3 stateDependentOrientation() {
         // Get player's rotation as a basis
         Vec3 forward = null;
         if (getState() == STATE.FOLLOW) {
-            //fixme transitioning to using worldDirection does not guarantee proper offsets
             LivingEntity referent = getOwner();
             forward = referent.getLookAngle().normalize();
             if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
@@ -552,107 +547,54 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             forward = new Vec3(getEntityData().get(LOCK_LOOK));
         }
         if (forward != null) {
-            Vec3 f = forward.normalize();
-
-            Quaternionf lookQuat= new Quaternionf()
-                    .rotateTo(
-                            0, 0, 1,
-                            (float) f.x, (float) f.y, (float) f.z
-                    );
-            // Create right and up basis vectors
-//            Vec3 globalUp = new Vec3(0, 1, 0);
-//            Vec3 right = forward.cross(globalUp).normalize();
-//            Vec3 up = right.cross(forward).normalize();  // Ensure orthogonal
-//            return right.scale(quaternion.x).add(up.scale(quaternion.y)).add(forward.scale(quaternion.z)).normalize();
-            return new Quaternionf(lookQuat).mul(quaternion);
+            return forward;
         }
-        return new Quaternionf(getDeltaMovement().x,getDeltaMovement().y,getDeltaMovement().z,1);
-    }
-
-    public static Quaternionf lookQuatFromVec(Vec3 forward) {
-        Vec3 f = forward.normalize();
-
-        // If almost opposite of +Z, rotate 180° around Y
-        if (f.dot(new Vec3(0, 0, 1)) < -0.9999) {
-            return new Quaternionf().rotateY((float) Math.PI);
-        }
-
-        return new Quaternionf()
-                .rotateTo(
-                        0, 0, 1,
-                        (float) f.x, (float) f.y, (float) f.z
-                );
+        return getDeltaMovement();
     }
 
 
-    public Vector4d recalculateOrientation(Quaternionf quaternion, float snappiness) {
-        // Step 1: Convert visualOrientation to world-space direction
-        // This assumes visualOrientation is like a local-space forward vector (e.g., (0, 0, 1))
-        Quaternionf worldDirection = stateDependentOrientation(quaternion);
-        Vector3f fwd = new Vector3f(0, 0, 1);
-        worldDirection.transform(fwd);
+    public Vector4d recalculateOrientation(Quaternionf localOrientation, float snappiness) {
+        // Get world-space base rotation
+        Vec3 worldBase = stateDependentOrientation(); // Identity for base
 
-        // Step 2: Face that world direction
+        // rotate into world frame
+        Quaternionf worldQuat = MotionFrame.lookQuatFromVec(worldBase);
+
+        //Footwork.LOGGER.debug("world at "+worldBase);
+        //Footwork.LOGGER.debug("it's quat "+worldQuat);
+        //Footwork.LOGGER.debug("local orient to "+localOrientation);
+
+        // Build target quat from effective world forward (look-at)
+        Quaternionf targetQuat = worldQuat.mul(localOrientation);
+        //Footwork.LOGGER.debug("finally it's "+targetQuat);
+
+        Quaternionf current = getRoll();
+        // Ensure shortest path for smooth slerp
+        if (current.dot(targetQuat) < 0) {
+            targetQuat.mul(-1);
+        }
+        Quaternionf lerpRot = new Quaternionf();
+        current.slerp(targetQuat, snappiness, lerpRot);
+
+        // Update entity rotation (for Minecraft's Euler if needed, but prefer quat for rendering)
+        Vector3f fwd = new Vector3f(0, 0, 1); // weapon points along +Z locally
+        lerpRot.transform(fwd);
+        //fwd.mul((float) (180d / Math.PI));
+
+//        Footwork.LOGGER.debug("worldbase was "+worldBase);
+//        Footwork.LOGGER.debug("lerped rot is "+lerpRot);
+//        Footwork.LOGGER.debug("orienting weapon to "+fwd);
+
         float targetPitch = (float) Mth.wrapDegrees(-Mth.atan2(fwd.y, Math.sqrt(fwd.x * fwd.x + fwd.z * fwd.z)) * (180F / Math.PI));
         float targetYaw = (float) Mth.wrapDegrees(-Mth.atan2(fwd.x, fwd.z) * (180F / Math.PI));
-        rollO = entityData.get(ROLL);
         float lerpX = Mth.lerp(snappiness, getXRot(), targetPitch);
         float lerpY = Mth.lerp(snappiness, getYRot(), targetYaw);
-        Quaternionf lerpRot=getRoll().slerp(worldDirection, snappiness, new Quaternionf());
 
         setYRot(lerpY);
         setXRot(lerpX);
+
         entityData.set(ROLL, lerpRot);
-        return new Vector4d(getXRot(), getYRot(), 0, 0);
-    }
-
-    private Vector4d reverseEngineer(Vector4d returned) {
-        // Extract pitch/yaw/roll from the returned vector (matches your recalc output)
-        double pitchDeg = returned.x; // you returned new Vector4d(getXRot(), getYRot(), rollZ, 0)
-        double yawDeg = returned.y;
-        double rollDeg = returned.z; // or returned.w if you use w for roll; adapt accordingly
-
-        // Step A: recreate the world-space forward direction from pitch/yaw.
-        // Recall: your recalc used targetPitch = -atan2(worldY, sqrt(x^2+z^2))
-        // and targetYaw = -atan2(worldX, worldZ).
-        // The inverse mapping is:
-        double pitchRad = Math.toRadians(-pitchDeg); // note the negative used previously
-        double yawRad = Math.toRadians(-yawDeg);
-
-        double cosPitch = Math.cos(pitchRad);
-        double worldX = Math.sin(yawRad) * cosPitch;
-        double worldY = Math.sin(pitchRad);
-        double worldZ = Math.cos(yawRad) * cosPitch;
-        Vec3 worldDir = new Vec3(worldX, worldY, worldZ).normalize();
-
-        // Step B: compute owner's basis axes in world-space.
-        // Forward is the owner's look direction. Use same convention as your resolve code:
-        Vec3 ownerForward = getOwner().getForward();//stateDependentOrientation(new Quaternionf(0, 0, 1, 0));
-        Vec3 worldUp = new Vec3(0, 1, 0);
-        Vec3 ownerRight = ownerForward.cross(worldUp).normalize();
-        Vec3 ownerUp = ownerRight.cross(ownerForward).normalize();
-
-        // Step C: express worldDir in owner's local coordinates (dot with axes)
-        double localX = ownerRight.x * worldDir.x + ownerRight.y * worldDir.y + ownerRight.z * worldDir.z;
-        double localY = ownerUp.x * worldDir.x + ownerUp.y * worldDir.y + ownerUp.z * worldDir.z;
-        double localZ = ownerForward.x * worldDir.x + ownerForward.y * worldDir.y + ownerForward.z * worldDir.z;
-
-        // Optional: renormalize the local vector if you rely on it being unit-length
-        double len = Math.sqrt(localX * localX + localY * localY + localZ * localZ);
-        if (len > 1e-9) {
-            localX /= len;
-            localY /= len;
-            localZ /= len;
-        } else {
-            // fallback: forward in local space
-            localX = 0;
-            localY = 0;
-            localZ = 1;
-        }
-
-        // Step D: pack into the same Vector4d shape your MotionFrame expects:
-        // (localDir.x, localDir.y, localDir.z, roll)
-        return new Vector4d(localX, localY, localZ, rollDeg);
+        return new Vector4d(localOrientation.x,localOrientation.y,localOrientation.z,localOrientation.w); // If you need degrees
     }
 
     // Save/load NBT

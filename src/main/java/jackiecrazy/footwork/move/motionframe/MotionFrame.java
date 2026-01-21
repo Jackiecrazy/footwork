@@ -7,10 +7,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaterniond;
-import org.joml.Quaternionf;
-import org.joml.Quaternionfc;
-import org.joml.Vector4d;
+import org.joml.*;
+
+import java.lang.Math;
 
 public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrientation) {
 
@@ -50,21 +49,40 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrienta
 
     public static Quaternionf buildLocalRotation(Vector4d o) {
         double rollDeg = o.w;
-        Vec3 fwd = new Vec3(o.x, o.y, o.z).normalize();
+        Vec3 fwd = new Vec3(-o.x, o.y, o.z).normalize();
 
         // Build rotation from +Z → direction
-        Quaternionf q = new Quaternionf()
+        Quaternionf q = new Quaternionf()//.rotateAxis((float) rollDeg, new Vector3f(0, 0, 1))
                 .rotateTo(0, 0, 1, (float) fwd.x, (float) fwd.y, (float) fwd.z);
 
         // Apply axial roll around local forward
         if (rollDeg != 0.0) {
             q.rotateAxis(
                     (float) Math.toRadians(rollDeg),
-                    (float) fwd.x, (float) fwd.y, (float) fwd.z
+                    0,0,1
             );
         }
 
         return q;
+    }
+
+    public static Quaternionf lookQuatFromVec(Vec3 forward) {
+        Vec3 f = forward.normalize();
+
+        Vec3 up = Math.abs(f.y) > 0.999
+                ? new Vec3(0, 0, 1)   // fallback up
+                : new Vec3(0, 1, 0);
+
+        Vec3 r = up.cross(f).normalize();
+        up = f.cross(r).normalize();
+
+        Matrix3f m = new Matrix3f(
+                (float) r.x, (float) r.y, (float) r.z,
+                (float) up.x, (float) up.y, (float) up.z,
+                (float) f.x, (float) f.y, (float) f.z
+        );
+
+        return new Quaternionf().setFromNormalized(m);
     }
 
     /**

@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move.motionframe;
 
 import jackiecrazy.footwork.utils.EasingFunction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4d;
 
@@ -41,8 +42,10 @@ public class MotionGroup {
         double totalLength = 0;
 
         for (int i = 0; i < frames.size() - 1; i++) {
-            lengths[i] = frames.get(i).resolveTargetOffset()
-                    .distanceTo(frames.get(i+1).resolveTargetOffset());
+            final Vec3 curPos = frames.get(i).resolveTargetOffset();
+            final Vec3 topPos = frames.get(i + 1).resolveTargetOffset();
+            lengths[i] = curPos
+                    .distanceTo(topPos);
             totalLength += lengths[i];
         }
         for (int i = 0; i < lengths.length; i++) {
@@ -73,13 +76,29 @@ public class MotionGroup {
         double progress = (double) time / duration();
         double easedProgress = easing().ease(progress); // Output in [0, 1]
 
-        // Total number of segments is one less than the number of frames
-        int segmentCount = frameCount - 1;
-        double segmentLength = 1.0 / segmentCount;
+//        // Total number of segments is one less than the number of frames
+//        int segmentCount = frameCount - 1;
+//        double segmentLength = 1.0 / segmentCount;
+//
+//        // Determine current segment and local progress
+//        int segment = Math.min((int) (easedProgress / segmentLength), segmentCount - 1);
+//        double localT = (easedProgress - segment * segmentLength) / segmentLength;
 
-        // Determine current segment and local progress
-        int segment = Math.min((int) (easedProgress / segmentLength), segmentCount - 1);
-        double localT = (easedProgress - segment * segmentLength) / segmentLength;
+        if(easedProgress>1)return frames.get(frames.size()-1);
+
+        double accum = 0;
+        double localT=0;
+        int segment=0;
+
+        for (int i = 0; i < lengths.length; i++) {
+            double next = accum + lengths[i];
+            if (easedProgress <= next) {
+                localT = Mth.clamp((easedProgress - accum) / lengths[i], 0,1);
+                segment=i;
+                break;
+            }
+            accum = next;
+        }
 
         MotionFrame start = frames().get(segment);
         MotionFrame end = frames().get(segment + 1);

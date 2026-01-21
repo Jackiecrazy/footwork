@@ -97,7 +97,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
 //        poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
 //        poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch
 //        poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
-
+        //quat.y*=-1;
         poseStack.mulPose(quat);
         poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
         //poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
@@ -141,13 +141,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 Vec3 interpolate = from.position().lerp(to.position(), moddedPartialTicks);
                 poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
                 // Position and rotate as needed
-                float lerpXRot = Mth.rotLerp(moddedPartialTicks, from.pitch(), to.pitch());
-                float lerpYRot = Mth.rotLerp(moddedPartialTicks, from.yaw(), to.yaw());
-                float lerpZRot = Mth.rotLerp(moddedPartialTicks, from.roll(), to.roll());
-                //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-                poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
-                poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
-                poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
+                Quaternionf quat=entity.rollO.slerp(entity.getRoll(), partialTicks, new Quaternionf());
+                poseStack.mulPose(quat);
                 poseStack.scale(scale, scale, scale);//should scale here, right?
                 poseStack.translate(0, 0, 0.2);//aligning pommel to the best of my ability
                 poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
@@ -295,13 +290,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         Vec3 interpolate = from.position().lerp(to.position(), partialTicks);
         poseStack.translate(interpolate.x, interpolate.y, interpolate.z);
         // Position and rotate as needed
-        float lerpXRot = Mth.rotLerp(partialTicks, from.pitch(), to.pitch());
-        float lerpYRot = Mth.rotLerp(partialTicks, from.yaw(), to.yaw());
-        float lerpZRot = Mth.rotLerp(partialTicks, from.roll(), to.roll());
-        //float lerpDisplacement = Mth.rotLerp(partialTicks, entity.displacementO, entity.getDisplacementForRender());
-        poseStack.mulPose(Axis.YP.rotationDegrees(-lerpYRot)); // Yaw
-        poseStack.mulPose(Axis.XP.rotationDegrees(lerpXRot));  // Pitch, +angle to point the sword
-        poseStack.mulPose(Axis.ZP.rotationDegrees(lerpZRot));  // Roll
+        Quaternionf quat=from.orientation().slerp(to.orientation(), partialTicks, new Quaternionf());
+        poseStack.mulPose(quat);
         poseStack.translate(0, 0, -0.4);//adjust weapon offset so the tip is roughly at the entity
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
         poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal

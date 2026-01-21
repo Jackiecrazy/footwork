@@ -57,7 +57,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     @Override
     public void tick() {
         //setInteractionRange(3 + 2 * Mth.sin(Mth.DEG_TO_RAD * tickCount * 10));
-        setShouldRender(FlyingWeaponEffect.BIG_SHADOW, false);
+        setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
         setShouldRender(FlyingWeaponEffect.AFTERIMAGE, false);
         setShouldRender(FlyingWeaponEffect.TRAIL, false);
         setShouldRender(FlyingWeaponEffect.WEAPON, true);
@@ -91,23 +91,26 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         animProgress++;
         if (animProgress > 20) {
             List<MotionFrame> loop=List.of(
-                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
-                    new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1)),
-                    new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1)),
-                    new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1)),
-                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)));
+                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90),
+                    new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), -90),
+                    new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), -90),
+                    new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), -90),
+                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90));
             List<MotionFrame> chop=List.of(
                     new MotionFrame(new Vec3(0, 0.6, -1), new Vec3(0, 0, 1)),
                     new MotionFrame(new Vec3(0, 1, 0), new Vec3(0, 0, 1)),
                     new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
                     new MotionFrame(new Vec3(0, -0.4, 0), new Vec3(0, 0, 1)));
+            List<MotionFrame> slash=List.of(
+                    new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1), 45),
+                    new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), 45));
             setInteractionRange(6);
             animProgress = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(loop, EasingFunction.LINEAR, 60)),0,0);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(loop, EasingFunction.IN_OUT_CUBIC, 60)),0,0);
             setTransitioning(false);
             while (!trailHistory.isEmpty()) trailHistory.pop();
             //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
-            //lock(getOwner());
+            lock(getOwner());
             setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
         }
         //recalculatedOrientation = recalculateOrientation(null, update.renderOrientation(), (float) 0.1f);
