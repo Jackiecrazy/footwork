@@ -25,9 +25,11 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     public DummyFlyingWeaponEntity(EntityType<? extends FlyingItemEntity> type,
                                    Level level) {
         super(type, level);
-        final ItemStack stack = new ItemStack(Items.IRON_AXE);
+        final ItemStack stack = new ItemStack(Items.IRON_SWORD);
         stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION,1);
+        //setHeldItem(ItemStack.EMPTY);
         setHeldItem(stack);
+        setFlipRender(true);
         //setUniversalOffset(new Vec3(0,0,4));
         setIdlePose(new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), new Vector4d(0, 0, 1, 0)), 10));
         this.setUniversalOffset(new Vec3(-1.3,0,0));
@@ -57,7 +59,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     @Override
     public void tick() {
         //setInteractionRange(3 + 2 * Mth.sin(Mth.DEG_TO_RAD * tickCount * 10));
-        setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
+        setShouldRender(FlyingWeaponEffect.BIG_SHADOW, false);
         setShouldRender(FlyingWeaponEffect.AFTERIMAGE, false);
         setShouldRender(FlyingWeaponEffect.TRAIL, false);
         setShouldRender(FlyingWeaponEffect.WEAPON, true);
@@ -84,7 +86,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     protected void returnToIdle(int duration) {
         super.returnToIdle(duration);
         //lock(getOwner());
-        setTransitioning(true);
+        setIntangible(true);
         alreadyHit.clear();
         //provisional. Used to test movement.
 
@@ -106,8 +108,10 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
                     new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), 45));
             setInteractionRange(6);
             animProgress = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(loop, EasingFunction.IN_OUT_CUBIC, 60)),0,0);
-            setTransitioning(false);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(STAB, EasingFunction.IN_OUT_CUBIC, 60)),0,0);
+            setIntangible(false);
+            setFlipRender(!flipClientRender());
+            setHeldItem(ItemStack.EMPTY);
             while (!trailHistory.isEmpty()) trailHistory.pop();
             //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
             lock(getOwner());

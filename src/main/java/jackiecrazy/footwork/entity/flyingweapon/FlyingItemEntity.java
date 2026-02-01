@@ -1,6 +1,5 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
-import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.ITetherAnchor;
 import jackiecrazy.footwork.move.motionframe.MotionGroup;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
@@ -8,7 +7,6 @@ import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
 import jackiecrazy.footwork.utils.EasingFunction;
 import jackiecrazy.footwork.utils.GeneralUtils;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -31,7 +29,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
@@ -66,12 +63,12 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final EntityDataAccessor<Integer> IDLE_TICK = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> LAST_UPD = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Boolean> IS_INTANGIBLE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Boolean> OFFHAND_RENDER = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
     protected static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     protected static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     //uses
     protected static final EntityDataAccessor<Vector3f> UNIVERSAL_OFFSET = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
-    //todo state machine
     protected static final EntityDataAccessor<Vector3f> LOCK_POS = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
     protected static final EntityDataAccessor<Vector3f> LOCK_LOOK = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
     //how the weapon floats when idle: point downwards
@@ -253,6 +250,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected void defineSynchedData() {
         this.entityData.define(ROLL, new Quaternionf(0,0,1,0));
         this.entityData.define(IS_INTANGIBLE, true);
+        this.entityData.define(OFFHAND_RENDER, false);
         this.entityData.define(LAST_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(CURRENT_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(HELD, ItemStack.EMPTY);
@@ -369,7 +367,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     protected void handleEntityCollisions() {
-        if (!transitioning()) {
+        if (!intangible()) {
             final float range = getInteractionRange();
             List<Entity> selfTarget = level().getEntities(getOwner(), getBoundingBox().inflate(0.2f), e -> e != getOwner() && e.isAlive() && e.isAttackable());
             List<Entity> viewTarget = level().getEntities(getOwner(), getBoundingBox().move(getLookAngle().scale(range)).inflate(0.2f), e -> e != getOwner() && e.isAlive() && e.isAttackable());
@@ -404,7 +402,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected abstract boolean onHitEntity(List<Entity> targets);
 
     protected void handleBlockCollisions() {
-        if (!transitioning()) {
+        if (!intangible()) {
             final float range = getInteractionRange();
             HitResult hit = level().clip(new ClipContext(getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
             if (hit.getType() == HitResult.Type.BLOCK) {
@@ -504,7 +502,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             Vec3 universalOffset = getUniversalOffset();
             MotionFrame from = entityData.get(LAST_FRAME);//position, look, (xrot, yrot, roll)
             MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (xrot, yrot, zrot... in theory)
-            double dist = transitioning() ? -1 : getInteractionRange() - 1;//the -1 here is necessary to counteract the base
+            double dist = intangible() ? -1 : getInteractionRange() - 1;//the -1 here is necessary to counteract the base
             Vec3 fromTrailPos = from.direction().add(from.offset().scale(dist));
             //this is NOT accurate!
             Vec3 fromShadowPos = from.direction();
@@ -515,11 +513,11 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
                 //trail, max range
                 Vec3 trailPosition = fromTrailPos.lerp(toTrailPos, partialTick);
-                SwingHistory trail = new SwingHistory(trailPosition, !transitioning(), from.renderOrientation().slerp(to.renderOrientation(), (float)partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), from.renderOrientation().slerp(to.renderOrientation(), (float)partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 //shadow, range 1
                 trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
-                SwingHistory shadow = new SwingHistory(trailPosition, !transitioning(), from.renderOrientation().slerp(to.renderOrientation(), (float)partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), from.renderOrientation().slerp(to.renderOrientation(), (float)partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 trailHistory.addFirst(new Tuple<>(trail, shadow));
             }
@@ -636,13 +634,21 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         return super.getBoundingBoxForCulling().inflate(8.0D);
     }
 
-    public boolean transitioning() {
+    public boolean intangible() {
         return entityData.get(IS_INTANGIBLE);
     }
 
-    public void setTransitioning(boolean incorporeal) {
+    public void setIntangible(boolean incorporeal) {
         if (level().isClientSide()) return;
         entityData.set(IS_INTANGIBLE, incorporeal);
+    }
+
+    public boolean flipClientRender() {
+        return entityData.get(OFFHAND_RENDER);
+    }
+
+    public void setFlipRender(boolean leftHand) {
+        entityData.set(OFFHAND_RENDER, leftHand);
     }
 
     @Override

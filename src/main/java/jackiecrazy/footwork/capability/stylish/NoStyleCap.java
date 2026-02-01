@@ -113,6 +113,11 @@ public class NoStyleCap implements IStyleCapability {
     }
 
     @Override
+    public float getFreshness(String source) {
+        return 1;
+    }
+
+    @Override
     public void removeOrb(Color of) {
 
     }

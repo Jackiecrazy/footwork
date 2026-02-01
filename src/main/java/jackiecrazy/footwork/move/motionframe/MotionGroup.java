@@ -84,17 +84,17 @@ public class MotionGroup {
 //        int segment = Math.min((int) (easedProgress / segmentLength), segmentCount - 1);
 //        double localT = (easedProgress - segment * segmentLength) / segmentLength;
 
-        if(easedProgress>1)return frames.get(frames.size()-1);
+        if(easedProgress>=1)return frames.get(frames.size()-1);
 
         double accum = 0;
-        double localT=0;
+        double localT=1;
         int segment=0;
 
         for (int i = 0; i < lengths.length; i++) {
             double next = accum + lengths[i];
+            segment=i;
             if (easedProgress <= next) {
                 localT = Mth.clamp((easedProgress - accum) / lengths[i], 0,1);
-                segment=i;
                 break;
             }
             accum = next;

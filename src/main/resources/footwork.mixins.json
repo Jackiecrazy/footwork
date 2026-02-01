@@ -18,6 +18,7 @@
   "client": [
     "MixinParalysis",
     "MixinTimeSlowClient",
-    "MixinTimeSlowRender"
+    "MixinTimeSlowRender",
+    "ShadowHandsMixin"
   ]
 }

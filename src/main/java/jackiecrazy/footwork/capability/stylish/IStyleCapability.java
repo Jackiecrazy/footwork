@@ -49,6 +49,8 @@ public interface IStyleCapability {
     boolean hasOrb(Color of);
     void removeOrb(Color of);
 
+    float getFreshness(String source);
+
     CompoundTag write();
 
     void read(CompoundTag from);
