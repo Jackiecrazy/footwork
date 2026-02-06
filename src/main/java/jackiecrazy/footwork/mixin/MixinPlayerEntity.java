@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
@@ -57,6 +58,21 @@ public abstract class MixinPlayerEntity extends LivingEntity {
         ds.setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).flagBreach(false).setCritDamage(tempCdmg).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
         return ds;
     }
+
+//    @ModifyArg(
+//            method = "attack",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/world/entity/LivingEntity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"
+//            ),
+//            index = 0   // the DamageSource is always argument 0 of hurt()
+//    )
+//    private DamageSource replaceDamageSourceForHurt(DamageSource original) {
+//        // same code as before
+//        CombatDamageSource ds = new CombatDamageSource(this); // 'this' = player
+//        ds.setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).setCrit(tempCrit).flagBreach(false).setCritDamage(tempCdmg).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
+//        return ds;
+//    }
 
     @Inject(method = "attack",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"))

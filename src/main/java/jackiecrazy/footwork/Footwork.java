@@ -14,6 +14,12 @@ import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
+import jackiecrazy.footwork.move.ActionSets;
+import jackiecrazy.footwork.move.Macros;
+import jackiecrazy.footwork.move.action.ActionRegistry;
+import jackiecrazy.footwork.move.argument.ArgumentRegistry;
+import jackiecrazy.footwork.move.condition.ConditionRegistry;
+import jackiecrazy.footwork.move.filter.FilterRegistry;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.networking.FootworkChannel;
@@ -27,14 +33,18 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.RegistryBuilder;
 import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,6 +79,15 @@ public class Footwork {
         FootworkEntities.ENTITIES.register(bus);
         FootworkParticles.PARTICLES.register(bus);
         MinecraftForge.EVENT_BUS.addListener(this::commands);
+
+        ArgumentRegistry.SUPPLIER = ArgumentRegistry.ARGUMENTS.makeRegistry(RegistryBuilder::new);
+        ArgumentRegistry.ARGUMENTS.register(bus);
+        ConditionRegistry.SUPPLIER = ConditionRegistry.CONDITIONS.makeRegistry(RegistryBuilder::new);
+        ConditionRegistry.CONDITIONS.register(bus);
+        ActionRegistry.SUPPLIER = ActionRegistry.ACTIONS.makeRegistry(RegistryBuilder::new);
+        ActionRegistry.ACTIONS.register(bus);
+        FilterRegistry.SUPPLIER = FilterRegistry.FILTERS.makeRegistry(RegistryBuilder::new);
+        FilterRegistry.FILTERS.register(bus);
     }
 
     private void packets(FMLCommonSetupEvent e){
@@ -98,6 +117,14 @@ public class Footwork {
             for (RegistryObject<Attribute> a : FootworkAttributes.ATTRIBUTES.getEntries())
                 e.add(type, a.get());
         }
+    }
+
+
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onJsonListener(AddReloadListenerEvent event) {
+        Macros.register(event);
+        ActionSets.register(event,"action_sets");
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {

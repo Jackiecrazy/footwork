@@ -98,11 +98,11 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         poseStack.mulPose(quat);
         poseStack.translate(0, 0, -0.4);//adjust weapon offset so it's at the middle
         //poseStack.translate(0, 0, -0.8);//adjust weapon offset so the tip is roughly at the entity
-        poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
-        poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
         // Scale and render
         float scale = 1;// (float) Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
         poseStack.scale(scale, scale, scale);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
+        poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
 
         //actual weapon
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -281,11 +281,9 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             }
         } else {
             poseStack.pushPose();
-//            if (left) {
-//                poseStack.scale(-1,1,1);
-//                PoseStack.Pose last = poseStack.last();
-//                last.normal().mul(new Matrix3f().scaling(-1f, 1f, 1f));
-//            }
+            if (left) {
+                poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+            }
             final ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
             itemRenderer.render(stack, ctx, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
             );

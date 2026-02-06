@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
@@ -24,7 +24,7 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(MovesetWrapper wrapper, Action parent, Entity performer, Entity target) {
+        public Boolean resolve(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
             if (tagg == null) tagg = new TagKey<>(ForgeRegistries.ENTITY_TYPES.getRegistryKey(), tag.resolve(wrapper, parent, performer, target));
             Entity ref = reference.resolve(wrapper, parent, performer, target);
             return ref.getType().is(tagg);
@@ -36,7 +36,7 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(MovesetWrapper wrapper, Action parent, Entity performer, Entity target) {
+        public Boolean resolve(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
             if (tagg == null) tagg = new TagKey<>(Registries.DAMAGE_TYPE, tag.resolve(wrapper, parent, performer, target));
             DamageSource ref = reference.resolve(wrapper, parent, performer, target);
             return ref.is(tagg);
@@ -48,7 +48,7 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(MovesetWrapper wrapper, Action parent, Entity performer, Entity target) {
+        public Boolean resolve(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
             if (tagg == null) tagg = new TagKey<>(ForgeRegistries.ITEMS.getRegistryKey(), tag.resolve(wrapper, parent, performer, target));
             ItemStack ref = reference.resolve(wrapper, parent, performer, target);
             return ref.is(tagg);
@@ -60,7 +60,7 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(MovesetWrapper wrapper, Action parent, Entity performer, Entity target) {
+        public Boolean resolve(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
             if (tagg == null) tagg = new TagKey<>(ForgeRegistries.BLOCKS.getRegistryKey(), tag.resolve(wrapper, parent, performer, target));
             BlockState ref = reference.resolve(wrapper, parent, performer, target);
             return ref.is(tagg);

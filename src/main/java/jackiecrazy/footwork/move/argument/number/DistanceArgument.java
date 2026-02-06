@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.core.BlockPos;
@@ -11,7 +11,7 @@ public class DistanceArgument implements Argument<Double> {
     private Argument<?> first, second;
 
     @Override
-    public Double resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Double resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
         Object f = first.resolve(wrapper, parent, caster, target), s = second.resolve(wrapper, parent, caster, target);
         Vec3 from = null, to = null;
         if (f instanceof Entity e)

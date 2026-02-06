@@ -14,27 +14,27 @@ public class DummyCombatCap implements ICombatCapability {
     }
 
     @Override
-    public int getSpirit() {
+    public float getSpirit() {
         return 0;
     }
 
     @Override
-    public void setSpirit(int spirit) {
+    public void setSpirit(float spirit) {
 
     }
 
     @Override
-    public boolean consumeSpirit(int amount) {
-        return false;
-    }
-
-    @Override
-    public int addSpirit(int amount) {
+    public float doConsumeSpirit(float amount) {
         return 0;
     }
 
     @Override
-    public int getMaxSpirit() {
+    public float addSpirit(float amount) {
+        return 0;
+    }
+
+    @Override
+    public float getMaxSpirit() {
         return 0;
     }
 

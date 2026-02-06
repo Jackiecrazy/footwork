@@ -49,11 +49,11 @@ public class ArgumentRegistry {
     //vectors//
     public static final RegistryObject<ArgumentType<Vec3>> RAW_VEC = ARGUMENTS.register("vector", ()  -> new ArgumentType<>(RawVectorArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> SUM = ARGUMENTS.register("sum_vector", ()  -> new ArgumentType<>(SumVectorArgument.class));
-    public static final RegistryObject<ArgumentType<Vec3>> ZERO = ARGUMENTS.register("zero", ()  -> new SingletonArgumentType<>(RawVectorArgument.class, RawVectorArgument.ZERO));
+    public static final RegistryObject<ArgumentType<Vec3>> ZERO = ARGUMENTS.register("zero_vector", ()  -> new SingletonArgumentType<>(RawVectorArgument.class, RawVectorArgument.ZERO));
     public static final RegistryObject<ArgumentType<Vec3>> EYE_HEIGHT = ARGUMENTS.register("eye_height", ()  -> new ArgumentType<>(EyeHeightVectorArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> EYE_POSITION = ARGUMENTS.register("eye_position", ()  -> new ArgumentType<>(EyePositionVectorArgument.class));
-    public static final RegistryObject<ArgumentType<Vec3>> LOOK = ARGUMENTS.register("look", ()  -> new ArgumentType<>(LookVectorArgument.class));
-    public static final RegistryObject<ArgumentType<Vec3>> MULTIPLY = ARGUMENTS.register("multiply", ()  -> new ArgumentType<>(MultiplyVectorArgument.class));
+    public static final RegistryObject<ArgumentType<Vec3>> LOOK = ARGUMENTS.register("look_vector", ()  -> new ArgumentType<>(LookVectorArgument.class));
+    public static final RegistryObject<ArgumentType<Vec3>> MULTIPLY_VEC = ARGUMENTS.register("multiply_vector", ()  -> new ArgumentType<>(MultiplyVectorArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> CROSS_PRODUCT = ARGUMENTS.register("cross_product", ()  -> new ArgumentType<>(CrossProductArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> POSITION = ARGUMENTS.register("foot_position", ()  -> new ArgumentType<>(PositionVectorArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> GET_VECTOR = ARGUMENTS.register("get_vector", ()  -> new ArgumentType<>(VectorArgument.Get.class));

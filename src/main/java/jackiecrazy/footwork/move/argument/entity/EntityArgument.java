@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.entity;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.world.entity.Entity;
@@ -8,9 +8,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class EntityArgument implements Argument<Entity> {
-    public abstract Entity resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target);
+    public abstract Entity resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target);
 
-    public Vec3 _resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Vec3 _resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
         return resolve(wrapper, parent, caster, target).position();
     }
 
@@ -19,7 +19,7 @@ public abstract class EntityArgument implements Argument<Entity> {
         private String into;
 
         @Override
-        public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+        public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
             final Entity vec = value.resolve(wrapper, parent, performer, target);
             performer.getPersistentData().putInt(into, vec.getId());
             return 0;
@@ -30,7 +30,7 @@ public abstract class EntityArgument implements Argument<Entity> {
         private String from;
 
         @Override
-        public Entity resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+        public Entity resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
             return caster.level().getEntity(caster.getPersistentData().getInt(from));
         }
     }

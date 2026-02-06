@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.stack;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
@@ -14,7 +14,7 @@ public class EquippedItemArgument implements Argument<ItemStack> {
     private EquipmentSlot slot=EquipmentSlot.MAINHAND;
 
     @Override
-    public ItemStack resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public ItemStack resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
         return wielder.resolve(wrapper, parent, caster, target) instanceof LivingEntity e ? e.getItemBySlot(slot) : ItemStack.EMPTY;
     }
 }

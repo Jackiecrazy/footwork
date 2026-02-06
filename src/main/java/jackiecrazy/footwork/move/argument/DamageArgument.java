@@ -2,7 +2,7 @@ package jackiecrazy.footwork.move.argument;
 
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.api.FootworkDamageArchetype;
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -42,7 +42,7 @@ public class DamageArgument implements Argument<DamageSource> {
     private List<ResourceLocation> tags = new ArrayList<>();
     transient Set<TagKey<DamageType>> dtags;
 
-    public DamageSource resolve(MovesetWrapper wrapper, Action parent, @Nullable Entity caster, Entity target) {
+    public DamageSource resolve(ActionSetWrapper wrapper, Action parent, @Nullable Entity caster, Entity target) {
         if (dtags == null) {
             dtags = tags.stream().map(a -> TagKey.create(Registries.DAMAGE_TYPE, a)).collect(Collectors.toSet());
         }

@@ -4,17 +4,17 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 public class GainSpiritEvent extends LivingEvent {
-    private int quantity;
-    public GainSpiritEvent(LivingEntity subject, int amount) {
+    private float quantity;
+    public GainSpiritEvent(LivingEntity subject, float amount) {
         super(subject);
         quantity=amount;
     }
 
-    public int getQuantity() {
+    public float getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(float quantity) {
         this.quantity = quantity;
     }
 }

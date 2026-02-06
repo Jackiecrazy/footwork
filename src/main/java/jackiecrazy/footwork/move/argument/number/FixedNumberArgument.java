@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import net.minecraft.world.entity.Entity;
 
@@ -19,7 +19,7 @@ public class FixedNumberArgument extends NumberArgument{
     }
 
     @Override
-    public Double resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Double resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
         return number;
     }
 }

@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
 import net.minecraft.resources.ResourceLocation;
@@ -18,7 +18,7 @@ public class AddEffectAction extends Action {
     private Argument<Entity> recipient= TargetEntityArgument.INSTANCE;
 
     @Override
-    public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         if (me == null)
             me = ForgeRegistries.MOB_EFFECTS.getValue(effect.resolve(wrapper, parent, performer, target));
         if (me != null && recipient.resolve(wrapper, parent, performer, target) instanceof LivingEntity e) {

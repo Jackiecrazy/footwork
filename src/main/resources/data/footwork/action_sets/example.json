@@ -1,0 +1,11 @@
+[
+  {
+    "execute_macro": "footwork:charge_levels",
+    "radius": 4,
+    "typing": "TRUE",
+    "position": {
+      "ID": "foot_position",
+      "reference_point": "caster"
+    }
+  }
+]

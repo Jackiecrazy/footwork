@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.world.entity.Entity;
@@ -18,12 +18,12 @@ public class ProjectHitboxAction extends TimerAction {
     private List<Action> actions = new ArrayList<>();
 
     @Override
-    public void start(MovesetWrapper wrapper, Entity performer, Entity target) {
+    public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
         wrapper.setData(this, new HashMap<>());
     }
 
     @Override
-    public int tick(MovesetWrapper wrapper, Entity performer, Entity target) {
+    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
         HashMap<Entity, Long> lastHit = wrapper.getData(this);
         for (Entity e : selector.resolve(wrapper, this, performer, target)) {
             if (hit_cooldown == 0 && lastHit.containsKey(e)) continue;
@@ -35,7 +35,7 @@ public class ProjectHitboxAction extends TimerAction {
         return super.tick(wrapper, performer, target);
     }
 
-    public void stop(MovesetWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(ActionSetWrapper wrapper, Entity performer, Entity target, boolean recursive) {
         if (recursive) {
             actions.forEach(a -> a.stop(wrapper, performer, target, true));
         }

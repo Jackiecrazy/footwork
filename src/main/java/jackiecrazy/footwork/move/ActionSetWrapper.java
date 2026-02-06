@@ -12,32 +12,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-public class MovesetWrapper {
+public class ActionSetWrapper {
     public final Stack<DataWrapper<?>> stack = new Stack<>();
     private final List<Tuple<TimerAction, Integer>> activeTimers = new ArrayList<>();
     private final HashMap<Action, Object> extraData = new HashMap<>();
     private final List<Action> graveyard = new ArrayList<>();
     private final List<TimerAction> actions;
-    private final Condition canRun;
-    private final int power;
-    private final int changePer;
     private TimerAction currentMove;
     private int index = 0;
-    private int currentWeight;
     //TODO block actions (get/set/blockstate compare/velocity block collision),
     // global cooldown, commonly used action components (how parameter?),
     // put moveset execution responsibility into capability?
     // terrain sensitivity for wolf pack, encircle/attack multiple targets with merge/split group mechanics?
-    public MovesetWrapper(int power, int initialWeight, int weightChange, List<TimerAction> actions, Condition toRun) {
+    public ActionSetWrapper(List<TimerAction> actions) {
         this.actions = actions;
-        canRun = toRun;
-        currentWeight = initialWeight;
-        changePer = weightChange;
-        this.power = power;
-    }
-
-    public MovesetWrapper(List<TimerAction> actions) {
-        this(0, 0, 0, actions, TrueCondition.INSTANCE);
     }
 
     public List<Tuple<TimerAction, Integer>> getActiveTimers() {
@@ -50,18 +38,6 @@ public class MovesetWrapper {
 
     public TimerAction getCurrentMove() {
         return currentMove;
-    }
-
-    public int getChangePer() {
-        return changePer;
-    }
-
-    public int getCurrentWeight() {
-        return currentWeight;
-    }
-
-    public void changeCurrentWeight(int by) {
-        currentWeight += Math.abs(by);
     }
 
     public boolean executing() {
@@ -79,10 +55,6 @@ public class MovesetWrapper {
         extraData.clear();
         activeTimers.clear();
         graveyard.clear();
-    }
-
-    public boolean canRun(Entity performer, Entity target) {
-        return canRun.resolve(this, null, performer, target);
     }
 
     public void tick(Entity performer, Entity target) {
@@ -125,9 +97,6 @@ public class MovesetWrapper {
         trigger(currentMove, null, performer, target);
     }
 
-    public int getPower() {
-        return power;
-    }
 
     public int trigger(Action action, Action parent, Entity performer, Entity target) {
         //if action and not in graveyard, execute. If not repeatable, put in graveyard.

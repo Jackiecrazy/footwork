@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +23,7 @@ public class AddAttributeModifierAction extends Action {
     private Argument<Entity> recipient = CasterEntityArgument.INSTANCE;
 
     @Override
-    public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         if (attr == null) attr = ForgeRegistries.ATTRIBUTES.getValue(attribute.resolve(wrapper, parent, performer, target));
         if (attr != null && recipient.resolve(wrapper, parent, performer, target) instanceof LivingEntity ent && ent.getAttribute(attr) != null) {
             ent.getAttribute(attr).removeModifier(uuid);

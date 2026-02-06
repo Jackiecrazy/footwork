@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.capability.action;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import net.minecraft.world.entity.Entity;
 
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.List;
 public class AttachAction implements IAttachAction {
 //    private static final MovesetManager literallyNothing = new MovesetManager(null);
     private final Entity tiedTo;
-    private final HashMap<Entity, List<MovesetWrapper>> marks = new HashMap<>();
+    private final HashMap<Entity, List<ActionSetWrapper>> marks = new HashMap<>();
 //    private MovesetManager manager = literallyNothing;
 //
     public AttachAction(Entity linked) {
@@ -28,7 +28,7 @@ public class AttachAction implements IAttachAction {
 //    }
 
     @Override
-    public void mark(Entity en, MovesetWrapper d) {
+    public void mark(Entity en, ActionSetWrapper d) {
         marks.putIfAbsent(en, new ArrayList<>());
         marks.get(en).add(d);
         d.start(en, tiedTo);

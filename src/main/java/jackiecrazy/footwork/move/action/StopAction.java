@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import net.minecraft.world.entity.Entity;
 
 import javax.annotation.Nullable;
@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 public class StopAction extends Action {
     boolean recursive=true;
     @Override
-    public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         parent.stop(wrapper, performer, target, recursive);
         return -1;
     }

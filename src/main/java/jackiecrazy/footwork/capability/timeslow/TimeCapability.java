@@ -17,18 +17,21 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class TimeCapability implements ITimeChange {
-    private static final UUID GRAVITY=UUID.fromString("e2118f5c-8a42-43c2-bf39-6e6264a26ca5");
+    private static final UUID GRAVITY = UUID.fromString("e2118f5c-8a42-43c2-bf39-6e6264a26ca5");
     private final ArrayList<Tuple<Integer, Double>> modify = new ArrayList<>();
+    WeakReference<Entity> bind;
     private double speed = 1;
     private int longest;
     private double partialTick = 0;
-    WeakReference<Entity> bind;
+    private boolean firstTick = true;
+    private boolean gravity = false;
+    private boolean gravityLock = false;
 
     public TimeCapability() {
     }
 
     public TimeCapability(Entity bindTo) {
-        bind=new WeakReference<>(bindTo);
+        bind = new WeakReference<>(bindTo);
     }
 
     private void recalculateSpeed() {
@@ -38,14 +41,17 @@ public class TimeCapability implements ITimeChange {
             if (entry.getB() < spd) spd = entry.getB();
             if (entry.getA() > longest) longest = entry.getA();
         }
+        double prevSpd = speed;
         speed = spd;
-        if(bind!=null){
+        if (bind != null) {
             final Entity bound = bind.get();
-            if(bound instanceof Player p) {
+
+            if (bound instanceof Player p) {
                 p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).removeModifier(GRAVITY);
                 p.getAttribute(ForgeMod.ENTITY_GRAVITY.get()).addTransientModifier(new AttributeModifier(GRAVITY, "time slow", speed - 1, AttributeModifier.Operation.MULTIPLY_TOTAL));
             }
-            FootworkChannel.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> bound), new UpdateTimeSlowPacket(bound.getId(), spd));
+            if (!bound.level().isClientSide)
+                FootworkChannel.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> bound), new UpdateTimeSlowPacket(bound.getId(), spd, longest));
         }
 
     }
@@ -63,7 +69,12 @@ public class TimeCapability implements ITimeChange {
             modify.removeIf(a -> a.getA() <= 0);
             recalculateSpeed();
         }
+        if (firstTick) {
+            recalculateSpeed();
+            firstTick = false;
+        }
         partialTick += speed;
+        longest--;
         int ret = -1;
         while (partialTick >= 1) {
             partialTick -= 1;
@@ -78,14 +89,15 @@ public class TimeCapability implements ITimeChange {
     }
 
     @Override
-    public void setRawSpeed(double speed) {
+    public void setRawSpeed(int ticks, double speed) {
         this.speed = speed;
+        this.longest = ticks;
     }
 
     @Override
     public float getPartialTick(float originalPT) {
         if (speed >= 1) return originalPT;
-        return (float) Math.min(1, partialTick + originalPT * speed);
+        return (float) (partialTick + originalPT * speed);
     }
 
     @Override

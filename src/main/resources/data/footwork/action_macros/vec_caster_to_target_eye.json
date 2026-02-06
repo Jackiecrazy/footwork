@@ -1,0 +1,21 @@
+{
+  "parameters": {
+    "scale": 0
+  },
+  "execute": {
+    "ID": "sum_vector",
+    "addends": [
+      {
+        "ID": "eye_position",
+        "reference_point": "target"
+      },
+      {
+        "ID": "eye_position",
+        "scale": -1,
+        "reference_point": "caster"
+      }
+    ],
+    "min_length": "$scale",
+    "max_length": "$scale"
+  }
+}

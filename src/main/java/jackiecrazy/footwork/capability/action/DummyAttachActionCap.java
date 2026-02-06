@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.capability.action;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import net.minecraft.world.entity.Entity;
 
 public class DummyAttachActionCap implements IAttachAction {
@@ -17,7 +17,7 @@ public class DummyAttachActionCap implements IAttachAction {
 //    }
 
     @Override
-    public void mark(Entity from, MovesetWrapper d) {
+    public void mark(Entity from, ActionSetWrapper d) {
 
     }
 

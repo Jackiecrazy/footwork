@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -13,7 +13,7 @@ public abstract class VectorArgument implements Argument<Vec3> {
     private Argument<Double> min_length = FixedNumberArgument.ZERO;
     private Argument<Double> max_length = FixedNumberArgument.ZERO;
 
-    public Vec3 resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Vec3 resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
         double minLength = min_length.resolve(wrapper, parent, caster, target);
         double maxLength = max_length.resolve(wrapper, parent, caster, target);
         double sc = scale.resolve(wrapper, parent, caster, target);
@@ -27,13 +27,13 @@ public abstract class VectorArgument implements Argument<Vec3> {
         return ret;
     }
 
-    public abstract Vec3 _resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target);
+    public abstract Vec3 _resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target);
 
     public static class Store extends Action{
         private Argument<Vec3> value;
         private String into;
         @Override
-        public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+        public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
             final Vec3 vec=value.resolve(wrapper, parent, performer, target);
             performer.getPersistentData().putDouble(into +"_x", vec.x);
             performer.getPersistentData().putDouble(into +"_y", vec.y);
@@ -46,7 +46,7 @@ public abstract class VectorArgument implements Argument<Vec3> {
         private String from;
 
         @Override
-        public Vec3 _resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+        public Vec3 _resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
             return new Vec3(caster.getPersistentData().getDouble(from +"_x"), caster.getPersistentData().getDouble(from +"_y"), caster.getPersistentData().getDouble(from +"_z"));
         }
     }

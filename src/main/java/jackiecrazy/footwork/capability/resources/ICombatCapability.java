@@ -38,15 +38,18 @@ public interface ICombatCapability {
 
     void resetPosture();
 
-    int getSpirit();
+    float getSpirit();
 
-    void setSpirit(int spirit);
+    void setSpirit(float spirit);
 
-    boolean consumeSpirit(int amount);
+    float doConsumeSpirit(float amount);
+    default boolean consumeSpirit(float amount){
+        return doConsumeSpirit(amount)<=0;
+    }
 
-    int addSpirit(int amount);
+    float addSpirit(float amount);
 
-    int getMaxSpirit();
+    float getMaxSpirit();
 
     float getMaxPosture();
 

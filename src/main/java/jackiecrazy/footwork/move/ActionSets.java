@@ -14,29 +14,32 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Moves extends SimpleJsonResourceReloadListener {
-    public static Action a;
+public class ActionSets extends SimpleJsonResourceReloadListener {
     public static final HashMap<ResourceLocation, JsonArray> moves = new HashMap<>();
+    public static Action a;
 
-    public Moves() {
-        super(JsonAdapters.gson, "combat_circle_moves");
+    public ActionSets(String directory) {
+        super(JsonAdapters.gson, directory);
     }
 
-    public static void register(AddReloadListenerEvent event) {
-        event.addListener(new Moves());
+    public static void register(AddReloadListenerEvent event, String dir) {
+        event.addListener(new ActionSets(dir));
     }
+
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
+    protected void apply(Map<ResourceLocation, JsonElement> object,
+                         ResourceManager resourceManager,
+                         ProfilerFiller profilerFiller) {
         moves.clear();
         object.forEach((key, value) -> {
-            JsonArray file = value.getAsJsonArray();
-            Footwork.LOGGER.debug("loading move definition found under {}", key);
+            JsonArray file = Macros.parseSyntacticSugar(value.getAsJsonArray()).getAsJsonArray();
+            Footwork.LOGGER.debug("loading action set definition found under {}", key);
             try {
-                a=JsonAdapters.gson.fromJson(file, Action[].class)[0];
+                a = JsonAdapters.gson.fromJson(file, Action[].class)[0];
                 moves.put(key, file);
             } catch (Exception e) {
-                Footwork.LOGGER.error("{} is an invalid moveset, it will not be registered!", key);
+                Footwork.LOGGER.error("{} is an invalid action set, it will not be registered!", key);
                 e.printStackTrace();
             }
         });

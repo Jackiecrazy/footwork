@@ -111,7 +111,6 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
             queuePath(new MotionManagers.DefinitionMM(new MotionGroup(STAB, EasingFunction.IN_OUT_CUBIC, 60)),0,0);
             setIntangible(false);
             setFlipRender(!flipClientRender());
-            setHeldItem(ItemStack.EMPTY);
             while (!trailHistory.isEmpty()) trailHistory.pop();
             //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
             lock(getOwner());

@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.DamageArgument;
 import jackiecrazy.footwork.api.CombatDamageSource;
@@ -21,7 +21,7 @@ public class DealDamageAction extends Action {
     private List<Action> on_kill = new ArrayList<>();
 
     @Override
-    public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         DamageSource baked = damage_source.resolve(wrapper, parent, performer, target);
         boolean success = target.hurt(baked, amount.resolve(wrapper, parent, performer, target).floatValue());
         if (baked instanceof CombatDamageSource cds)

@@ -4,8 +4,10 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.action.ActionRegistry;
+import jackiecrazy.footwork.move.action.MetaAction;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.ArgumentRegistry;
@@ -23,6 +25,7 @@ import net.minecraft.commands.arguments.CompoundTagArgument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -31,6 +34,8 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -73,6 +78,11 @@ public class JsonAdapters {
         }
     }
 
+    private static @NotNull String enforceNamespace(String id) {
+        if (!id.contains(":")) id = Footwork.MODID + ":" + id;
+        return id;
+    }
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     @interface JsonRequired {
@@ -80,7 +90,9 @@ public class JsonAdapters {
 
     public static class ClassAdapter implements JsonDeserializer<Class> {
         @Override
-        public Class deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Class deserialize(JsonElement json,
+                                 Type type,
+                                 JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
 
             try {
                 return Class.forName(json.getAsString());
@@ -92,34 +104,51 @@ public class JsonAdapters {
 
     public static class SupplierAdapter implements JsonDeserializer<Supplier<String>> {
         @Override
-        public Supplier<String> deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Supplier<String> deserialize(JsonElement json,
+                                            Type type,
+                                            JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             return json::getAsString;
         }
     }
 
     public static class ActionAdapter implements JsonDeserializer<Action> {
         @Override
-        public Action deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (!json.isJsonObject()) throw new JsonParseException("action must be a Json object: " + json);
+        public Action deserialize(JsonElement json,
+                                  Type type,
+                                  JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            if (json.isJsonArray()) {
+                List<Action> la = new ArrayList<>();
+                JsonArray a = json.getAsJsonArray();
+                a.forEach(b -> la.add(parseAction(b)));
+                return new MetaAction(la);
+            } else if (!json.isJsonObject())
+                //not a json object, assume it is borked
+                throw new JsonParseException("action must be a Json object: " + json);
+            return parseAction(json);
+        }
+
+        private Action parseAction(JsonElement json) {
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(sub.get("ID").getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
                 if (ActionRegistry.SUPPLIER.get().containsKey(rl)) {
                     return ActionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
                 }
-                throw new JsonParseException("invalid ID defined for action object: " + json);
+                throw new JsonParseException("invalid ID " + rl + " defined for action object: " + sub);
             }
-            throw new JsonParseException("no ID defined for action object: " + json);
+            throw new JsonParseException("no ID defined for action object: " + sub);
         }
     }
 
     @SuppressWarnings("unchecked")
     public static class ArgumentAdapter<T> implements JsonDeserializer<Argument<T>> {
         @Override
-        public Argument<T> deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Argument<T> deserialize(JsonElement json,
+                                       Type type,
+                                       JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (!json.isJsonObject()) {
                 //everything is awful
-                ResourceLocation rl = new ResourceLocation(json.getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
                 if (ArgumentRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonArgumentType<?> sat) {
                     return (Argument<T>) sat.bake(null);
                 }
@@ -134,13 +163,15 @@ public class JsonAdapters {
                 } else if (grabby == Vec3.class) {
                     if (!json.isJsonObject()) return (Argument<T>) RawVectorArgument.ZERO;
                 } else if (grabby == ResourceLocation.class) {
-                    if (!json.isJsonObject()) return (Argument<T>) new ResourceLocationArgument.Raw(json.getAsString());
+                    String id = json.getAsString();
+                    if (!json.isJsonObject())
+                        return (Argument<T>) new ResourceLocationArgument.Raw(enforceNamespace(id));
                 }
                 throw new JsonParseException("argument is not a singleton: " + json);
             }
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(sub.get("ID").getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<T>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -148,19 +179,21 @@ public class JsonAdapters {
                         throw new JsonParseException("incorrect argument type: " + json, e);
                     }
                 }
-                throw new JsonParseException("invalid ID defined for argument object: " + json);
+                throw new JsonParseException("invalid ID " + rl + " defined for argument object: " + json);
             }
-            throw new JsonParseException("no ID defined for argument object: " + json);
+            throw new JsonParseException("no ID defined for argument object: " + sub);
         }
     }
 
     public static class VectorAdapter implements JsonDeserializer<Argument<Vec3>> {
         @Override
-        public Argument<Vec3> deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Argument<Vec3> deserialize(JsonElement json,
+                                          Type type,
+                                          JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (!json.isJsonObject()) return RawVectorArgument.ZERO;
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(sub.get("ID").getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<Vec3>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -168,22 +201,24 @@ public class JsonAdapters {
                         throw new JsonParseException("ID defined for vector object must be a vector argument type: " + json);
                     }
                 }
-                throw new JsonParseException("invalid ID defined for vector object: " + json);
+                throw new JsonParseException("invalid ID " + rl + " defined for vector object: " + sub);
             }
-            throw new JsonParseException("no ID defined for vector object: " + json);
+            throw new JsonParseException("no ID defined for vector object: " + sub);
         }
     }
 
     public static class NumberAdapter implements JsonDeserializer<Argument<Double>> {
         @Override
-        public Argument<Double> deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Argument<Double> deserialize(JsonElement json,
+                                            Type type,
+                                            JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (json.isJsonPrimitive())
                 return new FixedNumberArgument(json.getAsDouble());
             if (!json.isJsonObject())
                 return new FixedNumberArgument(0);
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(sub.get("ID").getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<Double>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -191,20 +226,22 @@ public class JsonAdapters {
                         throw new JsonParseException("ID defined for number object must be a number argument type: " + json);
                     }
                 }
-                throw new JsonParseException("invalid ID defined for number object: " + json);
+                throw new JsonParseException("invalid ID " + rl + " defined for number object: " + sub);
             }
-            throw new JsonParseException("number argument is unreadable: " + json);
+            throw new JsonParseException("number argument is unreadable: " + sub);
         }
     }
 
     public static class ResourceAdapter implements JsonDeserializer<Argument<ResourceLocation>> {
         @Override
-        public Argument<ResourceLocation> deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Argument<ResourceLocation> deserialize(JsonElement json,
+                                                      Type type,
+                                                      JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (json.isJsonPrimitive())
-                return new ResourceLocationArgument.Raw(json.getAsString());
+                return new ResourceLocationArgument.Raw(enforceNamespace(json.getAsString()));
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(sub.get("ID").getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<ResourceLocation>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -212,31 +249,33 @@ public class JsonAdapters {
                         throw new JsonParseException("ID defined for resource location object must be a resource location argument type: " + json);
                     }
                 }
-                throw new JsonParseException("invalid ID defined for resource location object: " + json);
+                throw new JsonParseException("invalid ID " + rl + " defined for resource location object: " + sub);
             }
-            throw new JsonParseException("resource location argument is unreadable: " + json);
+            throw new JsonParseException("resource location argument is unreadable: " + sub);
         }
     }
 
     public static class ConditionAdapter implements JsonDeserializer<Argument<Boolean>> {
         @Override
-        public Argument<Boolean> deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Argument<Boolean> deserialize(JsonElement json,
+                                             Type type,
+                                             JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (json.isJsonPrimitive()) {
                 return json.getAsBoolean() ? TrueCondition.INSTANCE : FalseCondition.INSTANCE;
             }
             if (!json.isJsonObject()) {
-                ResourceLocation rl = new ResourceLocation(json.getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
                 if (ConditionRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonConditionType sat) {
                     return sat.bake(null);
                 } else throw new JsonParseException("condition is not a singleton: " + json);
             }
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(sub.get("ID").getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
                 if (ConditionRegistry.SUPPLIER.get().containsKey(rl)) {
                     return ConditionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
                 }
-                throw new JsonParseException("invalid ID defined for condition object: " + json);
+                throw new JsonParseException("invalid ID " + rl + " defined for condition object: " + json);
             }
             return TrueCondition.INSTANCE;
         }
@@ -244,20 +283,22 @@ public class JsonAdapters {
 
     public static class FilterAdapter implements JsonDeserializer<Filter> {
         @Override
-        public Filter deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public Filter deserialize(JsonElement json,
+                                  Type type,
+                                  JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (!json.isJsonObject()) {
-                ResourceLocation rl = new ResourceLocation(json.getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
                 if (FilterRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonFilterType sat) {
                     return sat.bake(null);
                 } else throw new JsonParseException("filter is not a singleton: " + json);
             }
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(sub.get("ID").getAsString());
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
                 if (FilterRegistry.SUPPLIER.get().containsKey(rl)) {
                     return FilterRegistry.SUPPLIER.get().getValue(rl).bake(sub);
                 }
-                throw new JsonParseException("invalid ID defined for filter object: " + json);
+                throw new JsonParseException("invalid ID " + rl + " defined for filter object: " + json);
             }
             throw new JsonParseException("no ID defined for filter object: " + json);
         }
@@ -266,10 +307,12 @@ public class JsonAdapters {
     public static class NBTAdapter implements JsonDeserializer<CompoundTag> {
 
         @Override
-        public CompoundTag deserialize(JsonElement json, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public CompoundTag deserialize(JsonElement json,
+                                       Type type,
+                                       JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (!json.isJsonPrimitive()) throw new JsonParseException("not an NBT tag: " + json);
             try {
-                return CompoundTagArgument.compoundTag().parse(new StringReader(json.getAsString()));
+                return CompoundTagArgument.compoundTag().parse(new StringReader(enforceNamespace(json.getAsString())));
             } catch (CommandSyntaxException e) {
                 throw new JsonParseException("invalid NBT definition: " + json);
             }

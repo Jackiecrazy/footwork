@@ -26,7 +26,7 @@ public class TargetingUtils {
             return true;
 
         //player PvP check
-        if (entity instanceof Player && of instanceof Player && entity.getServer() != null && entity.getServer().isPvpAllowed())
+        if (entity instanceof Player && of instanceof Player && entity.getServer() != null && !entity.getServer().isPvpAllowed())
             return true;
         return false;
     }

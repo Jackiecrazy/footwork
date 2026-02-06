@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -9,7 +9,7 @@ public class SumVectorArgument extends VectorArgument{
     VectorArgument[] addends;
 
     @Override
-    public Vec3 _resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Vec3 _resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
         Vec3 start=Vec3.ZERO;
         for(VectorArgument vec: addends){
             start=start.add(vec.resolve(wrapper, parent, caster, target));

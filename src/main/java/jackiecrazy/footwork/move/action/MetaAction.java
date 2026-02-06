@@ -7,13 +7,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IfElseAction extends Action{
-    private List<Action> then=new ArrayList<>();
-    private List<Action> otherwise=new ArrayList<>();
+public class MetaAction extends Action{
+    private List<Action> actions=new ArrayList<>();
 
-    @Override
-    public boolean canRun(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
-        return true;
+    public MetaAction() {
+        super();
+    }
+
+    public MetaAction(List<Action> actions) {
+        this.actions = actions;
     }
 
     @Override
@@ -23,8 +25,6 @@ public class IfElseAction extends Action{
 
     @Override
     public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        if(condition.resolve(wrapper, parent, performer, target)){
-            return runActions(wrapper, parent, then, performer, target);
-        }else return runActions(wrapper, parent, otherwise, performer, target);
+        return runActions(wrapper, parent, actions, performer, target);
     }
 }

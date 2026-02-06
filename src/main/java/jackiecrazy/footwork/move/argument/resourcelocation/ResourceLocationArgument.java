@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.resourcelocation;
 
-import jackiecrazy.footwork.move.MovesetWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.resources.ResourceLocation;
@@ -17,14 +17,14 @@ public abstract class ResourceLocationArgument implements Argument<ResourceLocat
         }
         private ResourceLocation value;
         @Override
-        public ResourceLocation resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+        public ResourceLocation resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
             return value;
         }
     }
     public static class Get extends ResourceLocationArgument{
         private String from;
         @Override
-        public ResourceLocation resolve(MovesetWrapper wrapper, Action parent, Entity caster, Entity target) {
+        public ResourceLocation resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
             return ResourceLocation.tryParse(caster.getPersistentData().getString(from));
         }
     }
@@ -33,7 +33,7 @@ public abstract class ResourceLocationArgument implements Argument<ResourceLocat
         private String into;
 
         @Override
-        public int perform(MovesetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+        public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
             final ResourceLocation vec = value.resolve(wrapper, parent, performer, target);
             performer.getPersistentData().putString(into, vec.toString());
             return 0;

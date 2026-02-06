@@ -1,0 +1,35 @@
+{
+  "parameters": {
+    "max_stacks": 3,
+    "every": 10,
+    "stack_var": "stacks"
+  },
+  "execute": [
+    {
+      "ID": "store_number",
+      "into": "$stack_var",
+      "value": 0
+    },
+    {
+      "ID": "store_number",
+      "repeatable": true,
+      "condition": {
+        "ID": "time_window",
+        "every": "$every"
+      },
+      "into": "$stack_var",
+      "value": {
+        "ID": "min",
+        "first": {
+          "ID": "add",
+          "first": {
+            "ID": "get_number",
+            "from": "$stack_var"
+          },
+          "second": 1
+        },
+        "second": "$max_stacks"
+      }
+    }
+  ]
+}

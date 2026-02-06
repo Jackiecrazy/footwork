@@ -11,7 +11,7 @@ public interface ITimeChange {
      */
     int tickDown(int currentTick);
     void resetSpeed();
-    void setRawSpeed(double speed);
+    void setRawSpeed(int ticks, double speed);
     float getPartialTick(float originalPT);
     double getEffectiveSpeed();
     int getTimeRemaining();

@@ -17,12 +17,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class UpdateTimeSlowPacket {
-    int e;
+    int e, time;
     double spd;
 
-    public UpdateTimeSlowPacket(int ent, double c) {
+    public UpdateTimeSlowPacket(int ent, double c, int ticks) {
         e = ent;
         spd = c;
+        time = ticks;
     }
 
     public static class UpdateClientEncoder implements BiConsumer<UpdateTimeSlowPacket, FriendlyByteBuf> {
@@ -31,6 +32,7 @@ public class UpdateTimeSlowPacket {
         public void accept(UpdateTimeSlowPacket updateClientResourcePacket, FriendlyByteBuf packetBuffer) {
             packetBuffer.writeInt(updateClientResourcePacket.e);
             packetBuffer.writeDouble(updateClientResourcePacket.spd);
+            packetBuffer.writeInt(updateClientResourcePacket.time);
         }
     }
 
@@ -38,19 +40,21 @@ public class UpdateTimeSlowPacket {
 
         @Override
         public UpdateTimeSlowPacket apply(FriendlyByteBuf packetBuffer) {
-            return new UpdateTimeSlowPacket(packetBuffer.readInt(), packetBuffer.readDouble());
+            return new UpdateTimeSlowPacket(packetBuffer.readInt(), packetBuffer.readDouble(), packetBuffer.readInt());
         }
     }
 
     public static class UpdateClientHandler implements BiConsumer<UpdateTimeSlowPacket, Supplier<NetworkEvent.Context>> {
 
         @Override
-        public void accept(UpdateTimeSlowPacket updateClientResourcePacket, Supplier<NetworkEvent.Context> contextSupplier) {
+        public void accept(UpdateTimeSlowPacket pkt, Supplier<NetworkEvent.Context> contextSupplier) {
             contextSupplier.get().enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
                 ClientLevel world = Minecraft.getInstance().level;
                 if (world != null) {
-                    Entity entity = world.getEntity(updateClientResourcePacket.e);
-                    if (entity instanceof LivingEntity) TimeSlowData.getCap(entity).setRawSpeed(updateClientResourcePacket.spd);
+                    Entity entity = world.getEntity(pkt.e);
+                    if (entity != null) {
+                        TimeSlowData.getCap(entity).alterSpeed(pkt.time, pkt.spd);
+                    }
                 }
             }));
             contextSupplier.get().setPacketHandled(true);

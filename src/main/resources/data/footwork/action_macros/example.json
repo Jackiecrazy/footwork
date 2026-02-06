@@ -1,0 +1,36 @@
+{
+  "parameters": {
+    "radius": 10,
+    "damage": 5,
+    "typing": "PHYSICAL",
+    "position": {
+      "ID": "eye_position",
+      "reference_point": "target"
+    }
+  },
+  "execute": {
+    "max_time": 100,
+    "ID": "wait",
+    "waiting": [
+      {
+        "ID": "explode",
+        "radius": "$radius",
+        "damage": "$damage",
+        "typing": "$typing",
+        "griefing": "NONE",
+        "position": "$position",
+        "damage_source": {
+          "proxy": {
+            "ID": "caster"
+          },
+          "tags": [
+            "minecraft:is_explosion"
+          ]
+        },
+        "condition": {
+          "time_window": "99-"
+        }
+      }
+    ]
+  }
+}

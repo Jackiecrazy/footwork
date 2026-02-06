@@ -30,7 +30,7 @@ public abstract class MixinAttackSpeed extends Entity {
         tempDS = ds;
     }
 
-    @Redirect(method = "hurt",
+    @Redirect(method = "hurt", require = 0,
             at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))
     private void change(LivingEntity livingEntity, double strength, double ratioX, double ratioZ) {
         DamageKnockbackEvent mke = new DamageKnockbackEvent(livingEntity, tempDS, strength, ratioX, ratioZ);
