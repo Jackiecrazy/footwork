@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.move.argument;
 
-import jackiecrazy.footwork.move.CircleEnums;
 import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.CircleEnums;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.EyePositionVectorArgument;

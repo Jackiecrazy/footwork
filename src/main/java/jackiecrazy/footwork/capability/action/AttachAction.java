@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.capability.action;
 
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.ActionSetWrapper;
 import net.minecraft.world.entity.Entity;
 

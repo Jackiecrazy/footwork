@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.move.motionframe;
 
+import jackiecrazy.footwork.capability.action.ActionData;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.utils.MovementUtils;
 import net.minecraft.commands.CommandSourceStack;
@@ -100,9 +102,7 @@ public class HitInfo {
         Level level = target.level();
         if (!level.isClientSide) {
             MovementUtils.applyVelocity(he.velocity(), target, he.set_velocity());
-            for(Action a:he.run_actions()){
-                if(a.canRun())
-            }
+            ActionData.getCap(target).mark(hitter, new TimerActionsWrapper(he.run_actions));//todo check if this works
             MinecraftServer minecraftserver = level.getServer();
             String command = he.command();
             if (!StringUtil.isNullOrEmpty(command)) {
