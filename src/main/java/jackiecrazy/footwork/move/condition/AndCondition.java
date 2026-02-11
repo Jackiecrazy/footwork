@@ -7,6 +7,13 @@ import net.minecraft.world.entity.Entity;
 import java.util.List;
 
 public class AndCondition extends Condition {
+    public AndCondition() {
+    }
+
+    public AndCondition(List<Condition> values) {
+        this.values = values;
+    }
+
     List<Condition> values;
 
     @Override

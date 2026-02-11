@@ -1,17 +1,45 @@
 package jackiecrazy.footwork.move.motionframe;
 
-import io.netty.buffer.ByteBufUtil;
-import jackiecrazy.footwork.utils.EasingFunction;
+import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public interface MotionManager {
+public abstract class MotionManager {
+    public MotionManager setAngularVelocity(Vector3f angularVelocity) {
+        this.angularVelocity = angularVelocity;
+        return this;
+    }
 
-    EntityDataSerializer<MotionManager> SERIALIZER = new EntityDataSerializer<>() {
+    private Vector3f angularVelocity = new Vector3f();       // radians per tick, axis * speed
+    protected Quaternionf getRuntimeRotation(int ticks, float partialTick, Quaternionf out) {
+        float speed = angularVelocity.length();
+        if (speed < 1e-6f) {
+            return out.identity();
+        }
+
+        Vector3f axis = new Vector3f(angularVelocity).normalize();
+
+        // Total angle = ω × time
+        float angle = speed * (ticks + partialTick);
+
+        return out.fromAxisAngleRad(axis, angle);
+    }
+
+    protected Quaternionf resolveFinalRotation(MotionFrame frame, int ticks, float partial, Quaternionf out) {
+        Quaternionf base = new Quaternionf(frame.renderOrientation());
+        Quaternionf spin = getRuntimeRotation(ticks, partial, new Quaternionf());
+
+        return out.set(base).mul(spin).normalize(); // local space spin
+    }
+
+
+
+    public static EntityDataSerializer<MotionManager> SERIALIZER = new EntityDataSerializer<>() {
 
         @Override
         public void write(FriendlyByteBuf buf, MotionManager mm) {
@@ -33,7 +61,7 @@ public interface MotionManager {
             for (int x = 0; x < max; x++) {
                 mf.add(MotionFrame.SERIALIZER.read(buf));
             }
-            return new MotionManagers.DefinitionMM(new MotionGroup(mf, EasingFunction.LINEAR, dur));
+            return new MotionManagers.DefinitionMM(new MotionGroup(mf, EasingFunctionEnum.LINEAR, dur));
         }
 
         @Override
@@ -42,19 +70,19 @@ public interface MotionManager {
         }
     };
 
-    MotionFrame getNextPoint(int elapsedTicks);
+    public abstract MotionFrame getNextPoint(int elapsedTicks);
 
-    int getDuration();
+    public abstract int getDuration();
 
-    default boolean hasEnded(int atTick) {
+    public boolean hasEnded(int atTick) {
         return atTick > getDuration();
     }
 
-    default MotionFrame getStartFrame() {
+    public MotionFrame getStartFrame() {
         return getNextPoint(0);
     }
 
-    default MotionFrame getEndFrame() {
+    public MotionFrame getEndFrame() {
         return getNextPoint(getDuration());
     }
 }

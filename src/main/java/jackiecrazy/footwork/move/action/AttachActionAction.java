@@ -7,7 +7,7 @@ import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
-import jackiecrazy.footwork.utils.JsonAdapters;
+import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +23,7 @@ public class AttachActionAction extends Action {
 
     @Override
     public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity perform, Entity target) {
-        if(cachedEffect==null) cachedEffect= new ArrayList<>(List.of(JsonAdapters.gson.fromJson(ActionSets.moves.get(effect.resolve(wrapper, parent, perform, target)), TimerAction[].class)));
+        if(cachedEffect==null) cachedEffect= new ArrayList<>(List.of(ActionJsonAdapters.gson.fromJson(ActionSets.moves.get(effect.resolve(wrapper, parent, perform, target)), TimerAction[].class)));
         ActionData.getCap(recipient.resolve(wrapper, parent, perform, target)).mark(performer.resolve(wrapper, parent, perform, target), new ActionSetWrapper(cachedEffect));
         return 0;
     }

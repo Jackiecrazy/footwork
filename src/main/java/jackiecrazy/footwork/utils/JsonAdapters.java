@@ -1,321 +1,243 @@
 package jackiecrazy.footwork.utils;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
-import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.action.Action;
-import jackiecrazy.footwork.move.action.ActionRegistry;
-import jackiecrazy.footwork.move.action.MetaAction;
-import jackiecrazy.footwork.move.action.timer.TimerAction;
-import jackiecrazy.footwork.move.argument.Argument;
-import jackiecrazy.footwork.move.argument.ArgumentRegistry;
-import jackiecrazy.footwork.move.argument.SingletonArgumentType;
-import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
-import jackiecrazy.footwork.move.argument.number.NumberArgument;
-import jackiecrazy.footwork.move.argument.resourcelocation.ResourceLocationArgument;
-import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
-import jackiecrazy.footwork.move.argument.vector.VectorArgument;
-import jackiecrazy.footwork.move.condition.*;
-import jackiecrazy.footwork.move.filter.Filter;
-import jackiecrazy.footwork.move.filter.FilterRegistry;
-import jackiecrazy.footwork.move.filter.SingletonFilterType;
-import net.minecraft.commands.arguments.CompoundTagArgument;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import jackiecrazy.footwork.move.motionframe.*;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
+import org.joml.Vector4d;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class JsonAdapters {
-    public static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(Class.class, new ClassAdapter())
-            .registerTypeAdapter(Supplier.class, new SupplierAdapter())
-            .registerTypeAdapter(Action.class, new ActionAdapter())
-            .registerTypeAdapter(TimerAction.class, new ActionAdapter())
-            .registerTypeAdapter(Argument.class, new ArgumentAdapter<>())
-            .registerTypeAdapter(NumberArgument.class, new NumberAdapter())
-            .registerTypeAdapter(VectorArgument.class, new VectorAdapter())
-            .registerTypeAdapter(ResourceLocationArgument.class, new ResourceAdapter())
-            //.registerTypeAdapter(EntityArgument.class, new ArgumentAdapter())
-            .registerTypeAdapter(Condition.class, new ConditionAdapter())
-            .registerTypeAdapter(Filter.class, new FilterAdapter())
-            .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
-            .registerTypeAdapter(CompoundTag.class, new NBTAdapter())
+    public static final Gson NAIVE = new GsonBuilder()
+            .registerTypeAdapter(CompoundTag.class, new ActionJsonAdapters.NBTAdapter())
+            .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter())
             .setPrettyPrinting()
             .create();
 
-    private static void testRequired(JsonElement je, Type type) throws JsonParseException {
-        Object pojo = new Gson().fromJson(je, type);
+    public static class HitInfoAdapter implements JsonDeserializer<HitInfo> {
 
-        Field[] fields = pojo.getClass().getDeclaredFields();
-        for (Field f : fields) {
-            if (f.getAnnotation(JsonRequired.class) != null) {
-                try {
-                    f.setAccessible(true);
-                    if (f.get(pojo) == null) {
-                        throw new JsonParseException("Missing field in JSON: " + f.getName());
+        @Override
+        public HitInfo deserialize(JsonElement json,
+                                   Type typeOfT,
+                                   JsonDeserializationContext context) throws JsonParseException {
+            final JsonObject obj = json.getAsJsonObject();
+            for (String first : new String[]{"hit", "damage"}) {
+                for (String second : new String[]{"_self", "_other"}) {
+                    for (String third : new String[]{"command", "velocity", "set_velocity"}) {
+                        final String joined = first + second + "_" + third;
+                        if (obj.has(joined)) {
+                            //add property if not there
+                            final String key = first + second;
+                            if (!obj.has(key))
+                                obj.add(key, new JsonObject());
+                            obj.get(key).getAsJsonObject().add(third, obj.get(joined));
+                        }
                     }
-                } catch (IllegalArgumentException ex) {
-                    Logger.getLogger(JsonAdapters.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IllegalAccessException ex) {
-                    Logger.getLogger(JsonAdapters.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            return NAIVE.fromJson(json, HitInfo.class);
         }
     }
 
-    private static @NotNull String enforceNamespace(String id) {
-        if (!id.contains(":")) id = Footwork.MODID + ":" + id;
-        return id;
-    }
+    public static class Vec3TypeAdapter extends TypeAdapter<Vec3> {
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    @interface JsonRequired {
-    }
-
-    public static class ClassAdapter implements JsonDeserializer<Class> {
         @Override
-        public Class deserialize(JsonElement json,
-                                 Type type,
-                                 JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-
-            try {
-                return Class.forName(json.getAsString());
-            } catch (ClassNotFoundException e) {
-                throw new JsonParseException("cannot find class " + json);
+        public void write(JsonWriter out, Vec3 value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
             }
+            out.beginArray();
+            out.value(value.x);
+            out.value(value.y);
+            out.value(value.z);
+            out.endArray();
         }
-    }
 
-    public static class SupplierAdapter implements JsonDeserializer<Supplier<String>> {
         @Override
-        public Supplier<String> deserialize(JsonElement json,
-                                            Type type,
-                                            JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            return json::getAsString;
-        }
-    }
-
-    public static class ActionAdapter implements JsonDeserializer<Action> {
-        @Override
-        public Action deserialize(JsonElement json,
-                                  Type type,
-                                  JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (json.isJsonArray()) {
-                List<Action> la = new ArrayList<>();
-                JsonArray a = json.getAsJsonArray();
-                a.forEach(b -> la.add(parseAction(b)));
-                return new MetaAction(la);
-            } else if (!json.isJsonObject())
-                //not a json object, assume it is borked
-                throw new JsonParseException("action must be a Json object: " + json);
-            return parseAction(json);
-        }
-
-        private Action parseAction(JsonElement json) {
-            JsonObject sub = json.getAsJsonObject();
-            if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
-                if (ActionRegistry.SUPPLIER.get().containsKey(rl)) {
-                    return ActionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
-                }
-                throw new JsonParseException("invalid ID " + rl + " defined for action object: " + sub);
+        public Vec3 read(JsonReader in) throws IOException {
+            if (in.peek() == com.google.gson.stream.JsonToken.NULL) {
+                in.nextNull();
+                return null;
             }
-            throw new JsonParseException("no ID defined for action object: " + sub);
+            in.beginArray();
+            double x = in.nextDouble();
+            double y = in.nextDouble();
+            double z = in.nextDouble();
+            in.endArray();
+            return new Vec3(x, y, z);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static class ArgumentAdapter<T> implements JsonDeserializer<Argument<T>> {
+    public static class MotionFrameAdapter implements JsonDeserializer<MotionFrame> {
+
         @Override
-        public Argument<T> deserialize(JsonElement json,
-                                       Type type,
-                                       JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        public MotionFrame deserialize(JsonElement json,
+                                       Type typeOfT,
+                                       JsonDeserializationContext context) throws JsonParseException {
+            if (!json.isJsonObject()) throw new JsonParseException(json + " is not a json object");
+            JsonObject o = json.getAsJsonObject();
+            MotionFrame mf = NAIVE.fromJson(json, MotionFrame.class);//uhhhh
+            assert mf.direction() != null;
+            assert mf.offset() != null;
+            if (mf.effects() == null)
+                mf.setEffects(JsonUtils.extractRootFrameEffects(o, context, false));
+            if (mf.renderOrientation() == null) {
+                //try checking other fields: int rotation or vec4f dir+rot
+                if (o.has("renderRotation")) {
+                    JsonElement spinElem = o.get("renderRotation");
+                    if (spinElem.isJsonPrimitive() && spinElem.getAsJsonPrimitive().isNumber()) {
+                        // Scalar number → apply to X-axis only (common convention for yaw spin)
+                        int scalar = spinElem.getAsInt();
+                        mf = new MotionFrame(mf.direction(), mf.offset(), scalar).setEffects(mf.effects());
+
+                    } else if (spinElem.isJsonArray()) {
+                        // [x, y, z]
+                        JsonArray arr = spinElem.getAsJsonArray();
+                        if (arr.size() != 3) {
+                            throw new JsonParseException("'spin' array must have exactly 3 elements");
+                        }
+                        Vector4d spinVector = new Vector4d(
+                                arr.get(0).getAsDouble(),
+                                arr.get(1).getAsDouble(),
+                                arr.get(2).getAsDouble(),
+                                arr.get(3).getAsDouble()
+                        );
+                        mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
+
+                    } else if (spinElem.isJsonObject()) {
+                        // {"x":, "y":, "z":}
+                        JsonObject spinObj = spinElem.getAsJsonObject();
+                        Vector4d spinVector = new Vector4d(
+                                spinObj.has("x") ? spinObj.get("x").getAsDouble() : 0,
+                                spinObj.has("y") ? spinObj.get("y").getAsDouble() : 0,
+                                spinObj.has("z") ? spinObj.get("z").getAsDouble() : 0,
+                                spinObj.has("w") ? spinObj.get("w").getAsDouble() : 0
+                        );
+                        mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
+
+                    } else {
+                        throw new JsonParseException("'renderorientation' must be a number, array[4], or object{x,y,z,w}");
+                    }
+                } else mf = new MotionFrame(mf.direction(), mf.offset()).setEffects(mf.effects());
+            }
+            return mf;
+        }
+    }
+
+    public static class MotionManagerDeserializer implements JsonDeserializer<MotionManager> {
+
+        @Override
+        public MotionManager deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+
             if (!json.isJsonObject()) {
-                //everything is awful
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
-                if (ArgumentRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonArgumentType<?> sat) {
-                    return (Argument<T>) sat.bake(null);
-                }
-                Class<?> grabby = (Class<?>) ((ParameterizedType) TypeToken.of(type).getType()).getActualTypeArguments()[0];
-                if (grabby == Boolean.class) {
-                    return json.getAsBoolean() ? (Argument<T>) TrueCondition.INSTANCE : (Argument<T>) FalseCondition.INSTANCE;
-                } else if (grabby == Double.class) {
-                    if (json.isJsonPrimitive())
-                        return (Argument<T>) new FixedNumberArgument(json.getAsDouble());
-                    if (!json.isJsonObject())
-                        return (Argument<T>) FixedNumberArgument.ZERO;
-                } else if (grabby == Vec3.class) {
-                    if (!json.isJsonObject()) return (Argument<T>) RawVectorArgument.ZERO;
-                } else if (grabby == ResourceLocation.class) {
-                    String id = json.getAsString();
-                    if (!json.isJsonObject())
-                        return (Argument<T>) new ResourceLocationArgument.Raw(enforceNamespace(id));
-                }
-                throw new JsonParseException("argument is not a singleton: " + json);
+                throw new JsonParseException("MotionManager must be a JSON object");
             }
-            JsonObject sub = json.getAsJsonObject();
-            if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
-                if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
-                    try {
-                        return (Argument<T>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
-                    } catch (ClassCastException e) {
-                        throw new JsonParseException("incorrect argument type: " + json, e);
-                    }
-                }
-                throw new JsonParseException("invalid ID " + rl + " defined for argument object: " + json);
-            }
-            throw new JsonParseException("no ID defined for argument object: " + sub);
-        }
-    }
 
-    public static class VectorAdapter implements JsonDeserializer<Argument<Vec3>> {
-        @Override
-        public Argument<Vec3> deserialize(JsonElement json,
-                                          Type type,
-                                          JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (!json.isJsonObject()) return RawVectorArgument.ZERO;
-            JsonObject sub = json.getAsJsonObject();
-            if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
-                if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
-                    try {
-                        return (Argument<Vec3>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
-                    } catch (ClassCastException e) {
-                        throw new JsonParseException("ID defined for vector object must be a vector argument type: " + json);
-                    }
+            JsonObject obj = json.getAsJsonObject();
+            MotionManager ret;
+
+            // ────────────────────────────────────────────────
+            // Case 1: Has "frames" → DefinitionMM + MotionGroup
+            // ────────────────────────────────────────────────
+            if (obj.has("frames") && obj.get("frames").isJsonArray()) {
+                JsonArray framesArray = obj.getAsJsonArray("frames");
+
+                List<MotionFrame> frames = new ArrayList<>();
+                for (JsonElement elem : framesArray) {
+                    MotionFrame frame = context.deserialize(elem, MotionFrame.class);
+                    frames.add(frame);
                 }
-                throw new JsonParseException("invalid ID " + rl + " defined for vector object: " + sub);
-            }
-            throw new JsonParseException("no ID defined for vector object: " + sub);
-        }
-    }
 
-    public static class NumberAdapter implements JsonDeserializer<Argument<Double>> {
-        @Override
-        public Argument<Double> deserialize(JsonElement json,
-                                            Type type,
-                                            JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (json.isJsonPrimitive())
-                return new FixedNumberArgument(json.getAsDouble());
-            if (!json.isJsonObject())
-                return new FixedNumberArgument(0);
-            JsonObject sub = json.getAsJsonObject();
-            if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
-                if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
-                    try {
-                        return (Argument<Double>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
-                    } catch (ClassCastException e) {
-                        throw new JsonParseException("ID defined for number object must be a number argument type: " + json);
-                    }
+                if (frames.isEmpty()) {
+                    throw new JsonParseException("frames array cannot be empty for DefinitionMM");
                 }
-                throw new JsonParseException("invalid ID " + rl + " defined for number object: " + sub);
-            }
-            throw new JsonParseException("number argument is unreadable: " + sub);
-        }
-    }
 
-    public static class ResourceAdapter implements JsonDeserializer<Argument<ResourceLocation>> {
-        @Override
-        public Argument<ResourceLocation> deserialize(JsonElement json,
-                                                      Type type,
-                                                      JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (json.isJsonPrimitive())
-                return new ResourceLocationArgument.Raw(enforceNamespace(json.getAsString()));
-            JsonObject sub = json.getAsJsonObject();
-            if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
-                if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
-                    try {
-                        return (Argument<ResourceLocation>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
-                    } catch (ClassCastException e) {
-                        throw new JsonParseException("ID defined for resource location object must be a resource location argument type: " + json);
-                    }
+                // Extract MotionGroup fields (easing, duration)
+                EasingFunctionEnum easing = obj.has("easing")
+                        ? context.deserialize(obj.get("easing"), EasingFunctionEnum.class)
+                        : EasingFunctionEnum.LINEAR;  // or your default
+
+                int dur;
+                if (obj.has("duration"))
+                    dur = obj.get("duration").getAsInt();
+                else
+                    throw new JsonParseException("no duration defined for " + json);  // or 20 / throw if you want stricter
+
+
+                MotionGroup group = new MotionGroup(frames, easing, dur);
+                MotionManagers.DefinitionMM defMM = new MotionManagers.DefinitionMM(group);
+                ret = defMM;
+            } else {
+
+                // ────────────────────────────────────────────────
+                // Case 2: No "frames" → single MotionFrame → FixedMM
+                // ────────────────────────────────────────────────
+                // Deserialize the whole object as a MotionFrame
+                MotionFrame singleFrame = context.deserialize(obj, MotionFrame.class);
+
+                // Determine duration (fallback or from root)
+                int singleDuration = 20;
+                if (obj.has("duration"))
+                    singleDuration = obj.get("duration").getAsInt();
+                else
+                    throw new JsonParseException("no duration defined for " + json);  // or 20 / throw if you want stricter
+
+                MotionManagers.FixedMM fixed = new MotionManagers.FixedMM(singleFrame, singleDuration);
+                ret = fixed;
+            }
+            applySpinIfPresent(obj, ret, context);
+            return ret;
+        }
+
+        private void applySpinIfPresent(JsonObject obj, MotionManager targetFrame, JsonDeserializationContext context) {
+            if (!obj.has("spin")) {
+                return;
+            }
+
+            JsonElement spinElem = obj.get("spin");
+            Vector3f spinVector;
+
+            if (spinElem.isJsonPrimitive() && spinElem.getAsJsonPrimitive().isNumber()) {
+                // Scalar number → apply to X-axis only (common convention for yaw spin)
+                float scalar = spinElem.getAsFloat();
+                spinVector = new Vector3f(scalar, 0, 0);
+
+            } else if (spinElem.isJsonArray()) {
+                // [x, y, z]
+                JsonArray arr = spinElem.getAsJsonArray();
+                if (arr.size() != 3) {
+                    throw new JsonParseException("'spin' array must have exactly 3 elements");
                 }
-                throw new JsonParseException("invalid ID " + rl + " defined for resource location object: " + sub);
-            }
-            throw new JsonParseException("resource location argument is unreadable: " + sub);
-        }
-    }
+                spinVector = new Vector3f(
+                        arr.get(0).getAsFloat(),
+                        arr.get(1).getAsFloat(),
+                        arr.get(2).getAsFloat()
+                );
 
-    public static class ConditionAdapter implements JsonDeserializer<Argument<Boolean>> {
-        @Override
-        public Argument<Boolean> deserialize(JsonElement json,
-                                             Type type,
-                                             JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (json.isJsonPrimitive()) {
-                return json.getAsBoolean() ? TrueCondition.INSTANCE : FalseCondition.INSTANCE;
-            }
-            if (!json.isJsonObject()) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
-                if (ConditionRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonConditionType sat) {
-                    return sat.bake(null);
-                } else throw new JsonParseException("condition is not a singleton: " + json);
-            }
-            JsonObject sub = json.getAsJsonObject();
-            if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
-                if (ConditionRegistry.SUPPLIER.get().containsKey(rl)) {
-                    return ConditionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
-                }
-                throw new JsonParseException("invalid ID " + rl + " defined for condition object: " + json);
-            }
-            return TrueCondition.INSTANCE;
-        }
-    }
+            } else if (spinElem.isJsonObject()) {
+                // {"x":, "y":, "z":}
+                JsonObject spinObj = spinElem.getAsJsonObject();
+                spinVector = new Vector3f(
+                        spinObj.has("x") ? spinObj.get("x").getAsFloat() : 0,
+                        spinObj.has("y") ? spinObj.get("y").getAsFloat() : 0,
+                        spinObj.has("z") ? spinObj.get("z").getAsFloat() : 0
+                );
 
-    public static class FilterAdapter implements JsonDeserializer<Filter> {
-        @Override
-        public Filter deserialize(JsonElement json,
-                                  Type type,
-                                  JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (!json.isJsonObject()) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
-                if (FilterRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonFilterType sat) {
-                    return sat.bake(null);
-                } else throw new JsonParseException("filter is not a singleton: " + json);
+            } else {
+                throw new JsonParseException("'spin' must be a number, array[3], or object{x,y,z}");
             }
-            JsonObject sub = json.getAsJsonObject();
-            if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
-                if (FilterRegistry.SUPPLIER.get().containsKey(rl)) {
-                    return FilterRegistry.SUPPLIER.get().getValue(rl).bake(sub);
-                }
-                throw new JsonParseException("invalid ID " + rl + " defined for filter object: " + json);
-            }
-            throw new JsonParseException("no ID defined for filter object: " + json);
-        }
-    }
 
-    public static class NBTAdapter implements JsonDeserializer<CompoundTag> {
-
-        @Override
-        public CompoundTag deserialize(JsonElement json,
-                                       Type type,
-                                       JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (!json.isJsonPrimitive()) throw new JsonParseException("not an NBT tag: " + json);
-            try {
-                return CompoundTagArgument.compoundTag().parse(new StringReader(enforceNamespace(json.getAsString())));
-            } catch (CommandSyntaxException e) {
-                throw new JsonParseException("invalid NBT definition: " + json);
-            }
+            targetFrame.setAngularVelocity(spinVector);
         }
+
     }
 }

@@ -45,9 +45,10 @@ public interface IStyleCapability {
     void addTriggerBar(int amnt);
     boolean canTrigger();
 
-    void addOrb(Color of);
-    boolean hasOrb(Color of);
-    void removeOrb(Color of);
+    boolean isDeathDoor();
+    boolean avoidDeath();
+    boolean isDyingFast();
+    void stabilize();
 
     float getFreshness(String source);
 

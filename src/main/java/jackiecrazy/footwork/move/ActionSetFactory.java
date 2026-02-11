@@ -2,7 +2,7 @@ package jackiecrazy.footwork.move;
 
 import com.google.gson.JsonParseException;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
-import jackiecrazy.footwork.utils.JsonAdapters;
+import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ public class ActionSetFactory {
     public boolean validateAndBake() {
         if (finalized != null) return true;
         try {
-            finalized = new ArrayList<>(List.of(JsonAdapters.gson.fromJson(ActionSets.moves.get(move), TimerAction[].class)));
+            finalized = new ArrayList<>(List.of(ActionJsonAdapters.gson.fromJson(ActionSets.moves.get(move), TimerAction[].class)));
         } catch (Exception e) {
             throw new JsonParseException("invalid action set" + move);
         }

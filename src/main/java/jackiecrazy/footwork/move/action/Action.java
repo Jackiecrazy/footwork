@@ -4,7 +4,7 @@ import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.condition.FalseCondition;
 import jackiecrazy.footwork.move.condition.TrueCondition;
-import jackiecrazy.footwork.utils.JsonAdapters;
+import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import jackiecrazy.footwork.move.Move;
 import net.minecraft.world.entity.Entity;
 
@@ -37,7 +37,7 @@ public abstract class Action extends Move {
     public abstract int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target);
 
     public String serializeToJson() {
-        return JsonAdapters.gson.toJson(this);
+        return ActionJsonAdapters.gson.toJson(this);
     }
 
     public boolean canRun(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {

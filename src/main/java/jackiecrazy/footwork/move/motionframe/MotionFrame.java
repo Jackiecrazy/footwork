@@ -1,6 +1,5 @@
 package jackiecrazy.footwork.move.motionframe;
 
-import com.mojang.math.Axis;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.util.Mth;
@@ -11,8 +10,7 @@ import org.joml.*;
 
 import java.lang.Math;
 
-public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrientation) {
-
+public class MotionFrame {
     public static final EntityDataSerializer<MotionFrame> SERIALIZER = new EntityDataSerializer<>() {
         @Override
         public void write(FriendlyByteBuf buf, MotionFrame frame) {
@@ -31,9 +29,17 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrienta
 
         @Override
         public MotionFrame copy(MotionFrame mf) {
-            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Quaternionf(mf.renderOrientation));
+            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Quaternionf(mf.renderOrientation), mf.effects);
         }
     };
+    private Vec3 direction = new Vec3(0, 0, 1);
+    private Vec3 offset = new Vec3(0, 0, 1);
+    private Quaternionf renderOrientation;
+    private FrameEffects effects;
+
+    public MotionFrame() {
+        this(new Vec3(0, 0, 1), new Vec3(0, 0, 1), (Quaternionf) null);
+    }
 
     public MotionFrame(Vec3 dir, Vec3 offset) {
         this(dir, offset, 0);
@@ -43,8 +49,24 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrienta
         this(dir, offset, new Vector4d(dir.x, dir.y, dir.z, rotation));
     }
 
+    public MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrientation, FrameEffects effects) {
+        this.direction = direction;
+        this.offset = offset;
+        this.renderOrientation = renderOrientation;
+        this.effects = effects;
+    }
+
+    public MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrientation) {
+        this(direction, offset, renderOrientation, null);
+    }
+
     public MotionFrame(Vec3 dir, Vec3 offset, Vector4d orthodox) {
         this(dir, offset, buildLocalRotation(orthodox));
+    }
+
+    public MotionFrame(Vec3 direction, Vec3 offset, int i, FrameEffects effects) {
+        this(direction, offset, i);
+        this.effects = effects;
     }
 
     public static Quaternionf buildLocalRotation(Vector4d o) {
@@ -59,7 +81,7 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrienta
         if (rollDeg != 0.0) {
             q.rotateAxis(
                     (float) Math.toRadians(rollDeg),
-                    0,0,1
+                    0, 0, 1
             );
         }
 
@@ -93,12 +115,33 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrienta
         return (float) (from + delta * partial);
     }
 
+    public Vec3 direction() {
+        return direction;
+    }
+
+    public Vec3 offset() {
+        return offset;
+    }
+
+    public Quaternionf renderOrientation() {
+        return renderOrientation;
+    }
+
+    public FrameEffects effects() {
+        return effects;
+    }
+
+    public MotionFrame setEffects(FrameEffects e){
+        effects=e;//.clone();
+        return this;
+    }
+
     public Vec3 resolveTargetOffset(Tuple<Vec3, Vec3> bundle, Vec3 defaultOffset, double range) {
         return resolveTargetOffset(bundle.getA(), bundle.getB(), defaultOffset, range);
     }
 
-    public Vec3 resolveTargetOffset(){
-        return resolveTargetOffset(Vec3.ZERO, new Vec3(0,0,1), Vec3.ZERO, 1);
+    public Vec3 resolveTargetOffset() {
+        return resolveTargetOffset(Vec3.ZERO, new Vec3(0, 0, 1), Vec3.ZERO, 1);
     }
 
     public Vec3 resolveTargetOffset(Vec3 position, Vec3 forward, Vec3 defaultOffset, double range) {
@@ -149,10 +192,13 @@ public record MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrienta
 
         Quaternionf from = this.renderOrientation;
         Quaternionf to = with.renderOrientation;
-        Quaternionf out = from.slerp(to, (float)partial, new Quaternionf());
+        Quaternionf out = from.slerp(to, (float) partial, new Quaternionf());
 
-        return new MotionFrame(dir, offset, out);
+        return new MotionFrame(dir, offset, out, effects);
     }
 
+    public MotionFrame setRenderOrientation(Quaternionf spin){
+        return new MotionFrame(direction, offset, spin, effects);
+    }
 
 }

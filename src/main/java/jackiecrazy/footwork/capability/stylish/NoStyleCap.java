@@ -103,23 +103,28 @@ public class NoStyleCap implements IStyleCapability {
     }
 
     @Override
-    public void addOrb(Color of) {
-
+    public boolean isDeathDoor() {
+        return false;
     }
 
     @Override
-    public boolean hasOrb(Color of) {
+    public boolean avoidDeath() {
         return false;
+    }
+
+    @Override
+    public boolean isDyingFast() {
+        return false;
+    }
+
+    @Override
+    public void stabilize() {
+
     }
 
     @Override
     public float getFreshness(String source) {
         return 1;
-    }
-
-    @Override
-    public void removeOrb(Color of) {
-
     }
 
     @Override

@@ -1,9 +1,10 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
+import jackiecrazy.footwork.move.motionframe.FrameEffects;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionGroup;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
-import jackiecrazy.footwork.utils.EasingFunction;
+import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.joml.Vector4d;
 
 import java.util.ArrayList;
@@ -29,9 +31,11 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION,1);
         //setHeldItem(ItemStack.EMPTY);
         setHeldItem(stack);
-        setFlipRender(true);
+        //setFlipRender(true);
         //setUniversalOffset(new Vec3(0,0,4));
-        setIdlePose(new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), new Vector4d(0, 0, 1, 0)), 10));
+        final MotionManagers.FixedMM pose = (MotionManagers.FixedMM) new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 0), new Vector4d(0, 0, 1, 0)), 100).setAngularVelocity(new Vector3f(1, 0, 0));
+        pose.setAngularVelocity(new Vector3f(0.1f,0,0));
+        setIdlePose(pose);
         this.setUniversalOffset(new Vec3(-1.3,0,0));
     }
 
@@ -59,10 +63,10 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     @Override
     public void tick() {
         //setInteractionRange(3 + 2 * Mth.sin(Mth.DEG_TO_RAD * tickCount * 10));
-        setShouldRender(FlyingWeaponEffect.BIG_SHADOW, false);
-        setShouldRender(FlyingWeaponEffect.AFTERIMAGE, false);
-        setShouldRender(FlyingWeaponEffect.TRAIL, false);
-        setShouldRender(FlyingWeaponEffect.WEAPON, true);
+//        setEffect(FlyingWeaponEffect.BIG_SHADOW, false);
+//        setEffect(FlyingWeaponEffect.AFTERIMAGE, false);
+//        setEffect(FlyingWeaponEffect.TRAIL, false);
+//        setEffect(FlyingWeaponEffect.WEAPON, true);
         if (getOwner() == null) {
             setOwner(level().getNearestPlayer(this, 16));
         }
@@ -83,23 +87,33 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     }
 
     @Override
+    protected void updateFrameEffects(FrameEffects effects) {
+        if(effects!=null&&effects!=currentEffects){
+            if(effects.getRange() >=0)setInteractionRange((float) effects.getRange());
+            if(effects.getEffects() !=null)setEffect(effects.getEffects().toArray(new FlyingWeaponEffect[0]));
+        }
+        currentEffects=effects;
+    }
+
+    @Override
     protected void returnToIdle(int duration) {
         super.returnToIdle(duration);
         //lock(getOwner());
         setIntangible(true);
         alreadyHit.clear();
         //provisional. Used to test movement.
-
-        animProgress++;
+        setState(STATE.THROW_NATURAL);
+        setEffect(FlyingWeaponEffect.WEAPON);
+        //animProgress++;
         if (animProgress > 20) {
             List<MotionFrame> loop=List.of(
-                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90),
+                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90, new FrameEffects().setEffects(FlyingWeaponEffect.AFTERIMAGE, FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.LOCK_POSITION, FlyingWeaponEffect.LOCK_ORIENTATION)),
                     new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), -90),
                     new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), -90),
                     new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), -90),
                     new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90));
             List<MotionFrame> chop=List.of(
-                    new MotionFrame(new Vec3(0, 0.6, -1), new Vec3(0, 0, 1)),
+                    new MotionFrame(new Vec3(0, 0.6, -1), new Vec3(0, 0, 1),0, new FrameEffects().setEffects(FlyingWeaponEffect.AFTERIMAGE, FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.LOCK_POSITION, FlyingWeaponEffect.LOCK_ORIENTATION)),
                     new MotionFrame(new Vec3(0, 1, 0), new Vec3(0, 0, 1)),
                     new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
                     new MotionFrame(new Vec3(0, -0.4, 0), new Vec3(0, 0, 1)));
@@ -108,13 +122,14 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
                     new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), 45));
             setInteractionRange(6);
             animProgress = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(STAB, EasingFunction.IN_OUT_CUBIC, 60)),0,0);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(chop, EasingFunctionEnum.IN_OUT_CUBIC, 60)).setAngularVelocity(new Vector3f(0.3f, 0, 0)), 0, 0);
             setIntangible(false);
-            setFlipRender(!flipClientRender());
+            //setFlipRender(!flipClientRender());
+            setFlipRender(true);
             while (!trailHistory.isEmpty()) trailHistory.pop();
             //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
             lock(getOwner());
-            setShouldRender(FlyingWeaponEffect.BIG_SHADOW, true);
+            setEffect(FlyingWeaponEffect.BIG_SHADOW, true);
         }
         //recalculatedOrientation = recalculateOrientation(null, update.renderOrientation(), (float) 0.1f);
     }

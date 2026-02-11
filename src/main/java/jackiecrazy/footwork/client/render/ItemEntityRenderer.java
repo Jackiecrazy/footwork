@@ -1,6 +1,5 @@
 package jackiecrazy.footwork.client.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
@@ -63,14 +62,14 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         ItemStack stack = entity.getHeldItem();
         //if (!stack.isEmpty()) {
 
-        if (entity.shouldRender(FlyingWeaponEffect.WEAPON))
+        if (entity.hasEffect(FlyingWeaponEffect.WEAPON))
             renderFlyingWeapon(entity, partialTicks, poseStack, stack);
-        if (entity.shouldRender(FlyingWeaponEffect.AFTERIMAGE))
+        if (entity.hasEffect(FlyingWeaponEffect.AFTERIMAGE))
             renderAfterimages(entity, partialTicks, poseStack, buffer, packedLight, stack);
-        if (entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW))
+        if (entity.hasEffect(FlyingWeaponEffect.BIG_SHADOW))
             renderBigShadowWeapon(entity, partialTicks, poseStack, buffer, 0xF000F0, stack);
         //}
-        if (entity.shouldRender(FlyingWeaponEffect.TRAIL)) renderTrail(entity, poseStack, partialTicks, buffer);
+        if (entity.hasEffect(FlyingWeaponEffect.TRAIL)) renderTrail(entity, poseStack, partialTicks, buffer);
     }
 
     protected void renderFlyingWeapon(FlyingItemEntity entity,
@@ -102,7 +101,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         float scale = 1;// (float) Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
         poseStack.scale(scale, scale, scale);
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
-        poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
+        poseStack.mulPose(Axis.XP.rotationDegrees(99));//this rotates a standard iron sword perfectly horizontal
 
         //actual weapon
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -143,7 +142,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 poseStack.scale(scale, scale, scale);//should scale here, right?
                 poseStack.translate(0, 0, 0.2);//aligning pommel to the best of my ability
                 poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
-                poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
+                poseStack.mulPose(Axis.XP.rotationDegrees(99));//this rotates a standard iron sword perfectly horizontal
                 poseStack.translate(0, -0.25, 0);//trying to put the weapon on the same axis
 
                 //poseStack.translate(0.425, -0.45, 0);//Obsolete. trying to put the weapon on the same axis
@@ -282,11 +281,13 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         } else {
             poseStack.pushPose();
             if (left) {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+                poseStack.scale(-1,1,1);
+                //GL11.glFrontFace(GL11.GL_CW);
             }
             final ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
             itemRenderer.render(stack, ctx, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
             );
+            GL11.glFrontFace(GL11.GL_CCW);
             poseStack.popPose();
         }
     }
@@ -309,7 +310,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         poseStack.mulPose(quat);
         poseStack.translate(0, 0, -0.4);//adjust weapon offset so the tip is roughly at the entity
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));  // Roll adjustment
-        poseStack.mulPose(Axis.XP.rotationDegrees(100));//this rotates a standard iron sword perfectly horizontal
+        poseStack.mulPose(Axis.XP.rotationDegrees(99));//this rotates a standard iron sword perfectly horizontal
 
         // Scale and render
         float scale = (float) 1;//Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
@@ -340,6 +341,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                PoseStack poseStack,
                                float partialticks,
                                MultiBufferSource buffer) {
+        //fixme it's coming out as a step pattern...?
         poseStack.pushPose();
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(FootworkRenderTypes.white));
         Vec3 interpolated = entity.getPosition(partialticks); // same as what's applied by default

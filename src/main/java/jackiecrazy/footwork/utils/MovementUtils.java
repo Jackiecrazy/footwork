@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.utils;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -51,5 +52,31 @@ public class MovementUtils {
         AABB aabb = elb.getBoundingBox();
         Iterator<VoxelShape> boxes = elb.level().getCollisions(elb, aabb.inflate(0.1)).iterator();
         return boxes.hasNext();
+    }
+
+    public static void applyVelocity(Vec3 vec, LivingEntity e, boolean set) {
+        final Vec3 vel = resolveVelocity(e.getLookAngle(), vec);
+        if (set) {
+            e.setDeltaMovement(vel);
+        } else e.addDeltaMovement(vel);
+        if (set || !vel.equals(Vec3.ZERO))
+            e.hurtMarked = true;
+    }
+
+    public static Vec3 resolveVelocity(Vec3 forward, Vec3 direction) {
+        // Create right and up basis vectors
+        double Y = direction.y;
+        direction = direction.multiply(1, 0, 1);
+        Vec3 globalUp = new Vec3(0, 1, 0);
+        Vec3 right = forward.cross(globalUp).normalize();
+        Vec3 up = right.cross(forward).normalize();  // Ensure orthogonal
+
+        Vec3 lookAdjusted = forward.scale(direction.z)
+                .add(right.scale(direction.x))
+                .add(up.scale(direction.y))
+                .normalize();
+        if (Y != 0) lookAdjusted = new Vec3(lookAdjusted.x, Y, lookAdjusted.z);
+
+        return lookAdjusted;
     }
 }

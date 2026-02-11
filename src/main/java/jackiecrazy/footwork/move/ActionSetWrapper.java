@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-public class ActionSetWrapper {
+public class ActionSetWrapper implements ActionsWrapper {
     public final Stack<DataWrapper<?>> stack = new Stack<>();
     private final List<Tuple<TimerAction, Integer>> activeTimers = new ArrayList<>();
     private final HashMap<Action, Object> extraData = new HashMap<>();
@@ -28,28 +28,34 @@ public class ActionSetWrapper {
         this.actions = actions;
     }
 
+    @Override
     public List<Tuple<TimerAction, Integer>> getActiveTimers() {
         return activeTimers;
     }
 
+    @Override
     public List<Action> getGraveyard() {
         return graveyard;
     }
 
+    @Override
     public TimerAction getCurrentMove() {
         return currentMove;
     }
 
+    @Override
     public boolean executing() {
         return index < actions.size() && index >= 0;
     }
 
+    @Override
     public void start(Entity performer, Entity target) {
         currentMove = actions.get(0);
         currentMove.canRun(this, null, performer, target);
         trigger(currentMove, null, performer, target);
     }
 
+    @Override
     public void reset() {
         index = 0;
         extraData.clear();
@@ -57,6 +63,7 @@ public class ActionSetWrapper {
         graveyard.clear();
     }
 
+    @Override
     public void tick(Entity performer, Entity target) {
         int jumpCode = 0;
         for (Tuple<TimerAction, Integer> tuple : activeTimers) {
@@ -88,6 +95,7 @@ public class ActionSetWrapper {
         }
     }
 
+    @Override
     public void jumpTo(int jumpCode, Entity performer, Entity target){
         //goto, reset everything//
         reset();
@@ -98,6 +106,7 @@ public class ActionSetWrapper {
     }
 
 
+    @Override
     public int trigger(Action action, Action parent, Entity performer, Entity target) {
         //if action and not in graveyard, execute. If not repeatable, put in graveyard.
         //if timer action and not in graveyard, if not active, place and start, then if not repeatable, put in graveyard.
@@ -115,35 +124,24 @@ public class ActionSetWrapper {
         return action.perform(this, parent, performer, target);
     }
 
+    @Override
     public int getTimer(TimerAction action) {
         return activeTimers.stream().filter(a -> a.getA() == action).findFirst().map(Tuple::getB).orElse(-1);
     }
 
+    @Override
     public void immediatelyExpire(TimerAction action) {
         activeTimers.stream().filter(a -> a.getA() == action).findFirst().ifPresent(a -> a.setB(99999));
     }
 
+    @Override
     public <T> T getData(Action a) {
         return (T) (extraData.get(a));
     }
 
+    @Override
     public void setData(Action a, Object b) {
         extraData.put(a, b);
     }
 
-    public static class DataWrapper<T> {
-        private T instance;
-
-        public DataWrapper(T item) {
-            instance = item;
-        }
-
-        public T getInstance() {
-            return instance;
-        }
-
-        public void setInstance(T instance) {
-            this.instance = instance;
-        }
-    }
 }

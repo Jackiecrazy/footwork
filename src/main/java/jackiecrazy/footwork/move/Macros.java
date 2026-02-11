@@ -3,7 +3,7 @@ package jackiecrazy.footwork.move;
 import com.google.gson.*;
 import jackiecrazy.footwork.move.argument.number.OperateArgument;
 import jackiecrazy.footwork.move.condition.ComparisonCondition;
-import jackiecrazy.footwork.utils.JsonAdapters;
+import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -19,7 +19,7 @@ public class Macros extends SimpleJsonResourceReloadListener {
     public static final HashMap<ResourceLocation, JsonObject> map = new HashMap<>();
 
     public Macros() {
-        super(JsonAdapters.gson, "action_macros");
+        super(ActionJsonAdapters.gson, "action_macros");
     }
 
     public static void register(AddReloadListenerEvent event) {

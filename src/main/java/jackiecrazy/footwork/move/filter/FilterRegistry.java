@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.move.filter;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.utils.JsonAdapters;
+import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -16,5 +16,5 @@ public class FilterRegistry {
 
     public static final RegistryObject<FilterType> NONE = FILTERS.register("none", () -> (SingletonFilterType) a -> NoFilter.INSTANCE);
     public static final RegistryObject<FilterType> RANDOM = FILTERS.register("random", () -> (SingletonFilterType) a -> RandomFilter.INSTANCE);
-    public static final RegistryObject<FilterType> CONDITION = FILTERS.register("condition", () -> (a) -> JsonAdapters.gson.fromJson(a, ConditionFilter.class));
+    public static final RegistryObject<FilterType> CONDITION = FILTERS.register("condition", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ConditionFilter.class));
 }

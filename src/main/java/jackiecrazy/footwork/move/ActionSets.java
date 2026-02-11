@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.action.Action;
-import jackiecrazy.footwork.utils.JsonAdapters;
+import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -19,7 +19,7 @@ public class ActionSets extends SimpleJsonResourceReloadListener {
     public static Action a;
 
     public ActionSets(String directory) {
-        super(JsonAdapters.gson, directory);
+        super(ActionJsonAdapters.gson, directory);
     }
 
     public static void register(AddReloadListenerEvent event, String dir) {
@@ -36,7 +36,7 @@ public class ActionSets extends SimpleJsonResourceReloadListener {
             JsonArray file = Macros.parseSyntacticSugar(value.getAsJsonArray()).getAsJsonArray();
             Footwork.LOGGER.debug("loading action set definition found under {}", key);
             try {
-                a = JsonAdapters.gson.fromJson(file, Action[].class)[0];
+                a = ActionJsonAdapters.gson.fromJson(file, Action[].class)[0];
                 moves.put(key, file);
             } catch (Exception e) {
                 Footwork.LOGGER.error("{} is an invalid action set, it will not be registered!", key);
