@@ -1,8 +1,7 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.world.entity.Entity;
@@ -12,11 +11,11 @@ public class CanSeeCondition extends Condition {
     private Argument<Entity> reference= CasterEntityArgument.INSTANCE;
     private Condition flimsy=FalseCondition.INSTANCE;
     @Override
-    public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-        Entity ref=reference.resolve(wrapper, parent, performer, target);
+    public Boolean resolve(ArgumentContext argumentContext) {
+        Entity ref=reference.resolve(argumentContext);
         if(ref instanceof LivingEntity looker){
-            return looker.hasLineOfSight(target);
+            return looker.hasLineOfSight(argumentContext.target());
         }
-        return GeneralUtils.viewBlocked(ref, target, flimsy.resolve(wrapper, parent, performer, target));
+        return GeneralUtils.viewBlocked(ref, argumentContext.target(), flimsy.resolve(argumentContext));
     }
 }

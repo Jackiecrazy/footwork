@@ -1,8 +1,7 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,19 +11,19 @@ public class IfElseAction extends Action{
     private List<Action> otherwise=new ArrayList<>();
 
     @Override
-    public boolean canRun(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
+    public boolean canRun(ActionContext actionContext) {
         return true;
     }
 
     @Override
-    public boolean repeatable(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
+    public boolean repeatable(ActionContext actionContext) {
         return true;
     }
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        if(condition.resolve(wrapper, parent, performer, target)){
-            return runActions(wrapper, parent, then, performer, target);
-        }else return runActions(wrapper, parent, otherwise, performer, target);
+    public int perform(ActionContext actionContext) {
+        if(condition.resolve(actionContext)){
+            return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), then);
+        }else return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), otherwise);
     }
 }

@@ -1,15 +1,14 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 
 public class GotoAction extends Action {
     private Argument<Double> instruction;
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        return (int) instruction.resolve(wrapper, parent, performer, target).intValue();
+    public int perform(ActionContext actionContext) {
+        return (int) instruction.resolve(actionContext).intValue();
     }
 }

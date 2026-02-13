@@ -1,14 +1,13 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 
 public abstract class NumberArgument implements Argument<Double> {
 
-    public abstract Double resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target);
+    public abstract Double resolve(ArgumentContext argumentContext);
 
 
     public static class Store extends Action {
@@ -16,9 +15,9 @@ public abstract class NumberArgument implements Argument<Double> {
         private String into;
 
         @Override
-        public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-            final double vec = value.resolve(wrapper, parent, performer, target);
-            performer.getPersistentData().putDouble(into, vec);
+        public int perform(ActionContext actionContext) {
+            final double vec = value.resolve(actionContext);
+            actionContext.performer().getPersistentData().putDouble(into, vec);
             return 0;
         }
     }
@@ -27,8 +26,8 @@ public abstract class NumberArgument implements Argument<Double> {
         private String from;
 
         @Override
-        public Double resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-            return caster.getPersistentData().getDouble(from);
+        public Double resolve(ArgumentContext argumentContext) {
+            return argumentContext.performer().getPersistentData().getDouble(from);
         }
     }
 }

@@ -1,11 +1,11 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +17,12 @@ public class TeleportAction extends Action {
     private Argument<Vec3> position;
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        Vec3 vec=position.resolve(wrapper, parent, performer, target);
-        Entity teleporter = subject.resolve(wrapper, parent, performer, target);
-        runActions(wrapper, parent, on_start, performer, teleporter);
+    public int perform(ActionContext actionContext) {
+        Vec3 vec=position.resolve(actionContext);
+        Entity teleporter = subject.resolve(actionContext);
+        runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), teleporter), on_start);
         teleporter.teleportTo(vec.x,vec.y, vec.z);
-        runActions(wrapper, parent, on_land, performer, teleporter);
+        runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), teleporter), on_land);
         return 0;
     }
 }

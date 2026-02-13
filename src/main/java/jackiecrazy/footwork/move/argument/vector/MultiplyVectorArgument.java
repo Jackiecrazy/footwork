@@ -1,9 +1,7 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
-import net.minecraft.world.entity.Entity;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.phys.Vec3;
 
 public class MultiplyVectorArgument extends VectorArgument {
@@ -11,7 +9,7 @@ public class MultiplyVectorArgument extends VectorArgument {
     Argument<Vec3> multiply;
 
     @Override
-    public Vec3 _resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        return base.resolve(wrapper, parent, caster, target).multiply(multiply.resolve(wrapper, parent, caster, target));
+    public Vec3 _resolve(ArgumentContext argumentContext) {
+        return base.resolve(argumentContext).multiply(multiply.resolve(argumentContext));
     }
 }

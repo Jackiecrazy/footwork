@@ -1,8 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
+import jackiecrazy.footwork.move.utils.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +17,12 @@ public class MetaAction extends Action{
     }
 
     @Override
-    public boolean repeatable(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
+    public boolean repeatable(ActionContext actionContext) {
         return true;
     }
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        return runActions(wrapper, parent, actions, performer, target);
+    public int perform(ActionContext actionContext) {
+        return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), actions);
     }
 }

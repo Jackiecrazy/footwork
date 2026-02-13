@@ -2,6 +2,7 @@ package jackiecrazy.footwork.move;
 
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
+import jackiecrazy.footwork.move.utils.ActionContext;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-public class TimerActionsWrapper {
+public class ActionSetWrapper {
     public final Stack<DataWrapper<?>> stack = new Stack<>();
     private final List<Tuple<TimerAction, Integer>> activeTimers = new ArrayList<>();
     private final HashMap<Action, Object> extraData = new HashMap<>();
@@ -23,7 +24,7 @@ public class TimerActionsWrapper {
     // global cooldown, commonly used action components (how parameter?),
     // put moveset execution responsibility into capability?
     // terrain sensitivity for wolf pack, encircle/attack multiple targets with merge/split group mechanics?
-    public TimerActionsWrapper(List<Action> actions) {
+    public ActionSetWrapper(List<Action> actions) {
         this.actions = actions;
     }
 
@@ -74,7 +75,7 @@ public class TimerActionsWrapper {
         activeTimers.removeIf((entry) -> {
             if (entry.getA().isFinished(this, performer, target)) {
                 graveyard.add(entry.getA());
-                entry.getA().stop(this, performer, target, false);
+                entry.getA().stop(new ActionContext(this, entry.getA(), performer, target), false);
                 return true;
             }
             return false;
@@ -95,7 +96,7 @@ public class TimerActionsWrapper {
         Action act;
         for (; index < actions.size(); index++) {
             act = actions.get(index % actions.size());
-            act.canRun(this, null, performer, target);
+            act.canRun(new ActionContext(this, null, performer, target));
             trigger(act, null, performer, target);
             if (act instanceof TimerAction ta) return ta;
         }
@@ -115,9 +116,9 @@ public class TimerActionsWrapper {
             }
             return 0;
         }
-        if (!action.repeatable(this, parent, performer, target))
+        if (!action.repeatable(new ActionContext(this, parent, performer, target)))
             graveyard.add(action);//continuous tasks are handled by active timers
-        return action.perform(this, parent, performer, target);
+        return action.perform(new ActionContext(this, parent, performer, target));
     }
 
     public int getTimer(TimerAction action) {

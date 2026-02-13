@@ -1,18 +1,18 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
 import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
 
 public class MountAction extends Action{
     private Argument<Entity> mounter = CasterEntityArgument.INSTANCE;
     private Argument<Entity> mount = TargetEntityArgument.INSTANCE;
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        mounter.resolve(wrapper, parent, performer, target).startRiding(mount.resolve(wrapper, parent, performer, target), true);
+    public int perform(ActionContext actionContext) {
+        mounter.resolve(actionContext).startRiding(mount.resolve(actionContext), true);
         return 0;
     }
 }

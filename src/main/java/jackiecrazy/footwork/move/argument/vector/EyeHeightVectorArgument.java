@@ -1,8 +1,7 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
@@ -10,7 +9,7 @@ public class EyeHeightVectorArgument extends VectorArgument {
     private Argument<Entity> reference_point;
 
     @Override
-    public Vec3 _resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        return new Vec3(0, reference_point.resolve(wrapper, parent, caster, target).getEyeY(), 0);
+    public Vec3 _resolve(ArgumentContext argumentContext) {
+        return new Vec3(0, reference_point.resolve(argumentContext).getEyeY(), 0);
     }
 }

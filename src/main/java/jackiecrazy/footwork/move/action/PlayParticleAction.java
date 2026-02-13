@@ -2,8 +2,9 @@ package jackiecrazy.footwork.move.action;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.PositionVectorArgument;
 import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
@@ -15,10 +16,8 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.Nullable;
 
 public class PlayParticleAction extends Action {
     private Argument<ResourceLocation> particle;
@@ -30,23 +29,23 @@ public class PlayParticleAction extends Action {
     private Argument<Double> quantity = FixedNumberArgument.ZERO;
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(ActionContext actionContext) {
         if (play == null)
-            play = ForgeRegistries.PARTICLE_TYPES.getValue(particle.resolve(wrapper, parent, performer, target));
+            play = ForgeRegistries.PARTICLE_TYPES.getValue(particle.resolve(actionContext));
         if (play == null) return 0;
         //type/data, force, pos xyz, quantity, vel xyz, max speed
         ParticleOptions p;
-        Vec3 pos = position.resolve(wrapper, parent, performer, target);
-        Vec3 dir = direction.resolve(wrapper, parent, performer, target);
+        Vec3 pos = position.resolve(actionContext);
+        Vec3 dir = direction.resolve(actionContext);
         try {
             p = play.getDeserializer().fromCommand(play, new StringReader(" " + particle_parameters));
         } catch (CommandSyntaxException cse) {
             throw new RuntimeException(cse);
         }
-        if (target.level() instanceof ServerLevel sl) {
+        if (actionContext.target().level() instanceof ServerLevel sl) {
             for (ServerPlayer sp : sl.players()) {
-                if (seen_by_player.resolve(wrapper, parent, performer, sp)) {
-                    sl.sendParticles(sp, p, force.resolve(wrapper, parent, performer, target), pos.x, pos.y, pos.z, (int) quantity.resolve(wrapper, parent, performer, target).intValue(), dir.x, dir.y, dir.z, dir.length());
+                if (seen_by_player.resolve(actionContext)) {
+                    sl.sendParticles(sp, p, force.resolve(actionContext), pos.x, pos.y, pos.z, (int) quantity.resolve(actionContext).intValue(), dir.x, dir.y, dir.z, dir.length());
                 }
             }
         }

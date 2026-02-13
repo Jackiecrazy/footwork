@@ -1,13 +1,14 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.action.trigger.Trigger;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import net.minecraft.world.entity.Entity;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,32 +25,32 @@ public abstract class TimerAction extends Action {
     private Argument<Double> max_time= FixedNumberArgument.ZERO;
 
     @Override
-    public boolean canRun(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-        if (wrapper.getTimer(this) >= 0 && !isFinished(wrapper, performer, target))//isn't done, but has already started
+    public boolean canRun(ActionContext actionContext) {
+        if (actionContext.wrapper().getTimer(this) >= 0 && !isFinished(actionContext.wrapper(), actionContext.performer(), actionContext.target()))//isn't done, but has already started
             return true;
-        return super.canRun(wrapper, parent, performer, target);
+        return super.canRun(actionContext);
     }
 
     /**
      * @return false if the action is still running
      */
-    public boolean isFinished(TimerActionsWrapper wrapper, Entity performer, Entity target) {
-        return wrapper.getTimer(this) > max_time.resolve(wrapper, this, performer, target) || wrapper.getTimer(this) < 0;
+    public boolean isFinished(ActionSetWrapper wrapper, Entity performer, Entity target) {
+        return wrapper.getTimer(this) > max_time.resolve(new ActionContext(wrapper, this, performer, target)) || wrapper.getTimer(this) < 0;
     }
 
-    public int tick(TimerActionsWrapper wrapper, Entity performer, Entity target) {
+    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
         return isFinished(wrapper, performer, target) ? -1 : 0;
     }
 
-    public void start(TimerActionsWrapper wrapper, Entity performer, Entity target) {
+    public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
     }
 
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        return tick(wrapper, performer, target);
+    public int perform(ActionContext actionContext) {
+        return tick(actionContext.wrapper(), actionContext.performer(), actionContext.target());
     }
 
-    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
-        wrapper.immediatelyExpire(this);
+    public void stop(ActionContext actionContext, boolean recursive) {
+        actionContext.wrapper().immediatelyExpire(this);
     }
 
 

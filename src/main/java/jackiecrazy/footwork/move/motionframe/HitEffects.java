@@ -2,7 +2,7 @@ package jackiecrazy.footwork.move.motionframe;
 
 import jackiecrazy.footwork.capability.action.ActionData;
 import jackiecrazy.footwork.capability.resources.CombatData;
-import jackiecrazy.footwork.move.TimerActionsWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.utils.MovementUtils;
 import net.minecraft.commands.CommandSourceStack;
@@ -56,7 +56,7 @@ public class HitEffects {
         if (!level.isClientSide) {
             MovementUtils.applyVelocity(velocity, target, set_velocity);
             if (!run_actions.isEmpty())
-                ActionData.getCap(target).mark(hitter, new TimerActionsWrapper(run_actions));//todo check if this works
+                ActionData.getCap(target).mark(hitter, new ActionSetWrapper(run_actions));//todo check if this works
             MinecraftServer minecraftserver = level.getServer();
             for(String s:tags){
                 CombatData.getCap(target).tickProc(s);

@@ -1,23 +1,21 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
-import net.minecraft.world.entity.Entity;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.phys.Vec3;
 
 public class RawVectorArgument extends VectorArgument {
     public static final Argument<Vec3> ZERO = new VectorArgument() {
 
         @Override
-        public Vec3 _resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
+        public Vec3 _resolve(ArgumentContext argumentContext) {
             return Vec3.ZERO;
         }
     };
     Argument<Double> x, y, z;
 
     @Override
-    public Vec3 _resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        return new Vec3(x.resolve(wrapper, parent, caster, target), y.resolve(wrapper, parent, caster, target), z.resolve(wrapper, parent, caster, target));
+    public Vec3 _resolve(ArgumentContext argumentContext) {
+        return new Vec3(x.resolve(argumentContext), y.resolve(argumentContext), z.resolve(argumentContext));
     }
 }

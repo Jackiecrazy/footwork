@@ -1,8 +1,10 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.entity.Entity;
 
 import java.util.ArrayList;
@@ -18,28 +20,28 @@ public class ProjectHitboxAction extends TimerAction {
     private List<Action> actions = new ArrayList<>();
 
     @Override
-    public void start(TimerActionsWrapper wrapper, Entity performer, Entity target) {
+    public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
         wrapper.setData(this, new HashMap<>());
     }
 
     @Override
-    public int tick(TimerActionsWrapper wrapper, Entity performer, Entity target) {
+    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
         HashMap<Entity, Long> lastHit = wrapper.getData(this);
-        for (Entity e : selector.resolve(wrapper, this, performer, target)) {
+        for (Entity e : selector.resolve(new ActionContext(wrapper, this, performer, target))) {
             if (hit_cooldown == 0 && lastHit.containsKey(e)) continue;
             if (lastHit.containsKey(e) && lastHit.get(e) < e.level().getGameTime() + hit_cooldown) continue;
-            int childRet = runActions(wrapper, this, actions, performer, e);
+            int childRet = runActions(new ActionContext(wrapper, this, performer, e), actions);
             if (childRet != 0) return childRet;
             lastHit.put(e, e.level().getGameTime());
         }
         return super.tick(wrapper, performer, target);
     }
 
-    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(ActionContext actionContext, boolean recursive) {
         if (recursive) {
-            actions.forEach(a -> a.stop(wrapper, performer, target, true));
+            actions.forEach(a -> a.stop(actionContext, true));
         }
-        super.stop(wrapper, performer, target, recursive);
+        super.stop(actionContext, recursive);
     }
 
 }

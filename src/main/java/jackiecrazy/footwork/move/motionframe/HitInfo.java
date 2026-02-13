@@ -1,17 +1,7 @@
 package jackiecrazy.footwork.move.motionframe;
 
-import jackiecrazy.footwork.capability.action.ActionData;
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
-import jackiecrazy.footwork.utils.MovementUtils;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.StringUtil;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class HitInfo {

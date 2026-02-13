@@ -1,10 +1,8 @@
 package jackiecrazy.footwork.move.argument;
 
 import com.google.gson.JsonObject;
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.utils.ActionJsonAdapters;
-import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 public interface Argument<T> {
@@ -19,5 +17,6 @@ public interface Argument<T> {
     }
 
     @Nullable
-    T resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target);
+    T resolve(ArgumentContext argumentContext);
+
 }

@@ -1,7 +1,8 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.DamageArgument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.vector.PositionVectorArgument;
@@ -11,7 +12,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,9 +30,9 @@ public class ExplodeAction extends Action {
     private List<Action> on_damage = new ArrayList<>();
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        Vec3 pos = position.resolve(wrapper, parent, performer, target);
-        performer.level().explode(exploder.resolve(wrapper, parent, performer, target), damage_source.resolve(wrapper, parent, performer, target), null, pos.x, pos.y, pos.z, radius.resolve(wrapper, parent, performer, target).floatValue(), fire.resolve(wrapper, parent, performer, target), griefing);
+    public int perform(ActionContext actionContext) {
+        Vec3 pos = position.resolve(actionContext);
+        actionContext.performer().level().explode(exploder.resolve(actionContext), damage_source.resolve(actionContext), null, pos.x, pos.y, pos.z, radius.resolve(actionContext).floatValue(), fire.resolve(actionContext), griefing);
         return 0;
     }
 }

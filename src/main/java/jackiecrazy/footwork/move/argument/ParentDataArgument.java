@@ -1,14 +1,16 @@
 package jackiecrazy.footwork.move.argument;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
-import net.minecraft.world.entity.Entity;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 
-public class ParentDataArgument<T> implements Argument<T>{
-    public static final ParentDataArgument<?> INSTANCE=new ParentDataArgument<>();
+public class ParentDataArgument<T> implements Argument<T> {
+    public static final ParentDataArgument<?> INSTANCE = new ParentDataArgument<>();
+
     @Override
-    public T resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public T resolve(ArgumentContext argumentContext) {
         //TODO how cast?
-        return wrapper.getData(parent);
+        if (argumentContext instanceof ActionContext ac)
+            return ac.wrapper().getData(ac.parent());
+        return null;
     }
 }

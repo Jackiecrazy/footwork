@@ -1,12 +1,12 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.condition.FalseCondition;
 import jackiecrazy.footwork.move.condition.TrueCondition;
 import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import jackiecrazy.footwork.move.Move;
-import net.minecraft.world.entity.Entity;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -19,12 +19,12 @@ public abstract class Action extends Move {
     /**
      * Runs the list of actions, aborting and returning a jump code if the child returns a jump code.
      */
-    protected int runActions(TimerActionsWrapper wrapper, Action parent, @Nullable List<Action> actions, Entity performer, Entity target) {
+    protected int runActions(ActionContext actionContext, @Nullable List<Action> actions) {
         if (actions == null) return 0;
         int returnCode = 0;
         for (Action child : actions) {
-            if (child.canRun(wrapper, parent, performer, target)) {
-                returnCode = wrapper.trigger(child, parent, performer, target);
+            if (child.canRun(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()))) {
+                returnCode = actionContext.wrapper().trigger(child, actionContext.parent(), actionContext.performer(), actionContext.target());
                 if (returnCode > 0) return returnCode;
             }
         }
@@ -34,23 +34,23 @@ public abstract class Action extends Move {
     /**
      * @return 0 for normal execution. -1 is reserved for expiry of timer actions, and any positive integer is taken to be a jump code.
      */
-    public abstract int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target);
+    public abstract int perform(ActionContext actionContext);
 
     public String serializeToJson() {
         return ActionJsonAdapters.gson.toJson(this);
     }
 
-    public boolean canRun(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-        if (wrapper.getGraveyard().contains(this)) return false;
-        return condition.resolve(wrapper, parent, performer, target);
+    public boolean canRun(ActionContext actionContext) {
+        if (actionContext.wrapper().getGraveyard().contains(this)) return false;
+        return condition.resolve(actionContext);
     }
 
-    public boolean repeatable(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-        return repeatable.resolve(wrapper, parent, performer, target);
+    public boolean repeatable(ActionContext actionContext) {
+        return repeatable.resolve(actionContext);
     }
 
 
-    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(ActionContext actionContext, boolean recursive) {
     }
 
     public String toString() {

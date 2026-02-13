@@ -1,8 +1,10 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -19,14 +21,14 @@ public class MoveToAction extends TimerAction {
     private Argument<Vec3> position;
 
     @Override
-    public boolean canRun(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-        Vec3 moveTo = position.resolve(wrapper, this, performer, target);
-        if (performer instanceof Mob m) {
+    public boolean canRun(ActionContext actionContext) {
+        Vec3 moveTo = position.resolve(actionContext);
+        if (actionContext.performer() instanceof Mob m) {
             Path path = m.getNavigation().createPath(moveTo.x, moveTo.y, moveTo.z, 0);
             if (path != null) {
-                wrapper.setData(this, path);
-                m.getNavigation().moveTo(path, speed_modifier.resolve(wrapper, this, performer, target));
-                return super.canRun(wrapper, parent, performer, target);
+                actionContext.wrapper().setData(this, path);
+                m.getNavigation().moveTo(path, speed_modifier.resolve(actionContext));
+                return super.canRun(actionContext);
                 //fixme doesn't execute as part of base function
             }
         }
@@ -34,38 +36,38 @@ public class MoveToAction extends TimerAction {
     }
 
     @Override
-    public void start(TimerActionsWrapper wrapper, Entity performer, Entity target) {
-        runActions(wrapper, this, on_start, performer, target);
+    public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
+        runActions(new ActionContext(wrapper, this, performer, target), on_start);
 
         //m.getMoveControl().setWantedPosition(dir.x, dir.y, dir.z, speed_modifier.resolve(wrapper, this, performer, target));
         super.start(wrapper, performer, target);
     }
 
     @Override
-    public boolean isFinished(TimerActionsWrapper wrapper, Entity performer, Entity target) {
+    public boolean isFinished(ActionSetWrapper wrapper, Entity performer, Entity target) {
         if (super.isFinished(wrapper, performer, target)) return true;
         Path p = wrapper.getData(this);
         return p != null && p.isDone();
     }
 
     @Override
-    public int tick(TimerActionsWrapper wrapper, Entity performer, Entity target) {
+    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
         if(performer instanceof Mob m){
             m.getNavigation().tick();
         }
-        int childRet = runActions(wrapper, this, tick, performer, target);
+        int childRet = runActions(new ActionContext(wrapper, this, performer, target), tick);
         if (childRet != 0) return childRet;
         return super.tick(wrapper, performer, target);
     }
 
-    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
-        if (performer instanceof Mob m)
+    public void stop(ActionContext actionContext, boolean recursive) {
+        if (actionContext.performer() instanceof Mob m)
             m.getNavigation().stop();
         if (recursive) {
-            on_start.forEach(a -> a.stop(wrapper, performer, target, true));
-            tick.forEach(a -> a.stop(wrapper, performer, target, true));
+            on_start.forEach(a -> a.stop(actionContext, true));
+            tick.forEach(a -> a.stop(actionContext, true));
         }
-        super.stop(wrapper, performer, target, recursive);
+        super.stop(actionContext, recursive);
     }
 
 }

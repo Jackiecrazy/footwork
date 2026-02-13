@@ -1,8 +1,9 @@
 package jackiecrazy.footwork.move.action;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.LookVectorArgument;
@@ -18,7 +19,6 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,21 +34,21 @@ public class SpawnEntityAction extends Action {
     private List<Action> on_spawn = new ArrayList<>();
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        Entity summoner = this.summoner.resolve(wrapper, parent, performer, target);
-        int toSpawn = quantity.resolve(wrapper, parent, performer, target).intValue();
-        double deviation = spread.resolve(wrapper, parent, performer, target);
-        Vec3 vec = position.resolve(wrapper, parent, performer, target);
-        Level level = performer.level();
+    public int perform(ActionContext actionContext) {
+        Entity summoner = this.summoner.resolve(actionContext);
+        int toSpawn = quantity.resolve(actionContext).intValue();
+        double deviation = spread.resolve(actionContext);
+        Vec3 vec = position.resolve(actionContext);
+        Level level = actionContext.performer().level();
         if (level instanceof ServerLevel serverlevel) {
             for (int x = 0; x < toSpawn; x++) {
                 Vec3 rand = new Vec3((Footwork.rand.nextDouble()) * deviation, (Footwork.rand.nextDouble()) * deviation, (Footwork.rand.nextDouble()) * deviation);
                 final Vec3 pos = vec.add(rand);
                 CompoundTag compoundtag = tag == null ? new CompoundTag() : tag.copy();
-                compoundtag.putString("id", entity.resolve(wrapper, parent, performer, target).toString());
-                Vec3 look = facing.resolve(wrapper, parent, performer, target);
+                compoundtag.putString("id", entity.resolve(actionContext).toString());
+                Vec3 look = facing.resolve(actionContext);
                 Entity summon = EntityType.loadEntityRecursive(compoundtag, serverlevel, (toSummon) -> {
-                    Vec3 velocity = this.velocity.resolve(wrapper, parent, performer, target);
+                    Vec3 velocity = this.velocity.resolve(actionContext);
                     toSummon.setDeltaMovement(velocity);
                     double flatDist = Math.sqrt(look.x * look.x + look.z * look.z);
                     toSummon.moveTo(pos.x, pos.y, pos.z, (float) Mth.wrapDegrees(GeneralUtils.deg((float) Mth.atan2(look.z, look.x)) - 90.0F), Mth.wrapDegrees(-GeneralUtils.deg((float) Mth.atan2(look.y, flatDist))));
@@ -68,7 +68,7 @@ public class SpawnEntityAction extends Action {
 
                     serverlevel.tryAddFreshEntityWithPassengers(summon);
                     for (Action a : on_spawn) {
-                        a.perform(wrapper, parent, summoner, summon);
+                        a.perform(new ActionContext(actionContext.wrapper(), actionContext.parent(), summoner, summon));
                     }
 
                 }

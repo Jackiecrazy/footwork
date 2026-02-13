@@ -1,13 +1,12 @@
 package jackiecrazy.footwork.move.argument;
 
 import jackiecrazy.footwork.move.CircleEnums;
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.EyePositionVectorArgument;
 import jackiecrazy.footwork.move.argument.vector.LookVectorArgument;
 import jackiecrazy.footwork.move.filter.Filter;
 import jackiecrazy.footwork.move.filter.NoFilter;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
@@ -32,17 +31,17 @@ public class SelectorArgument implements Argument<List<Entity>> {
         vector = new LookVectorArgument();
     }
 
-    public List<Entity> resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public List<Entity> resolve(ArgumentContext argumentContext) {
         List<Entity> resolved = new ArrayList<>();
-        Vec3 pos = position.resolve(wrapper, parent, caster, target);
-        Vec3 look = vector.resolve(wrapper, parent, caster, target);
-        double ra = range.resolve(wrapper, parent, caster, target);
+        Vec3 pos = position.resolve(argumentContext);
+        Vec3 look = vector.resolve(argumentContext);
+        double ra = range.resolve(argumentContext);
         if (shape == CircleEnums.SWEEPTYPE.NONE) {
-            if (GeneralUtils.getDistSqCompensated(target, pos) < ra * ra) resolved.add(target);
+            if (GeneralUtils.getDistSqCompensated(argumentContext.target(), pos) < ra * ra) resolved.add(argumentContext.target());
             return resolved;
         }
-        double radius = width.resolve(wrapper, parent, caster, target);
-        for (Entity ent : filter.filter(wrapper, parent, caster, caster, target.level().getEntities(null, new AABB(pos, pos).inflate(ra * 1.5)))) {
+        double radius = width.resolve(argumentContext);
+        for (Entity ent : filter.filter(argumentContext, argumentContext.target().level().getEntities(null, new AABB(pos, pos).inflate(ra * 1.5)))) {
             //type specific sweep checks
             switch (shape) {
                 case CONE -> {

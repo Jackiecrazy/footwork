@@ -1,7 +1,8 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
@@ -9,7 +10,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.Nullable;
 
 public class AddEffectAction extends Action {
     private Argument<ResourceLocation> effect;
@@ -18,11 +18,11 @@ public class AddEffectAction extends Action {
     private Argument<Entity> recipient= TargetEntityArgument.INSTANCE;
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(ActionContext actionContext) {
         if (me == null)
-            me = ForgeRegistries.MOB_EFFECTS.getValue(effect.resolve(wrapper, parent, performer, target));
-        if (me != null && recipient.resolve(wrapper, parent, performer, target) instanceof LivingEntity e) {
-            e.addEffect(new MobEffectInstance(me, duration.resolve(wrapper, parent, performer, target).intValue(), potency.resolve(wrapper, parent, performer, target).intValue()));
+            me = ForgeRegistries.MOB_EFFECTS.getValue(effect.resolve(actionContext));
+        if (me != null && recipient.resolve(actionContext) instanceof LivingEntity e) {
+            e.addEffect(new MobEffectInstance(me, duration.resolve(actionContext).intValue(), potency.resolve(actionContext).intValue()));
         }
         return 0;
     }

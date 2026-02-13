@@ -1,8 +1,7 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -24,9 +23,9 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-            if (tagg == null) tagg = new TagKey<>(ForgeRegistries.ENTITY_TYPES.getRegistryKey(), tag.resolve(wrapper, parent, performer, target));
-            Entity ref = reference.resolve(wrapper, parent, performer, target);
+        public Boolean resolve(ArgumentContext argumentContext) {
+            if (tagg == null) tagg = new TagKey<>(ForgeRegistries.ENTITY_TYPES.getRegistryKey(), tag.resolve(argumentContext));
+            Entity ref = reference.resolve(argumentContext);
             return ref.getType().is(tagg);
         }
     }
@@ -36,9 +35,9 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-            if (tagg == null) tagg = new TagKey<>(Registries.DAMAGE_TYPE, tag.resolve(wrapper, parent, performer, target));
-            DamageSource ref = reference.resolve(wrapper, parent, performer, target);
+        public Boolean resolve(ArgumentContext argumentContext) {
+            if (tagg == null) tagg = new TagKey<>(Registries.DAMAGE_TYPE, tag.resolve(argumentContext));
+            DamageSource ref = reference.resolve(argumentContext);
             return ref.is(tagg);
         }
     }
@@ -48,9 +47,9 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-            if (tagg == null) tagg = new TagKey<>(ForgeRegistries.ITEMS.getRegistryKey(), tag.resolve(wrapper, parent, performer, target));
-            ItemStack ref = reference.resolve(wrapper, parent, performer, target);
+        public Boolean resolve(ArgumentContext argumentContext) {
+            if (tagg == null) tagg = new TagKey<>(ForgeRegistries.ITEMS.getRegistryKey(), tag.resolve(argumentContext));
+            ItemStack ref = reference.resolve(argumentContext);
             return ref.is(tagg);
         }
     }
@@ -60,9 +59,9 @@ public class IsTaggedWithCondition {
         private Argument<ResourceLocation> tag;
 
         @Override
-        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-            if (tagg == null) tagg = new TagKey<>(ForgeRegistries.BLOCKS.getRegistryKey(), tag.resolve(wrapper, parent, performer, target));
-            BlockState ref = reference.resolve(wrapper, parent, performer, target);
+        public Boolean resolve(ArgumentContext argumentContext) {
+            if (tagg == null) tagg = new TagKey<>(ForgeRegistries.BLOCKS.getRegistryKey(), tag.resolve(argumentContext));
+            BlockState ref = reference.resolve(argumentContext);
             return ref.is(tagg);
         }
     }

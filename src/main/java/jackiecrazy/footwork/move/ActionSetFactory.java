@@ -2,7 +2,6 @@ package jackiecrazy.footwork.move;
 
 import com.google.gson.JsonParseException;
 import jackiecrazy.footwork.move.action.Action;
-import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.resources.ResourceLocation;
 
@@ -23,7 +22,7 @@ public class ActionSetFactory {
         return true;
     }
 
-    public TimerActionsWrapper generateActionSet() {
-        return new TimerActionsWrapper(finalized);
+    public ActionSetWrapper generateActionSet() {
+        return new ActionSetWrapper(finalized);
     }
 }

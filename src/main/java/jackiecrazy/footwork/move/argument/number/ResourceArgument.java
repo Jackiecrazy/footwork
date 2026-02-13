@@ -1,8 +1,7 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.ResourceEnums;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import net.minecraft.world.entity.Entity;
@@ -15,8 +14,8 @@ public class ResourceArgument implements Argument<Double> {
 
 
     @Override
-    public Double resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        return reference_point.resolve(wrapper, parent, caster, target) instanceof LivingEntity le ?
+    public Double resolve(ArgumentContext argumentContext) {
+        return reference_point.resolve(argumentContext) instanceof LivingEntity le ?
                 format.resolve(le, resource) : 0;
     }
 }

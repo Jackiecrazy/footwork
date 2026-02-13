@@ -1,11 +1,9 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 public class ClampedVectorArgument extends VectorArgument {
@@ -14,12 +12,12 @@ public class ClampedVectorArgument extends VectorArgument {
             min_x = FixedNumberArgument.MIN, min_y = FixedNumberArgument.MIN, min_z = FixedNumberArgument.MIN;
 
     @Override
-    public Vec3 _resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        Vec3 resolve = clamp.resolve(wrapper, parent, caster, target);
+    public Vec3 _resolve(ArgumentContext argumentContext) {
+        Vec3 resolve = clamp.resolve(argumentContext);
         return new Vec3(
-                Mth.clamp(resolve.x, min_x.resolve(wrapper, parent, caster, target), max_x.resolve(wrapper, parent, caster, target)),
-                Mth.clamp(resolve.y, min_y.resolve(wrapper, parent, caster, target), max_y.resolve(wrapper, parent, caster, target)),
-                Mth.clamp(resolve.z, min_z.resolve(wrapper, parent, caster, target), max_z.resolve(wrapper, parent, caster, target))
+                Mth.clamp(resolve.x, min_x.resolve(argumentContext), max_x.resolve(argumentContext)),
+                Mth.clamp(resolve.y, min_y.resolve(argumentContext), max_y.resolve(argumentContext)),
+                Mth.clamp(resolve.z, min_z.resolve(argumentContext), max_z.resolve(argumentContext))
         );
     }
 }

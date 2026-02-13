@@ -1,15 +1,16 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
-import net.minecraft.world.entity.Entity;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 
-public class ParentTimerArgument extends NumberArgument{
-public static final ParentTimerArgument INSTANCE=new ParentTimerArgument();
+public class ParentTimerArgument extends NumberArgument {
+    public static final ParentTimerArgument INSTANCE = new ParentTimerArgument();
+
     @Override
-    public Double resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        if(!(parent instanceof TimerAction ta))return 0.0;
-        return (double) wrapper.getTimer(ta);
+    public Double resolve(ArgumentContext argumentContext) {
+        if (argumentContext instanceof ActionContext ta && ta.parent() instanceof TimerAction taa)
+            return (double) ta.wrapper().getTimer(taa);
+        return 0d;
     }
 }

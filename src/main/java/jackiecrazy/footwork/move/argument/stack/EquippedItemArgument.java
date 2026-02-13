@@ -1,8 +1,7 @@
 package jackiecrazy.footwork.move.argument.stack;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -14,7 +13,7 @@ public class EquippedItemArgument implements Argument<ItemStack> {
     private EquipmentSlot slot=EquipmentSlot.MAINHAND;
 
     @Override
-    public ItemStack resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        return wielder.resolve(wrapper, parent, caster, target) instanceof LivingEntity e ? e.getItemBySlot(slot) : ItemStack.EMPTY;
+    public ItemStack resolve(ArgumentContext argumentContext) {
+        return wielder.resolve(argumentContext) instanceof LivingEntity e ? e.getItemBySlot(slot) : ItemStack.EMPTY;
     }
 }

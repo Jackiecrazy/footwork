@@ -1,11 +1,10 @@
 package jackiecrazy.footwork.move.argument.resourcelocation;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class ResourceLocationArgument implements Argument<ResourceLocation> {
     public static class Raw extends ResourceLocationArgument{
@@ -17,15 +16,15 @@ public abstract class ResourceLocationArgument implements Argument<ResourceLocat
         }
         private ResourceLocation value;
         @Override
-        public ResourceLocation resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
+        public ResourceLocation resolve(ArgumentContext argumentContext) {
             return value;
         }
     }
     public static class Get extends ResourceLocationArgument{
         private String from;
         @Override
-        public ResourceLocation resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-            return ResourceLocation.tryParse(caster.getPersistentData().getString(from));
+        public ResourceLocation resolve(ArgumentContext argumentContext) {
+            return ResourceLocation.tryParse(argumentContext.performer().getPersistentData().getString(from));
         }
     }
     public static class Store extends Action {
@@ -33,9 +32,9 @@ public abstract class ResourceLocationArgument implements Argument<ResourceLocat
         private String into;
 
         @Override
-        public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-            final ResourceLocation vec = value.resolve(wrapper, parent, performer, target);
-            performer.getPersistentData().putString(into, vec.toString());
+        public int perform(ActionContext actionContext) {
+            final ResourceLocation vec = value.resolve(actionContext);
+            actionContext.performer().getPersistentData().putString(into, vec.toString());
             return 0;
         }
     }

@@ -1,7 +1,8 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
+import jackiecrazy.footwork.move.utils.ActionContext;
 import net.minecraft.world.entity.Entity;
 
 import java.util.ArrayList;
@@ -11,17 +12,17 @@ public class WaitAction extends TimerAction {
     private List<Action> waiting = new ArrayList<>();
 
     @Override
-    public int tick(TimerActionsWrapper wrapper, Entity performer, Entity target) {
-        int childRet=runActions(wrapper, this, waiting, performer, target);
+    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
+        int childRet=runActions(new ActionContext(wrapper, this, performer, target), waiting);
         if(childRet!=0)return childRet;
         return super.tick(wrapper, performer, target);
     }
 
-    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(ActionContext actionContext, boolean recursive) {
         if (recursive) {
-            waiting.forEach(a -> a.stop(wrapper, performer, target, true));
+            waiting.forEach(a -> a.stop(actionContext, true));
         }
-        super.stop(wrapper, performer, target, recursive);
+        super.stop(actionContext, recursive);
     }
 
 }

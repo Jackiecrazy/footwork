@@ -1,8 +1,7 @@
 package jackiecrazy.footwork.move.argument.resourcelocation;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.effect.MobEffect;
@@ -19,8 +18,8 @@ public class RegistryNameArgument extends ResourceLocationArgument {
     Argument<?> of;
 
     @Override
-    public ResourceLocation resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
-        Object obj = of.resolve(wrapper, parent, caster, target);
+    public ResourceLocation resolve(ArgumentContext argumentContext) {
+        Object obj = of.resolve(argumentContext);
         //awful everything
         if (obj instanceof Item i) return ForgeRegistries.ITEMS.getKey(i);
         if (obj instanceof ItemStack i) return ForgeRegistries.ITEMS.getKey(i.getItem());

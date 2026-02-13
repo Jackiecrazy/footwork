@@ -1,8 +1,6 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
-import net.minecraft.world.entity.Entity;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 
 public class FixedNumberArgument extends NumberArgument{
     public static final FixedNumberArgument ZERO = new FixedNumberArgument(0);
@@ -19,7 +17,7 @@ public class FixedNumberArgument extends NumberArgument{
     }
 
     @Override
-    public Double resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Double resolve(ArgumentContext argumentContext) {
         return number;
     }
 }

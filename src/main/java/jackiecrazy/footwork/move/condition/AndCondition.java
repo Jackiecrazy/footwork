@@ -1,8 +1,6 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
-import net.minecraft.world.entity.Entity;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 
 import java.util.List;
 
@@ -17,9 +15,9 @@ public class AndCondition extends Condition {
     List<Condition> values;
 
     @Override
-    public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
+    public Boolean resolve(ArgumentContext argumentContext) {
         for(Condition c: values){
-            if(!c.resolve(wrapper, parent, performer, target))return false;
+            if(!c.resolve(argumentContext))return false;
         }
         return true;
     }

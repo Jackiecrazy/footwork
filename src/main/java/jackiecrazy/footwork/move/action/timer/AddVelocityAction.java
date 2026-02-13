@@ -1,8 +1,10 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -17,9 +19,9 @@ public class AddVelocityAction extends TimerAction {
     private Argument<Vec3> direction= RawVectorArgument.ZERO;
 
     @Override
-    public void start(TimerActionsWrapper wrapper, Entity performer, Entity target) {
-        runActions(wrapper, this, on_launch, performer, target);
-        Vec3 dir = direction.resolve(wrapper, this, performer, target);
+    public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
+        runActions(new ActionContext(wrapper, this, performer, target), on_launch);
+        Vec3 dir = direction.resolve(new ActionContext(wrapper, this, performer, target));
         performer.addDeltaMovement(dir);
         wrapper.setData(this, false);
         if (dir.y > 0) {
@@ -30,26 +32,26 @@ public class AddVelocityAction extends TimerAction {
     }
 
     @Override
-    public int tick(TimerActionsWrapper wrapper, Entity performer, Entity target) {
-        int childRet = runActions(wrapper, this, tick, performer, target);
+    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
+        int childRet = runActions(new ActionContext(wrapper, this, performer, target), tick);
         if (childRet != 0) return childRet;
         if (!performer.onGround()) {
             wrapper.setData(this, true);
         } else if (wrapper.getData(this)) {
             wrapper.setData(this, false);
-            childRet = runActions(wrapper, this, on_land, performer, target);
+            childRet = runActions(new ActionContext(wrapper, this, performer, target), on_land);
             if (childRet != 0) return childRet;
         }
         return super.tick(wrapper, performer, target);
     }
 
-    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(ActionContext actionContext, boolean recursive) {
         if(recursive){
-            on_launch.forEach(a->a.stop(wrapper, performer, target, true));
-            tick.forEach(a->a.stop(wrapper, performer, target, true));
-            on_land.forEach(a->a.stop(wrapper, performer, target, true));
+            on_launch.forEach(a->a.stop(actionContext, true));
+            tick.forEach(a->a.stop(actionContext, true));
+            on_land.forEach(a->a.stop(actionContext, true));
         }
-        super.stop(wrapper, performer, target, recursive);
+        super.stop(actionContext, recursive);
     }
 
 }

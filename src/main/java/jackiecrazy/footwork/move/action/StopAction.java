@@ -1,15 +1,12 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import net.minecraft.world.entity.Entity;
-
-import javax.annotation.Nullable;
+import jackiecrazy.footwork.move.utils.ActionContext;
 
 public class StopAction extends Action {
     boolean recursive=true;
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        parent.stop(wrapper, performer, target, recursive);
+    public int perform(ActionContext actionContext) {
+        actionContext.parent().stop(actionContext, recursive);
         return -1;
     }
 }

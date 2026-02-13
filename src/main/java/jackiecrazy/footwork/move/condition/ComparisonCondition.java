@@ -1,12 +1,9 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class ComparisonCondition extends Condition {
     public enum COMPARISON {
@@ -44,9 +41,9 @@ public abstract class ComparisonCondition extends Condition {
         private COMPARISON comparison;
 
         @Override
-        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-            double f = first.resolve(wrapper, parent, performer, target);
-            double s = second.resolve(wrapper, parent, performer, target);
+        public Boolean resolve(ArgumentContext argumentContext) {
+            double f = first.resolve(argumentContext);
+            double s = second.resolve(argumentContext);
             return compare(comparison, f, s);
         }
     }
@@ -56,9 +53,9 @@ public abstract class ComparisonCondition extends Condition {
 
 
         @Override
-        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
-            ResourceLocation f = first.resolve(wrapper, parent, performer, target);
-            ResourceLocation s = second.resolve(wrapper, parent, performer, target);
+        public Boolean resolve(ArgumentContext argumentContext) {
+            ResourceLocation f = first.resolve(argumentContext);
+            ResourceLocation s = second.resolve(argumentContext);
             return s != null && s.equals(f);
         }
     }
@@ -70,8 +67,8 @@ public abstract class ComparisonCondition extends Condition {
         private COMPARISON count_comparison = COMPARISON.GEQ;
 
         @Override
-        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-            ItemStack stackr = stack.resolve(wrapper, parent, performer, target), comparer = compare.resolve(wrapper, parent, performer, target);
+        public Boolean resolve(ArgumentContext argumentContext) {
+            ItemStack stackr = stack.resolve(argumentContext), comparer = compare.resolve(argumentContext);
             return stackr.getItem().equals(comparer.getItem())
                     && (!compare_count || compare(count_comparison, stackr.getCount(), comparer.getCount()))
                     && (!compare_NBT || (!comparer.hasTag() || comparer.getTag().equals(stackr.getTag())));

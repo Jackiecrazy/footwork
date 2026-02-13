@@ -1,9 +1,7 @@
 package jackiecrazy.footwork.move.action.trigger;
 
-import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.Nullable;
+import jackiecrazy.footwork.move.utils.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,15 +10,15 @@ public class Trigger extends Action {
     private List<Action> execute = new ArrayList<>();
 
     @Override
-    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(ActionContext actionContext, boolean recursive) {
         if (recursive) {
-            execute.forEach(a -> a.stop(wrapper, performer, target, true));
+            execute.forEach(a -> a.stop(actionContext, true));
         }
-        super.stop(wrapper, performer, target, recursive);
+        super.stop(actionContext, recursive);
     }
 
     @Override
-    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
-        return runActions(wrapper, parent, execute, performer, target);
+    public int perform(ActionContext actionContext) {
+        return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), execute);
     }
 }
