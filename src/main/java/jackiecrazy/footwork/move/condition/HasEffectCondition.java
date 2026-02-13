@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
@@ -20,7 +20,7 @@ public class HasEffectCondition extends Condition {
     private Argument<Entity> tested = TargetEntityArgument.INSTANCE;
 
     @Override
-    public Boolean resolve(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public Boolean resolve(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         if (me == null)
             me = ForgeRegistries.MOB_EFFECTS.getValue(effect.resolve(wrapper, parent, performer, target));
         if (me != null && tested.resolve(wrapper, parent, performer, target) instanceof LivingEntity e) {

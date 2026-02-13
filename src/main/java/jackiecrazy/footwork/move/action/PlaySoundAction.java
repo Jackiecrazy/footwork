@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.PositionVectorArgument;
@@ -21,7 +21,7 @@ public class PlaySoundAction extends Action {
     private Argument<Double> pitch = FixedNumberArgument.ONE;
 
     @Override
-    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         if (play == null)
             play = ForgeRegistries.SOUND_EVENTS.getValue(sound.resolve(wrapper, parent, performer, target));
         if (play == null) return 0;

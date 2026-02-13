@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.condition.Condition;
@@ -19,7 +19,7 @@ public class RayTraceVectorArgument extends VectorArgument {
     ClipContext.Fluid fluid_clip = ClipContext.Fluid.NONE;
 
     @Override
-    public Vec3 _resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Vec3 _resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
         Vec3 start = position.resolve(wrapper, parent, caster, target);
         Vec3 look = direction.resolve(wrapper, parent, caster, target);
         double range = distance.resolve(wrapper, parent, caster, target);

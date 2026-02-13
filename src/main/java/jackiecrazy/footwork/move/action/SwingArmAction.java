@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import net.minecraft.world.InteractionHand;
@@ -14,7 +14,7 @@ public class SwingArmAction extends Action {
     private Argument<Entity> swinger = CasterEntityArgument.INSTANCE;
 
     @Override
-    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         if (swinger.resolve(wrapper, parent, performer, target) instanceof LivingEntity e) {
             e.swing(hand, true);
             e.level().broadcastEntityEvent(e, (byte)4);

@@ -3,8 +3,6 @@ package jackiecrazy.footwork.move.action;
 import jackiecrazy.footwork.capability.action.ActionData;
 import jackiecrazy.footwork.move.ActionSets;
 import jackiecrazy.footwork.move.TimerActionsWrapper;
-import jackiecrazy.footwork.move.ActionSetWrapper;
-import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
@@ -23,7 +21,7 @@ public class AttachActionAction extends Action {
     private transient ArrayList<Action> cachedEffect=null;
 
     @Override
-    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity perform, Entity target) {
+    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity perform, Entity target) {
         if(cachedEffect==null) cachedEffect= new ArrayList<>(List.of(ActionJsonAdapters.gson.fromJson(ActionSets.moves.get(effect.resolve(wrapper, parent, perform, target)), Action[].class)));
         ActionData.getCap(recipient.resolve(wrapper, parent, perform, target)).mark(performer.resolve(wrapper, parent, perform, target), new TimerActionsWrapper(cachedEffect));
         return 0;

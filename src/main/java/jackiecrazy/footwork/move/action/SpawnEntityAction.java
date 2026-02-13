@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.move.action;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -34,7 +34,7 @@ public class SpawnEntityAction extends Action {
     private List<Action> on_spawn = new ArrayList<>();
 
     @Override
-    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         Entity summoner = this.summoner.resolve(wrapper, parent, performer, target);
         int toSpawn = quantity.resolve(wrapper, parent, performer, target).intValue();
         double deviation = spread.resolve(wrapper, parent, performer, target);

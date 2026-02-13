@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +15,7 @@ public class AttributeValueArgument implements Argument<Double> {
     private Attribute attr;
 
     @Override
-    public Double resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Double resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
         if (attr == null)
             attr = ForgeRegistries.ATTRIBUTES.getValue(attribute.resolve(wrapper, parent, caster, target));
         if (attr != null && reference_point.resolve(wrapper, parent, caster, target) instanceof LivingEntity le)

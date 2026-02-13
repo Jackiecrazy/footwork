@@ -2,7 +2,7 @@ package jackiecrazy.footwork.move.action;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.PositionVectorArgument;
@@ -30,7 +30,7 @@ public class PlayParticleAction extends Action {
     private Argument<Double> quantity = FixedNumberArgument.ZERO;
 
     @Override
-    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         if (play == null)
             play = ForgeRegistries.PARTICLE_TYPES.getValue(particle.resolve(wrapper, parent, performer, target));
         if (play == null) return 0;

@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -20,7 +20,7 @@ public class LookAtAction extends Action {
     private EntityAnchorArgument.Anchor anchor = EntityAnchorArgument.Anchor.EYES;
 
     @Override
-    public int perform(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public int perform(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         Entity toLook = looker.resolve(wrapper, parent, performer, target);
         if (vector_target != null)
             toLook.lookAt(anchor, vector_target.resolve(wrapper, parent, performer, target));

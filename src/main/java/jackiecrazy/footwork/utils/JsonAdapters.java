@@ -84,7 +84,7 @@ public class JsonAdapters {
                                        JsonDeserializationContext context) throws JsonParseException {
             if (!json.isJsonObject()) throw new JsonParseException(json + " is not a json object");
             JsonObject o = json.getAsJsonObject();
-            MotionFrame mf = NAIVE.fromJson(json, MotionFrame.class);//uhhhh
+            MotionFrame mf = NAIVE.fromJson(json, MotionFrame.class);
             assert mf.direction() != null;
             assert mf.offset() != null;
             if (mf.effects() == null)
@@ -185,7 +185,7 @@ public class JsonAdapters {
                 MotionFrame singleFrame = context.deserialize(obj, MotionFrame.class);
 
                 // Determine duration (fallback or from root)
-                int singleDuration = 20;
+                int singleDuration = 5;
                 if (obj.has("duration"))
                     singleDuration = obj.get("duration").getAsInt();
                 else

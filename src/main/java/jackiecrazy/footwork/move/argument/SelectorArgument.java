@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.move.argument;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.CircleEnums;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.EyePositionVectorArgument;
@@ -32,7 +32,7 @@ public class SelectorArgument implements Argument<List<Entity>> {
         vector = new LookVectorArgument();
     }
 
-    public List<Entity> resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public List<Entity> resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
         List<Entity> resolved = new ArrayList<>();
         Vec3 pos = position.resolve(wrapper, parent, caster, target);
         Vec3 look = vector.resolve(wrapper, parent, caster, target);

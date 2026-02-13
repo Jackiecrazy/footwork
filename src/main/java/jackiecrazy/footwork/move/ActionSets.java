@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.utils.ActionJsonAdapters;
+import jackiecrazy.footwork.utils.JsonUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -33,7 +34,7 @@ public class ActionSets extends SimpleJsonResourceReloadListener {
                          ProfilerFiller profilerFiller) {
         moves.clear();
         object.forEach((key, value) -> {
-            JsonArray file = Macros.parseSyntacticSugar(value.getAsJsonArray()).getAsJsonArray();
+            JsonArray file = JsonUtils.parseSyntacticSugar(value.getAsJsonArray()).getAsJsonArray();
             Footwork.LOGGER.debug("loading action set definition found under {}", key);
             try {
                 a = ActionJsonAdapters.gson.fromJson(file, Action[].class)[0];

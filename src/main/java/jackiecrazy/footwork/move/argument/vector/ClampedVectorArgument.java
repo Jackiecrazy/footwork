@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.vector;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -14,7 +14,7 @@ public class ClampedVectorArgument extends VectorArgument {
             min_x = FixedNumberArgument.MIN, min_y = FixedNumberArgument.MIN, min_z = FixedNumberArgument.MIN;
 
     @Override
-    public Vec3 _resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public Vec3 _resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
         Vec3 resolve = clamp.resolve(wrapper, parent, caster, target);
         return new Vec3(
                 Mth.clamp(resolve.x, min_x.resolve(wrapper, parent, caster, target), max_x.resolve(wrapper, parent, caster, target)),

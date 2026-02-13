@@ -30,6 +30,7 @@ public class ConditionRegistry {
     public static final RegistryObject<ConditionType> HAS_EFFECT = CONDITIONS.register("has_effect", () -> new ConditionType(HasEffectCondition.class));
     public static final RegistryObject<ConditionType> IS_NAMED = CONDITIONS.register("is_named", () -> new ConditionType(IsNamedCondition.class));
     public static final RegistryObject<ConditionType> MOB_IN_TAG = CONDITIONS.register("mob_in_tag", () -> new ConditionType(IsTaggedWithCondition.Mob.class));
+    public static final RegistryObject<ConditionType> CONSUME_RESOURCE = CONDITIONS.register("consume_resource", () -> new ConditionType(ConsumeResourceCondition.class));
 
     //misc//
     public static final RegistryObject<ConditionType> STACK_EQUALS = CONDITIONS.register("compare_itemstack", () -> new ConditionType(ComparisonCondition.Stack.class));

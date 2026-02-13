@@ -36,8 +36,7 @@ public class ArgumentRegistry {
 
     //numbers//
     public static final RegistryObject<ArgumentType<Double>> NUMBER = ARGUMENTS.register("number", () -> new ArgumentType<>(FixedNumberArgument.class));
-    public static final RegistryObject<ArgumentType<Double>> CURRENT_HEALTH = ARGUMENTS.register("current_health", () -> new ArgumentType<>(CurrentHealthArgument.class));
-    public static final RegistryObject<ArgumentType<Double>> HEALTH_PERCENTAGE = ARGUMENTS.register("health_percentage", ()  -> new ArgumentType<>(HealthPercArgument.class));
+    public static final RegistryObject<ArgumentType<Double>> CURRENT_HEALTH = ARGUMENTS.register("resource", () -> new ArgumentType<>(ResourceArgument.class));
     public static final RegistryObject<ArgumentType<Double>> OPERATION = ARGUMENTS.register("operate", ()  -> new ArgumentType<>(OperateArgument.class));
     public static final RegistryObject<ArgumentType<Double>> ATTRIBUTE_VALUE = ARGUMENTS.register("attribute_value", ()  -> new ArgumentType<>(AttributeValueArgument.class));
     public static final RegistryObject<ArgumentType<Double>> DOT_PRODUCT = ARGUMENTS.register("dot_product", ()  -> new ArgumentType<>(DotProductArgument.class));

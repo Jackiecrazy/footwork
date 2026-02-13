@@ -9,6 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringUtil;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -99,24 +100,7 @@ public class HitInfo {
     public boolean runEffects(LivingEntity hitter, LivingEntity target, boolean self, boolean damage) {
 
         HitEffects he = self ? (damage ? damage_self : hit_self) : (damage ? damage_other : hit_other);
-        Level level = target.level();
-        if (!level.isClientSide) {
-            MovementUtils.applyVelocity(he.velocity(), target, he.set_velocity());
-            ActionData.getCap(target).mark(hitter, new TimerActionsWrapper(he.run_actions));//todo check if this works
-            MinecraftServer minecraftserver = level.getServer();
-            String command = he.command();
-            if (!StringUtil.isNullOrEmpty(command)) {
-                try {
-                    CommandSourceStack commandsourcestack = new CommandSourceStack(target, target.position(), target.getRotationVector(), level instanceof ServerLevel s ? s : null, 3, target.getName().getString(), target.getDisplayName(), level.getServer(), target).withSuppressedOutput();
-                    minecraftserver.getCommands().performPrefixedCommand(commandsourcestack, command);
-                } catch (Throwable ignored) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
+        return he.runEffects(hitter, target);
     }
 
     public boolean canBreach() {

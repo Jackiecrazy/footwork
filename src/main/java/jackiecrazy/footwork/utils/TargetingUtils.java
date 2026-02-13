@@ -16,9 +16,9 @@ public class TargetingUtils {
             return true;
         if (of instanceof OwnableEntity own && (own.getOwner() == entity || isAlly(own.getOwner(), entity)))
             return true;
-        if (entity instanceof Projectile p && (p.getOwner() == of || isAlly(p.getOwner(), of)))
+        if (entity instanceof TraceableEntity p && (p.getOwner() == of || isAlly(p.getOwner(), of)))
             return true;
-        if (of instanceof Projectile p && (p.getOwner() == entity || isAlly(p.getOwner(), entity)))
+        if (of instanceof TraceableEntity p && (p.getOwner() == entity || isAlly(p.getOwner(), entity)))
             return true;
 
         //alliance check

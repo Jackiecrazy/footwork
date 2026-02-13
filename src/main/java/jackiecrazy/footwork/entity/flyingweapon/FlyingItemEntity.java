@@ -195,6 +195,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         final int id = entityData.get(TARGET_ID);
         if (target == null || target.getId() != id)
             target = level().getEntity(id);
+        if(target==null)return getOwner();
         return target;
     }
 
@@ -537,8 +538,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 Vector3f look = getEntityData().get(LOCK_LOOK);
                 Vec3 poss = new Vec3(pos);
                 Vec3 lookk = new Vec3(look);
-                if (pos.equals(BOGUS)) poss = getOwner().position().add(0, getOwner().getBbHeight() / 2, 0);
-                if (look.equals(BOGUS)) lookk = getOwner().getLookAngle();
+                if (pos.equals(BOGUS)) poss = getMotionTarget().position().add(0, getMotionTarget().getBbHeight() / 2, 0);
+                if (look.equals(BOGUS)) lookk = getMotionTarget().getLookAngle();
                 return new Tuple<>(poss, lookk);//fixme
             }
         }
@@ -597,7 +598,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         Vec3 forward = null;
         if (getState() == STATE.FOLLOW) {
             Vector3f look = getEntityData().get(LOCK_LOOK);
-            if (look.equals(BOGUS)) forward = getOwner().getLookAngle().normalize();
+            if (look.equals(BOGUS)) forward = getMotionTarget().getLookAngle().normalize();
             else forward = new Vec3(look);
             if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
         }

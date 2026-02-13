@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.resources.ResourceLocation;
@@ -44,7 +44,7 @@ public abstract class ComparisonCondition extends Condition {
         private COMPARISON comparison;
 
         @Override
-        public Boolean resolve(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
+        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
             double f = first.resolve(wrapper, parent, performer, target);
             double s = second.resolve(wrapper, parent, performer, target);
             return compare(comparison, f, s);
@@ -56,7 +56,7 @@ public abstract class ComparisonCondition extends Condition {
 
 
         @Override
-        public Boolean resolve(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
+        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
             ResourceLocation f = first.resolve(wrapper, parent, performer, target);
             ResourceLocation s = second.resolve(wrapper, parent, performer, target);
             return s != null && s.equals(f);
@@ -70,7 +70,7 @@ public abstract class ComparisonCondition extends Condition {
         private COMPARISON count_comparison = COMPARISON.GEQ;
 
         @Override
-        public Boolean resolve(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+        public Boolean resolve(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
             ItemStack stackr = stack.resolve(wrapper, parent, performer, target), comparer = compare.resolve(wrapper, parent, performer, target);
             return stackr.getItem().equals(comparer.getItem())
                     && (!compare_count || compare(count_comparison, stackr.getCount(), comparer.getCount()))

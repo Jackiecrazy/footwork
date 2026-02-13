@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.resourcelocation;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +19,7 @@ public class RegistryNameArgument extends ResourceLocationArgument {
     Argument<?> of;
 
     @Override
-    public ResourceLocation resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
+    public ResourceLocation resolve(TimerActionsWrapper wrapper, Action parent, Entity caster, Entity target) {
         Object obj = of.resolve(wrapper, parent, caster, target);
         //awful everything
         if (obj instanceof Item i) return ForgeRegistries.ITEMS.getKey(i);

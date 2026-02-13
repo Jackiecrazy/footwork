@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.argument.number;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.world.entity.Entity;
@@ -10,7 +10,7 @@ public class OperateArgument implements Argument<Double> {
     private OPERATOR operation;
 
     @Override
-    public Double resolve(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
+    public Double resolve(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
         double f = first.resolve(wrapper, parent, performer, target);
         double s = second.resolve(wrapper, parent, performer, target);
         return switch (operation) {

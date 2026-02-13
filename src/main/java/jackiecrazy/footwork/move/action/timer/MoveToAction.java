@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -19,7 +19,7 @@ public class MoveToAction extends TimerAction {
     private Argument<Vec3> position;
 
     @Override
-    public boolean canRun(ActionSetWrapper wrapper, Action parent, Entity performer, Entity target) {
+    public boolean canRun(TimerActionsWrapper wrapper, Action parent, Entity performer, Entity target) {
         Vec3 moveTo = position.resolve(wrapper, this, performer, target);
         if (performer instanceof Mob m) {
             Path path = m.getNavigation().createPath(moveTo.x, moveTo.y, moveTo.z, 0);
@@ -34,7 +34,7 @@ public class MoveToAction extends TimerAction {
     }
 
     @Override
-    public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
+    public void start(TimerActionsWrapper wrapper, Entity performer, Entity target) {
         runActions(wrapper, this, on_start, performer, target);
 
         //m.getMoveControl().setWantedPosition(dir.x, dir.y, dir.z, speed_modifier.resolve(wrapper, this, performer, target));
@@ -42,14 +42,14 @@ public class MoveToAction extends TimerAction {
     }
 
     @Override
-    public boolean isFinished(ActionSetWrapper wrapper, Entity performer, Entity target) {
+    public boolean isFinished(TimerActionsWrapper wrapper, Entity performer, Entity target) {
         if (super.isFinished(wrapper, performer, target)) return true;
         Path p = wrapper.getData(this);
         return p != null && p.isDone();
     }
 
     @Override
-    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
+    public int tick(TimerActionsWrapper wrapper, Entity performer, Entity target) {
         if(performer instanceof Mob m){
             m.getNavigation().tick();
         }
@@ -58,7 +58,7 @@ public class MoveToAction extends TimerAction {
         return super.tick(wrapper, performer, target);
     }
 
-    public void stop(ActionSetWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
         if (performer instanceof Mob m)
             m.getNavigation().stop();
         if (recursive) {

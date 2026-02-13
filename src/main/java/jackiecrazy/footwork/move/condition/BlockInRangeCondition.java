@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.condition;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -23,7 +23,7 @@ public class BlockInRangeCondition extends Condition {
     private Argument<Vec3> from = PositionVectorArgument.CASTER;
 
     @Override
-    public Boolean resolve(ActionSetWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
+    public Boolean resolve(TimerActionsWrapper wrapper, Action parent, @Nullable Entity performer, Entity target) {
         boolean testTag=testAsTag.resolve(wrapper, parent, performer, target);
         if (testTag) {
             if (tag == null)

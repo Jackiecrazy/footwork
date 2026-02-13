@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.action.timer;
 
-import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.TimerActionsWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
@@ -17,7 +17,7 @@ public class AddVelocityAction extends TimerAction {
     private Argument<Vec3> direction= RawVectorArgument.ZERO;
 
     @Override
-    public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
+    public void start(TimerActionsWrapper wrapper, Entity performer, Entity target) {
         runActions(wrapper, this, on_launch, performer, target);
         Vec3 dir = direction.resolve(wrapper, this, performer, target);
         performer.addDeltaMovement(dir);
@@ -30,7 +30,7 @@ public class AddVelocityAction extends TimerAction {
     }
 
     @Override
-    public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
+    public int tick(TimerActionsWrapper wrapper, Entity performer, Entity target) {
         int childRet = runActions(wrapper, this, tick, performer, target);
         if (childRet != 0) return childRet;
         if (!performer.onGround()) {
@@ -43,7 +43,7 @@ public class AddVelocityAction extends TimerAction {
         return super.tick(wrapper, performer, target);
     }
 
-    public void stop(ActionSetWrapper wrapper, Entity performer, Entity target, boolean recursive) {
+    public void stop(TimerActionsWrapper wrapper, Entity performer, Entity target, boolean recursive) {
         if(recursive){
             on_launch.forEach(a->a.stop(wrapper, performer, target, true));
             tick.forEach(a->a.stop(wrapper, performer, target, true));

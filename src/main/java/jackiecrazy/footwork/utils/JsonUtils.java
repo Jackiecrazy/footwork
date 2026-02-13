@@ -2,9 +2,15 @@ package jackiecrazy.footwork.utils;
 
 import com.google.gson.*;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEffect;
+import jackiecrazy.footwork.move.Macros;
+import jackiecrazy.footwork.move.argument.number.OperateArgument;
+import jackiecrazy.footwork.move.condition.ComparisonCondition;
 import jackiecrazy.footwork.move.motionframe.FrameEffects;
 import jackiecrazy.footwork.move.motionframe.HitInfo;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.Arrays;
+import java.util.Locale;
 
 public class JsonUtils {
     /**
@@ -143,5 +149,70 @@ public class JsonUtils {
         //fixme figure out when should main class hit info overwrite frame-specific hit
 
         return ret;
+    }
+
+    public static JsonElement parseSyntacticSugar(JsonElement element) {
+        if (element.isJsonObject()) {
+            JsonObject obj = element.getAsJsonObject();
+
+            if (obj.has("execute_macro")) {
+                return Macros.expandMacroWithParams(obj);
+            }
+
+            if (obj.has("ID")) {
+                String id = obj.get("ID").getAsString();
+                //operations syntactic sugar
+                final String upperCase = id.toUpperCase(Locale.ROOT);
+                if (Arrays.stream(OperateArgument.OPERATOR.values()).anyMatch(a -> a.name().equals(upperCase))) {
+                    OperateArgument.OPERATOR op = OperateArgument.OPERATOR.valueOf(upperCase);
+                    obj.addProperty("operation", op.toString());
+                    obj.addProperty("ID", "operate");
+                }
+                if (Arrays.stream(OperateArgument.OPERATOR.values()).anyMatch(a -> a.toString().equals(upperCase))) {
+                    obj.addProperty("operation", upperCase);
+                    obj.addProperty("ID", "operate");
+                }
+
+                //conditions syntactic sugar
+                if (Arrays.stream(ComparisonCondition.COMPARISON.values()).anyMatch(a -> a.name().equals(upperCase))) {
+                    ComparisonCondition.COMPARISON op = ComparisonCondition.COMPARISON.valueOf(upperCase);
+                    obj.addProperty("comparison", op.toString());
+                    obj.addProperty("ID", "compare_number");
+                } else if (Arrays.stream(ComparisonCondition.COMPARISON.values()).anyMatch(a -> a.toString().equals(upperCase))) {
+                    obj.addProperty("comparison", upperCase);
+                    obj.addProperty("ID", "compare_number");
+                }
+            }
+
+            //time window syntactic sugar
+            if (obj.has("time_window")) {
+                String time = obj.getAsJsonPrimitive("time_window").getAsString();
+                int splitIndex = time.indexOf("-");
+                if (splitIndex < 0) splitIndex = time.length() - 1;
+                String from = time.substring(0, splitIndex);
+                String to = time.substring(splitIndex + 1);
+                obj.addProperty("ID", "time_window");
+                if (!from.isEmpty())
+                    obj.addProperty("from", Integer.valueOf(from));
+                if (!to.isEmpty())
+                    obj.addProperty("to", Integer.valueOf(to));
+            }
+
+            JsonObject copy = new JsonObject();
+            for (var e : obj.entrySet()) {
+                copy.add(e.getKey(), parseSyntacticSugar(e.getValue()));
+            }
+            return copy;
+        }
+
+        if (element.isJsonArray()) {
+            JsonArray arr = new JsonArray();
+            for (JsonElement e : element.getAsJsonArray()) {
+                arr.add(parseSyntacticSugar(e));
+            }
+            return arr;
+        }
+
+        return element;
     }
 }
