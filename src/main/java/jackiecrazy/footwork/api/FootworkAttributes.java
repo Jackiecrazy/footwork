@@ -17,7 +17,7 @@ public class FootworkAttributes {
     public static final RegistryObject<Attribute> ENCIRCLEMENT_DISTANCE = ATTRIBUTES.register("encirclement_distance", () -> new RangedAttribute(Footwork.MODID + ".encirclement_distance", 0d, 0, 1024).setSyncable(true));
 
     public static final RegistryObject<Attribute> MAX_POSTURE = ATTRIBUTES.register("max_posture", () -> new RangedAttribute(Footwork.MODID + ".maxPosture", 0d, 0, 1024).setSyncable(true));
-    public static final RegistryObject<Attribute> MAX_QI = ATTRIBUTES.register("max_qi", () -> new RangedAttribute(Footwork.MODID + ".maxSpirit", 70d, 0, 1024).setSyncable(true));
+    public static final RegistryObject<Attribute> MAX_QI = ATTRIBUTES.register("max_spirit", () -> new RangedAttribute(Footwork.MODID + ".maxSpirit", 70d, 0, 1024).setSyncable(true));
 
     public static final RegistryObject<Attribute> SKILL_EFFECTIVENESS = ATTRIBUTES.register("skill_effectiveness", () -> new RangedAttribute(Footwork.MODID + ".skill_effectiveness", 1d, 0, 100).setSyncable(true));
     public static final RegistryObject<Attribute> TWO_HANDING = ATTRIBUTES.register("two_handing", () -> new RangedAttribute(Footwork.MODID + ".two_handing", 0d, -1, 4).setSyncable(true));

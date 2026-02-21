@@ -91,8 +91,8 @@ public class JsonAdapters {
                 mf.setEffects(JsonUtils.extractRootFrameEffects(o, context, false));
             if (mf.renderOrientation() == null) {
                 //try checking other fields: int rotation or vec4f dir+rot
-                if (o.has("renderRotation")) {
-                    JsonElement spinElem = o.get("renderRotation");
+                if (o.has("render_rotation")) {
+                    JsonElement spinElem = o.get("render_rotation");
                     if (spinElem.isJsonPrimitive() && spinElem.getAsJsonPrimitive().isNumber()) {
                         // Scalar number → apply to X-axis only (common convention for yaw spin)
                         int scalar = spinElem.getAsInt();
@@ -101,8 +101,8 @@ public class JsonAdapters {
                     } else if (spinElem.isJsonArray()) {
                         // [x, y, z]
                         JsonArray arr = spinElem.getAsJsonArray();
-                        if (arr.size() != 3) {
-                            throw new JsonParseException("'spin' array must have exactly 3 elements");
+                        if (arr.size() != 4) {
+                            throw new JsonParseException("render_rotation array must have exactly 4 elements");
                         }
                         Vector4d spinVector = new Vector4d(
                                 arr.get(0).getAsDouble(),
@@ -110,6 +110,9 @@ public class JsonAdapters {
                                 arr.get(2).getAsDouble(),
                                 arr.get(3).getAsDouble()
                         );
+                        if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
+                            throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
+                        }
                         mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
 
                     } else if (spinElem.isJsonObject()) {
@@ -121,10 +124,14 @@ public class JsonAdapters {
                                 spinObj.has("z") ? spinObj.get("z").getAsDouble() : 0,
                                 spinObj.has("w") ? spinObj.get("w").getAsDouble() : 0
                         );
+
+                        if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
+                            throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
+                        }
                         mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
 
                     } else {
-                        throw new JsonParseException("'renderorientation' must be a number, array[4], or object{x,y,z,w}");
+                        throw new JsonParseException("'render_rotation' must be a number, array[4], or object{x,y,z,w}");
                     }
                 } else mf = new MotionFrame(mf.direction(), mf.offset()).setEffects(mf.effects());
             }

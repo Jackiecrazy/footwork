@@ -25,6 +25,7 @@ public class ConditionRegistry {
     //entity//
     public static final RegistryObject<ConditionType> TIME_WINDOW = CONDITIONS.register("time_window", () -> new ConditionType(TimeWindowCondition.class));
     public static final RegistryObject<ConditionType> IS_TARGET = CONDITIONS.register("is_target", () -> new ConditionType(IsTargetCondition.class));
+    public static final RegistryObject<ConditionType> ON_GROUND = CONDITIONS.register("on_ground", () -> new ConditionType(OnGroundCondition.class));
     public static final RegistryObject<ConditionType> CAN_SEE = CONDITIONS.register("can_see", () -> new ConditionType(CanSeeCondition.class));
     public static final RegistryObject<ConditionType> IS_ALIVE = CONDITIONS.register("is_alive", () -> new ConditionType(IsAliveCondition.class));
     public static final RegistryObject<ConditionType> HAS_EFFECT = CONDITIONS.register("has_effect", () -> new ConditionType(HasEffectCondition.class));

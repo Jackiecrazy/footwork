@@ -24,7 +24,7 @@ public class HasEffectCondition extends Condition {
         if (me != null && tested.resolve(argumentContext) instanceof LivingEntity e) {
             MobEffectInstance inst = e.getEffect(me);
             if (inst != null) {
-                return inst.getDuration() > (minimum_duration.resolve(argumentContext)) && inst.getAmplifier() > minimum_potency.resolve(argumentContext);
+                return inst.getDuration() >= (minimum_duration.resolve(argumentContext)) && inst.getAmplifier() >= minimum_potency.resolve(argumentContext);
             }
         }
         return false;

@@ -11,18 +11,18 @@ import java.util.List;
 
 public abstract class MotionManager {
     public MotionManager setAngularVelocity(Vector3f angularVelocity) {
-        this.angularVelocity = angularVelocity;
+        this.angular_velocity = angularVelocity;
         return this;
     }
 
-    private Vector3f angularVelocity = new Vector3f();       // radians per tick, axis * speed
+    private Vector3f angular_velocity = new Vector3f();       // radians per tick, axis * speed
     protected Quaternionf getRuntimeRotation(int ticks, float partialTick, Quaternionf out) {
-        float speed = angularVelocity.length();
+        float speed = angular_velocity.length();
         if (speed < 1e-6f) {
             return out.identity();
         }
 
-        Vector3f axis = new Vector3f(angularVelocity).normalize();
+        Vector3f axis = new Vector3f(angular_velocity).normalize();
 
         // Total angle = ω × time
         float angle = speed * (ticks + partialTick);

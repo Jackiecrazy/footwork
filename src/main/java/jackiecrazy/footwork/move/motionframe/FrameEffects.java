@@ -7,11 +7,22 @@ import java.util.List;
 
 //Not synced to the client!
 public class FrameEffects {
-    private HitInfo hit = null;
+    private HitInfo attack_info = null;
     private List<FlyingWeaponEffect> effects = null;
     private double range = -1;
     private Vec3 velocity = Vec3.ZERO;
     private boolean set_velocity = false;
+
+    public FrameEffects resetHit(boolean reset_hit) {
+        this.reset_hit = reset_hit;
+        return this;
+    }
+
+    public boolean reset_hit() {
+        return reset_hit;
+    }
+
+    private boolean reset_hit=false;
 
     public FrameEffects() {
 
@@ -28,11 +39,11 @@ public class FrameEffects {
 //    }
 
     public HitInfo getHit() {
-        return hit;
+        return attack_info;
     }
 
-    public FrameEffects setHit(HitInfo hit) {
-        this.hit = hit;
+    public FrameEffects setHit(HitInfo attack_info) {
+        this.attack_info = attack_info;
         return this;
     }
 

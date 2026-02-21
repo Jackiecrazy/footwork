@@ -5,15 +5,36 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 public class HitInfo {
-    public static final HitInfo THROWN = new HitInfo(0, 1, 1, true, false, 1);
-    public static final HitInfo BREACH = new HitInfo(0, 1, 1, true, true, 2);
-
+    public static final HitInfo THROWN = new HitInfo(0, 1, 1, true, false, 1).setSpirit_multiplier(0);
+    public static final HitInfo BREACH = new HitInfo(0, 1, 1, true, true, 2).setSpirit_multiplier(0);
     public double knockback = 1;
     public double damage_scale = 1;
     public double posture_scale = 1;
     public boolean crit = false;
     public boolean breach = false;
     public double crit_damage = 1.5;
+    public double spirit_multiplier = 1;
+    protected int guard_frames=0;
+    protected int dodge_frames=0;
+    protected int parry_frames=0;
+
+    public int guard_frames() {
+        return guard_frames;
+    }
+
+    public int dodge_frames() {
+        return dodge_frames;
+    }
+
+    public int parry_frames() {
+        return parry_frames;
+    }
+
+    public int invulnerable_frames() {
+        return invulnerable_frames;
+    }
+
+    protected int invulnerable_frames=0;
     protected Vec3 knockback_direction = new Vec3(0, 0.2, 0.98);
     protected HitEffects hit_self = new HitEffects();
     protected HitEffects damage_self = new HitEffects();
@@ -35,6 +56,15 @@ public class HitInfo {
         this.crit = crit;
         this.breach = breach;
         this.crit_damage = crit_damage;
+    }
+
+    public HitInfo setSpirit_multiplier(double spirit_multiplier) {
+        this.spirit_multiplier = spirit_multiplier;
+        return this;
+    }
+
+    public double spirit_multiplier() {
+        return spirit_multiplier;
     }
 
     public HitEffects hit_self() {
@@ -68,6 +98,8 @@ public class HitInfo {
         ret.damage_self = damage_self.copy();
         ret.hit_other = hit_other.copy();
         ret.damage_other = damage_other.copy();
+        ret.knockback_direction = knockback_direction;
+        ret.breach = breach;
         return ret;
     }
 
@@ -77,6 +109,7 @@ public class HitInfo {
         f.writeDouble(posture_scale);
         f.writeBoolean(crit);
         f.writeDouble(crit_damage);
+        f.writeDouble(spirit_multiplier);
     }
 
     public void read(FriendlyByteBuf f) {
@@ -85,6 +118,7 @@ public class HitInfo {
         posture_scale = f.readDouble();
         crit = f.readBoolean();
         crit_damage = f.readDouble();
+        spirit_multiplier = f.readDouble();
     }
 
     public boolean runEffects(LivingEntity hitter, LivingEntity target, boolean self, boolean damage) {

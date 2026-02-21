@@ -100,6 +100,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     public void setIdlePose(MotionManager idlePose) {
         entityData.set(IDLE_POSE, idlePose);
+        updateFrameEffects(idlePose.getStartFrame().effects());
     }
 
     public Vec3 getUniversalOffset() {
@@ -219,7 +220,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             if(motion!=null)
                 updateFrameEffects(motion.getEndFrame().effects());
             moveQueue.poll();
-            //motion = moveQueue.peek();
+            motion = moveQueue.peek();
+            if(motion!=null)
+                this.updateFrameEffects(motion.getStartFrame().effects());
             //setTransitioning(motion == null || motion instanceof MotionManagers.TransitionMM);
             animProgress = 0;
             flushTrailHistory();
@@ -348,16 +351,21 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (getOwner() != null && getMotionTarget() != null) {
 
             if (!moveQueue.isEmpty()) {
+                wasIdle=false;
                 entityData.set(IDLE_TICK, 0);
                 animProgress++;
                 executeMoveQueue();
-
             } else if (getState() == STATE.THROW_TRACK) {
+                wasIdle=false;
                 trackingFly();
             } else if (getState() == STATE.THROW_NATURAL) {
+                wasIdle=false;
                 naturallyFly();
             } else if (isIdle()) {
                 //idle state
+                if(!wasIdle)
+                    updateFrameEffects(getIdlePose().getStartFrame().effects());
+                wasIdle=true;
                 entityData.set(IDLE_TICK, getIdlePose().getDuration());
                 returnToIdle(getIdlePose().getDuration());
             }
@@ -380,10 +388,49 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             }
         }
     }
+    protected boolean wasIdle=false;
 
     private void trackingFly() {
-        if (getDeltaMovement().lengthSqr() > 0.003)
+        Vec3 velocity = getDeltaMovement();
+        double speed = velocity.length();
+
+        if (speed < 0.01) {
+            // emergency recovery
+            Vec3 dir = getMotionTarget().getEyePosition()
+                    .subtract(position()).normalize();
+            setDeltaMovement(dir.scale(getMinimumSpeed()));
+            return;
+        }
+
+        Vec3 toTargetDir = getMotionTarget().getEyePosition()
+                .subtract(position()).normalize();
+
+        // Project toTarget onto the plane perpendicular to current velocity
+        Vec3 forward = velocity.normalize();
+        double dot = forward.dot(toTargetDir);
+        Vec3 lateralCorrection = toTargetDir.subtract(forward.scale(dot));
+
+        double turnAggression = 0.22;        // ← main tuning value (0.15–0.35 typical)
+        // 0.18 → gentle arc, 0.28 → quite aggressive, 0.35+ → very sharp
+
+        Vec3 newVelocity = velocity.add(lateralCorrection.scale(turnAggression * speed));
+
+        // Optional: very gentle speed recovery when turning hard
+        double targetSpeed = getMinimumSpeed();                    // or Math.max(speed, getBaseSpeed())
+        double speedRecovery = 0.04;                            // 0 = perfect conservation
+        newVelocity = newVelocity.normalize().scale(
+                speed + (targetSpeed - speed) * speedRecovery
+        );
+
+        setDeltaMovement(newVelocity);
+
+        if (speed > 0.003) {
             recalculatedOrientation = recalculateOrientation(nothing, 1);
+        }
+    }
+
+    private double getMinimumSpeed() {
+        return 0.5;
     }
 
     private void naturallyFly() {
@@ -615,6 +662,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public Vector4d recalculateOrientation(Quaternionf localOrientation, float snappiness) {
         // Get world-space base rotation
         Vec3 worldBase = stateDependentOrientation(); // Identity for base
+        if(worldBase.lengthSqr()<0.003) worldBase=new Vec3(0,-1,0);//fallback
 
         // rotate into world frame
         Quaternionf worldQuat = MotionFrame.lookQuatFromVec(worldBase).normalize();

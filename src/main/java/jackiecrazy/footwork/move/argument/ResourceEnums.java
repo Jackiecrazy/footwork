@@ -106,7 +106,7 @@ public class ResourceEnums {
             double max = type.getMax(le);
             double effectiveCost = format.apply(value, max);   // e.g. percentage → value/100 * max
             double current = type.getCurrent(le);
-            float f = value.floatValue();
+            float f = (float) effectiveCost;
             switch (type) {
                 case POSTURE -> {
                     return CombatData.getCap(le).consumePosture(f) == 0;

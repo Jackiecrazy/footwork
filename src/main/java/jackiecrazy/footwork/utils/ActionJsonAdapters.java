@@ -55,6 +55,7 @@ public class ActionJsonAdapters {
             .registerTypeAdapter(Filter.class, new FilterAdapter())
             .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
             .registerTypeAdapter(CompoundTag.class, new NBTAdapter())
+            .registerTypeAdapter(Vec3.class, new JsonAdapters.Vec3TypeAdapter())
             .setPrettyPrinting()
             .create();
 
@@ -280,6 +281,7 @@ public class ActionJsonAdapters {
                 }
                 throw new JsonParseException("invalid ID " + rl + " defined for condition object: " + json);
             }
+            //throw new JsonParseException("no ID, cannot read condition object: " + json);
             return TrueCondition.INSTANCE;
         }
     }

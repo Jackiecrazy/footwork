@@ -45,6 +45,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> STORE_VECTOR = ACTIONS.register("store_vector", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, VectorArgument.Store.class));
     public static final RegistryObject<ActionType> STORE_ENTITY = ACTIONS.register("store_entity", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, EntityArgument.Store.class));
     public static final RegistryObject<ActionType> STORE_RLOC = ACTIONS.register("store_resource_location", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ResourceLocationArgument.Store.class));
+    public static final RegistryObject<ActionType> ALTER_RESOURCE = ACTIONS.register("change_resource", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AlterResourceAction.class));
 
     public static final RegistryObject<ActionType> DEBUG = ACTIONS.register("debug", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, DebugAction.class));
     public static final RegistryObject<ActionType> DEAL_DAMAGE = ACTIONS.register("deal_damage", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, DealDamageAction.class));

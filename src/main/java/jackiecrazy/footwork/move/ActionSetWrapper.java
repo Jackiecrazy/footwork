@@ -66,7 +66,7 @@ public class ActionSetWrapper {
                 break;
             }
         }
-        if (currentMove.isFinished(this, performer, target)) {
+        if (currentMove == null || currentMove.isFinished(this, performer, target)) {
             //natural progression//
             index++;
             currentMove = continueUntilValid(performer, target);

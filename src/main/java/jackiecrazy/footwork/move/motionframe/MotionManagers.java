@@ -17,7 +17,7 @@ public class MotionManagers {
 
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
-            return frame.setRenderOrientation(resolveFinalRotation(frame, elapsedTicks, 0, new Quaternionf()));
+            return frame.setRenderRotation(resolveFinalRotation(frame, elapsedTicks, 0, new Quaternionf()));
         }
 
         @Override
@@ -81,7 +81,7 @@ public class MotionManagers {
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
             MotionFrame lerped = from.lerp(to, easing.ease((double) elapsedTicks / totalDuration));
-            return lerped.setRenderOrientation(resolveFinalRotation(lerped, elapsedTicks, 0, new Quaternionf()));
+            return lerped.setRenderRotation(resolveFinalRotation(lerped, elapsedTicks, 0, new Quaternionf()));
         }
 
         @Override
@@ -220,7 +220,7 @@ public class MotionManagers {
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
             final MotionFrame lerped = def.interpret(elapsedTicks);
-            return lerped.setRenderOrientation(resolveFinalRotation(lerped, elapsedTicks, 0, new Quaternionf()));
+            return lerped.setRenderRotation(resolveFinalRotation(lerped, elapsedTicks, 0, new Quaternionf()));
         }
 
         @Override

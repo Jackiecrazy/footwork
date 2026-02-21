@@ -13,10 +13,21 @@ public class ConsumeResourceCondition extends Condition {
     private ResourceEnums.ResourceFormat format = ResourceEnums.ResourceFormat.NUMBER;
     private ResourceEnums.TYPE resource;
     private NumberArgument amount;
-    private ResourceEnums.ResourceOperation operation;
+
+    public ConsumeResourceCondition() {
+    }
+
+    public ConsumeResourceCondition(ResourceEnums.ResourceFormat format,
+                                    ResourceEnums.TYPE resource,
+                                    NumberArgument amount) {
+        this.reference_point = CasterEntityArgument.INSTANCE;
+        this.format = format;
+        this.resource = resource;
+        this.amount = amount;
+    }
 
     @Override
     public Boolean resolve(ArgumentContext argumentContext) {
-        return reference_point.resolve(argumentContext) instanceof LivingEntity le && operation.apply(le, resource, amount.resolve(argumentContext), format);
+        return reference_point.resolve(argumentContext) instanceof LivingEntity le && ResourceEnums.ResourceOperation.CONSUME.apply(le, resource, amount.resolve(argumentContext), format);
     }
 }

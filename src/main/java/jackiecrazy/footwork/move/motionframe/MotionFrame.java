@@ -16,10 +16,10 @@ public class MotionFrame {
         public void write(FriendlyByteBuf buf, MotionFrame frame) {
             buf.writeVector3f(frame.direction.toVector3f());
             buf.writeVector3f(frame.offset.toVector3f());
-            buf.writeDouble(frame.renderOrientation.x);
-            buf.writeDouble(frame.renderOrientation.y);
-            buf.writeDouble(frame.renderOrientation.z);
-            buf.writeDouble(frame.renderOrientation.w);
+            buf.writeDouble(frame.renderRotation.x);
+            buf.writeDouble(frame.renderRotation.y);
+            buf.writeDouble(frame.renderRotation.z);
+            buf.writeDouble(frame.renderRotation.w);
         }
 
         @Override
@@ -29,12 +29,12 @@ public class MotionFrame {
 
         @Override
         public MotionFrame copy(MotionFrame mf) {
-            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Quaternionf(mf.renderOrientation), mf.effects);
+            return new MotionFrame(mf.direction.scale(1), mf.offset.scale(1), new Quaternionf(mf.renderRotation), mf.effects);
         }
     };
     private Vec3 direction = new Vec3(0, 0, 1);
     private Vec3 offset = new Vec3(0, 0, 1);
-    private Quaternionf renderOrientation;
+    private Quaternionf renderRotation;//this is not in snake_case because this is usually synthesized later
     private FrameEffects effects;
 
     public MotionFrame() {
@@ -49,15 +49,15 @@ public class MotionFrame {
         this(dir, offset, new Vector4d(dir.x, dir.y, dir.z, rotation));
     }
 
-    public MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrientation, FrameEffects effects) {
+    public MotionFrame(Vec3 direction, Vec3 offset, Quaternionf render_orientation, FrameEffects effects) {
         this.direction = direction;
         this.offset = offset;
-        this.renderOrientation = renderOrientation;
+        this.renderRotation = render_orientation;
         this.effects = effects;
     }
 
-    public MotionFrame(Vec3 direction, Vec3 offset, Quaternionf renderOrientation) {
-        this(direction, offset, renderOrientation, null);
+    public MotionFrame(Vec3 direction, Vec3 offset, Quaternionf render_orientation) {
+        this(direction, offset, render_orientation, null);
     }
 
     public MotionFrame(Vec3 dir, Vec3 offset, Vector4d orthodox) {
@@ -124,7 +124,7 @@ public class MotionFrame {
     }
 
     public Quaternionf renderOrientation() {
-        return renderOrientation;
+        return renderRotation;
     }
 
     public FrameEffects effects() {
@@ -190,14 +190,14 @@ public class MotionFrame {
         Vec3 dir = this.direction.lerp(with.direction, partial);
         Vec3 offset = this.offset.lerp(with.offset, partial);
 
-        Quaternionf from = this.renderOrientation;
-        Quaternionf to = with.renderOrientation;
+        Quaternionf from = this.renderRotation;
+        Quaternionf to = with.renderRotation;
         Quaternionf out = from.slerp(to, (float) partial, new Quaternionf());
 
         return new MotionFrame(dir, offset, out, effects);
     }
 
-    public MotionFrame setRenderOrientation(Quaternionf spin){
+    public MotionFrame setRenderRotation(Quaternionf spin){
         return new MotionFrame(direction, offset, spin, effects);
     }
 
