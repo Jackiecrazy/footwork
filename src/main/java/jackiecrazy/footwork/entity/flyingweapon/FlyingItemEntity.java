@@ -62,6 +62,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final EntityDataAccessor<Boolean> IS_INTANGIBLE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<Boolean> OFFHAND_RENDER = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
+    protected static final EntityDataAccessor<ItemStack> COSMETIC = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
     protected static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     protected static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     //uses
@@ -241,6 +242,15 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         entityData.set(HELD, stack);
         //throw new IllegalArgumentException();
         //System.out.println("set stack to "+stack.getItem());
+        setCosmeticItem(stack);
+    }
+
+    public ItemStack getCosmeticItem() {
+        return entityData.get(COSMETIC);
+    }
+
+    public void setCosmeticItem(ItemStack stack) {
+        entityData.set(COSMETIC, stack);
     }
 
     public Quaternionf getRoll() {
@@ -259,6 +269,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         this.entityData.define(LAST_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(CURRENT_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(HELD, ItemStack.EMPTY);
+        this.entityData.define(COSMETIC, ItemStack.EMPTY);
         this.entityData.define(DATA_OWNERUUID_ID, Optional.empty());
         this.entityData.define(MOB_OWNER, 0);
         this.entityData.define(TARGET_ID, 0);

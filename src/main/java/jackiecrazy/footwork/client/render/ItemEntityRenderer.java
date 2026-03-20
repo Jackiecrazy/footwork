@@ -23,6 +23,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
@@ -59,7 +60,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         if (buffer instanceof OutlineBufferSource obs) {
             obs.setColor((int) (Math.sin(Math.toRadians(entity.tickCount)) * 128) + 128, 256 - (int) (Math.sin(Math.toRadians(entity.tickCount)) * 128) + 128, (int) (Math.cos(Math.toRadians(entity.tickCount)) * 128) + 128, 255);
         }
-        ItemStack stack = entity.getHeldItem();
+        ItemStack stack = entity.getCosmeticItem();
         //if (!stack.isEmpty()) {
 
         if (entity.hasEffect(FlyingWeaponEffect.WEAPON))
@@ -69,7 +70,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         if (entity.hasEffect(FlyingWeaponEffect.BIG_SHADOW))
             renderBigShadowWeapon(entity, partialTicks, poseStack, buffer, 0xF000F0, stack);
         //}
-        if (entity.hasEffect(FlyingWeaponEffect.TRAIL)) renderTrail(entity, poseStack, partialTicks, buffer);
+        if (entity.hasEffect(FlyingWeaponEffect.TRAIL))
+            renderTrail(entity, poseStack, partialTicks, buffer);
     }
 
     protected void renderFlyingWeapon(FlyingItemEntity entity,
@@ -239,7 +241,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 playerrenderer.renderLeftHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
             else playerrenderer.renderRightHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
             poseStack.popPose();
-        } else if (stack.getItem() instanceof BlockItem blockItem) {
+        } else if (stack.getItem() instanceof BlockItem blockItem && !(stack.getItem() instanceof ItemNameBlockItem)) {
             Block block = blockItem.getBlock();
             BlockState base = block.defaultBlockState();
             BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
@@ -281,7 +283,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         } else {
             poseStack.pushPose();
             if (left) {
-                poseStack.scale(-1,1,1);
+                poseStack.scale(-1, 1, 1);
                 //GL11.glFrontFace(GL11.GL_CW);
             }
             final ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;

@@ -47,7 +47,8 @@ public class JsonUtils {
                     targetArr.add(JsonNull.INSTANCE);  // placeholder, will be replaced
                 }
 
-                for (int i = 0; i < sourceArr.size(); i++) {
+                //merge it backwards
+                for (int i = 0; i <sourceArr.size(); i++) {
                     JsonElement s = sourceArr.get(i);
                     if (s.isJsonObject() && targetArr.get(i).isJsonObject()) {
                         // Merge object at index i
@@ -57,10 +58,12 @@ public class JsonUtils {
                         // Replace primitive / entire sub-object
                         targetArr.set(i, s.deepCopy());
                     } else {
-                        // Optional: remove if source has explicit null
-                        targetArr.remove(i);
+                        // remove if source has explicit null
+                        targetArr.set(i, JsonNull.INSTANCE);
                     }
                 }
+                //find all null fields and eliminate them afterwards
+                while(targetArr.remove(JsonNull.INSTANCE));
             } else {
                 // Primitive / simple replacement (including explicit null)
                 result.add(key, sourceElem.deepCopy());

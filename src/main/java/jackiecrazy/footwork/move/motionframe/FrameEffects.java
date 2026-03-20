@@ -10,6 +10,7 @@ public class FrameEffects {
     private HitInfo attack_info = null;
     private List<FlyingWeaponEffect> effects = null;
     private double range = -1;
+    private HitEffects perform_effects=null;
     private Vec3 velocity = Vec3.ZERO;
     private boolean set_velocity = false;
 

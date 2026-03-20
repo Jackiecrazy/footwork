@@ -10,6 +10,6 @@ public class EyeHeightVectorArgument extends VectorArgument {
 
     @Override
     public Vec3 _resolve(ArgumentContext argumentContext) {
-        return new Vec3(0, reference_point.resolve(argumentContext).getEyeY(), 0);
+        return new Vec3(0, reference_point.resolve(argumentContext).getEyeHeight(), 0);
     }
 }

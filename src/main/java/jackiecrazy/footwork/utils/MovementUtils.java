@@ -16,8 +16,8 @@ public class MovementUtils {
     public static boolean willHitWall(Entity elb) {
         double allowance = 1;
         AABB aabb = elb.getBoundingBox();
-        Vec3 motion=elb.getDeltaMovement();
-        return elb.level().collidesWithSuffocatingBlock(elb, aabb.expandTowards(motion.x,motion.y,motion.z));
+        Vec3 motion = elb.getDeltaMovement();
+        return elb.level().collidesWithSuffocatingBlock(elb, aabb.expandTowards(motion.x, motion.y, motion.z));
     }
 
     public static boolean willCollide(Entity elb) {
@@ -30,7 +30,7 @@ public class MovementUtils {
         double allowance = 1;
         AABB aabb = elb.getBoundingBox();
         Vec3 motion = elb.position().subtract(from.position()).normalize();
-        return elb.level().collidesWithSuffocatingBlock(elb, aabb.expandTowards(motion.x,motion.y,motion.z));
+        return elb.level().collidesWithSuffocatingBlock(elb, aabb.expandTowards(motion.x, motion.y, motion.z));
     }
 
     public static Entity collidingEntity(Entity elb) {
@@ -56,10 +56,11 @@ public class MovementUtils {
 
     public static void applyVelocity(Vec3 vec, LivingEntity e, boolean set) {
         final Vec3 vel = resolveVelocity(e.getLookAngle(), vec);
-        if (set) {
+        final boolean iszero = vel.equals(Vec3.ZERO);
+        if (set && !iszero) {
             e.setDeltaMovement(vel);
         } else e.addDeltaMovement(vel);
-        if (set || !vel.equals(Vec3.ZERO))
+        if (set || !iszero)
             e.hurtMarked = true;
     }
 
@@ -71,10 +72,9 @@ public class MovementUtils {
         Vec3 right = forward.cross(globalUp).normalize();
         Vec3 up = right.cross(forward).normalize();  // Ensure orthogonal
 
-        Vec3 lookAdjusted = forward.scale(direction.z)
+        Vec3 lookAdjusted = forward.normalize().scale(direction.z)
                 .add(right.scale(direction.x))
-                .add(up.scale(direction.y))
-                .normalize();
+                .add(up.scale(direction.y));
         if (Y != 0) lookAdjusted = new Vec3(lookAdjusted.x, Y, lookAdjusted.z);
 
         return lookAdjusted;
