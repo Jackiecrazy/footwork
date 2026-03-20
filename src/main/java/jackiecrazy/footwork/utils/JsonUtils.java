@@ -92,7 +92,10 @@ public class JsonUtils {
                 "effects",
                 "range",
                 "velocity",
-                "set_velocity"
+                "set_velocity",
+                "command",
+                "tags",
+                "run_actions"
         };
 
         boolean hasAnyField = false;

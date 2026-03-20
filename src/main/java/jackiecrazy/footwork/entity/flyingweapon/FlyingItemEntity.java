@@ -88,6 +88,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected Vector4d recalculatedOrientation;
     private int version = 0;
     private Entity target, tether;
+    private Vector3f current_rotation=new Vector3f();
 
     public FlyingItemEntity(EntityType<? extends FlyingItemEntity> type, Level level) {
         super(type, level);

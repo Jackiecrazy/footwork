@@ -30,7 +30,9 @@ public abstract class MotionManager {
         return out.fromAxisAngleRad(axis, angle);
     }
 
-    protected Quaternionf resolveFinalRotation(MotionFrame frame, int ticks, float partial, Quaternionf out) {
+    protected Quaternionf resolveFinalRotation(MotionFrame frame,
+                                               Vector3f prevRot,
+                                               int ticks, float partial, Quaternionf out) {
         Quaternionf base = new Quaternionf(frame.renderOrientation());
         Quaternionf spin = getRuntimeRotation(ticks, partial, new Quaternionf());
 
