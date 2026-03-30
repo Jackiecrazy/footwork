@@ -63,6 +63,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> REMOVE = ACTIONS.register("remove", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, RemoveFromExistenceAction.class));
     public static final RegistryObject<ActionType> MOUNT = ACTIONS.register("mount", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MountAction.class));
     public static final RegistryObject<ActionType> NOHIT = ACTIONS.register("reset_hit_timer", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ResetHitTimerAction.class));
+    public static final RegistryObject<ActionType> STEVETIME = ACTIONS.register("steve_time", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, SteveTimeAction.class));
 
     //Meta Actions//
     public static final RegistryObject<ActionType> GOTO = ACTIONS.register("goto", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, GotoAction.class));

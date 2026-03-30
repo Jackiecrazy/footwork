@@ -56,7 +56,7 @@ public class MovementUtils {
 
     public static void applyVelocity(Vec3 vec, LivingEntity e, boolean set) {
         final Vec3 vel = resolveVelocity(e.getLookAngle(), vec);
-        final boolean iszero = vel.equals(Vec3.ZERO);
+        final boolean iszero = vel.lengthSqr()==0;
         if (set && !iszero) {
             e.setDeltaMovement(vel);
         } else e.addDeltaMovement(vel);

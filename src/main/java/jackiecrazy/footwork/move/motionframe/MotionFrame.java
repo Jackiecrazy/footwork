@@ -197,6 +197,13 @@ public class MotionFrame {
         return new MotionFrame(dir, offset, out, effects);
     }
 
+    public MotionFrame flip(){
+        Quaternionf reconstruct =new Quaternionf(renderOrientation());
+        reconstruct.x*=-1;
+        reconstruct.w*=-1;
+        return new MotionFrame(direction.multiply(-1,1,1), offset.multiply(-1,1,1), reconstruct, effects);
+    }
+
     public MotionFrame setRenderRotation(Quaternionf spin){
         return new MotionFrame(direction, offset, spin, effects);
     }

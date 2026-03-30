@@ -6,6 +6,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -45,6 +46,8 @@ public class FootworkEffects {
     public static final RegistryObject<MobEffect> REVEAL = EFFECTS.register("reveal", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0xF74708).addAttributeModifier(FootworkAttributes.STEALTH.get(), "55FCED67-D92A-486E-9800-B47F202C4386", -2, AttributeModifier.Operation.ADDITION));
     //increases stealth by 2 per level
     public static final RegistryObject<MobEffect> CONCEAL = EFFECTS.register("conceal", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x949494).addAttributeModifier(FootworkAttributes.STEALTH.get(), "55FCED67-E92A-486E-9800-B47F202C4386", 2, AttributeModifier.Operation.ADDITION));
+    //increases reach by 1 per level
+    public static final RegistryObject<MobEffect> REACH = EFFECTS.register("reach", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x949494).addAttributeModifier(ForgeMod.ENTITY_REACH.get(), "55FCED67-E92A-486E-9800-B47F202C4386", 1, AttributeModifier.Operation.ADDITION));
     //stuns are upgraded to knockdowns when unsteady
     public static final RegistryObject<MobEffect> UNSTEADY = EFFECTS.register("unsteady", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x949494));
 

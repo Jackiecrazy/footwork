@@ -6,5 +6,7 @@ public enum FlyingWeaponEffect {
     AFTERIMAGE,
     TRAIL,
     LOCK_POSITION,
-    LOCK_ORIENTATION
+    LOCK_ORIENTATION,
+    UNLOCK_POSITION,
+    UNLOCK_ORIENTATION
 }

@@ -1,6 +1,8 @@
 {
   "footwork.command.exported": "Worn armor successfully exported",
   "footwork.command.missing": "Missing arguments",
+  "footwork.command.slow.single": "Steve timed %s",
+  "footwork.command.slow.multiple": "Steve timed %s targets",
   "footwork.command.": "",
   "footwork.evasion": "Evasion",
   "footwork.evasion.desc": "Gain this much evasion per tick, up to 1000. Upon reaching 1000, the next attack is automatically negated.",

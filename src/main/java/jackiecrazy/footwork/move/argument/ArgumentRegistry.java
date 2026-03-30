@@ -47,6 +47,7 @@ public class ArgumentRegistry {
 
     //vectors//
     public static final RegistryObject<ArgumentType<Vec3>> RAW_VEC = ARGUMENTS.register("vector", ()  -> new ArgumentType<>(RawVectorArgument.class));
+    public static final RegistryObject<ArgumentType<Vec3>> CONTEXT = ARGUMENTS.register("contextual_position", () -> new SingletonArgumentType<>(ContextualVectorArgument.class, ContextualVectorArgument.INSTANCE));
     public static final RegistryObject<ArgumentType<Vec3>> SUM = ARGUMENTS.register("sum_vector", ()  -> new ArgumentType<>(SumVectorArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> ZERO = ARGUMENTS.register("zero_vector", ()  -> new SingletonArgumentType<>(RawVectorArgument.class, RawVectorArgument.ZERO));
     public static final RegistryObject<ArgumentType<Vec3>> EYE_HEIGHT = ARGUMENTS.register("eye_height", ()  -> new ArgumentType<>(EyeHeightVectorArgument.class));

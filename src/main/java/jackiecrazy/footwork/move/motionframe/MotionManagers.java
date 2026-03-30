@@ -1,7 +1,7 @@
 package jackiecrazy.footwork.move.motionframe;
 
 import jackiecrazy.footwork.utils.EasingFunctionEnum;
-import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.Objects;
 
@@ -17,12 +17,17 @@ public class MotionManagers {
 
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
-            return frame.setRenderRotation(resolveFinalRotation(frame, , elapsedTicks, 0, new Quaternionf()));
+            return frame;
         }
 
         @Override
         public int getDuration() {
             return duration;
+        }
+
+        @Override
+        public MotionManager flipFrames() {
+            return new FixedMM(frame.flip(), duration).setAngularVelocity(getSpin().mul(-1,1,1, new Vector3f()));
         }
 
         @Override
@@ -81,12 +86,17 @@ public class MotionManagers {
         @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
             MotionFrame lerped = from.lerp(to, easing.ease((double) elapsedTicks / totalDuration));
-            return lerped.setRenderRotation(resolveFinalRotation(lerped, , elapsedTicks, 0, new Quaternionf()));
+            return lerped;
         }
 
         @Override
         public int getDuration() {
             return totalDuration;
+        }
+
+        @Override
+        public MotionManager flipFrames() {
+            return this;//this cannot be flipped by principle
         }
 
         public MotionFrame from() {
@@ -156,6 +166,11 @@ public class MotionManagers {
             return totalDuration;
         }
 
+        @Override
+        public MotionManager flipFrames() {
+            return new TwoFrameMM(from.flip(), to.flip(), totalDuration, easing).setAngularVelocity(getSpin().mul(-1,1,1, new Vector3f()));
+        }
+
         public MotionFrame from() {
             return from;
         }
@@ -218,9 +233,14 @@ public class MotionManagers {
         }
 
         @Override
+        public MotionManager flipFrames() {
+            return new DefinitionMM(def.invert()).setAngularVelocity(getSpin().mul(-1,1,1, new Vector3f()));
+        }
+
+        @Override
         public MotionFrame getNextPoint(int elapsedTicks) {
             final MotionFrame lerped = def.interpret(elapsedTicks);
-            return lerped.setRenderRotation(resolveFinalRotation(lerped, , elapsedTicks, 0, new Quaternionf()));
+            return lerped;
         }
 
         @Override

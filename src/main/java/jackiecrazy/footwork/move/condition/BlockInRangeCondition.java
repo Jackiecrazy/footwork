@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move.condition;
 
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.vector.ContextualVectorArgument;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.vector.PositionVectorArgument;
@@ -17,7 +18,7 @@ public class BlockInRangeCondition extends Condition {
     private transient Block bloc;
     private transient TagKey<Block> tag;
     private Argument<Double> range, min_count = FixedNumberArgument.ZERO;
-    private Argument<Vec3> from = PositionVectorArgument.CASTER;
+    private Argument<Vec3> from = ContextualVectorArgument.INSTANCE;
 
     @Override
     public Boolean resolve(ArgumentContext argumentContext) {

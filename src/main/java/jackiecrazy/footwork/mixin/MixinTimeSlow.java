@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.mixin;
 
+import jackiecrazy.footwork.capability.action.ActionData;
 import jackiecrazy.footwork.capability.timeslow.TimeSlowData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -22,10 +23,12 @@ public abstract class MixinTimeSlow {
         //players just get a modification to their fall speed
         if (ent instanceof Player){
             tick();
+            ActionData.getCap(ent).update();
             return;
         }
         while(tickResult>=0){
             ent.tick();
+            ActionData.getCap(ent).update();
             tickResult--;
         }
     }

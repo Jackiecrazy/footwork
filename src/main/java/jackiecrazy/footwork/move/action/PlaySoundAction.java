@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move.action;
 
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.vector.ContextualVectorArgument;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -15,7 +16,7 @@ public class PlaySoundAction extends Action {
     private Argument<ResourceLocation> sound;
     private transient SoundEvent play;
     private SoundSource source = SoundSource.HOSTILE;
-    private Argument<Vec3> position = PositionVectorArgument.CASTER;
+    private Argument<Vec3> position = ContextualVectorArgument.INSTANCE;
     private Argument<Double> volume = FixedNumberArgument.ONE;
     private Argument<Double> pitch = FixedNumberArgument.ONE;
 

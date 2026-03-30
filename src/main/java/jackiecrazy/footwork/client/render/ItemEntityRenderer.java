@@ -282,11 +282,11 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             }
         } else {
             poseStack.pushPose();
+            ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+            GL11.glFrontFace(GL11.GL_CW);
             if (left) {
                 poseStack.scale(-1, 1, 1);
-                //GL11.glFrontFace(GL11.GL_CW);
             }
-            final ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
             itemRenderer.render(stack, ctx, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
             );
             GL11.glFrontFace(GL11.GL_CCW);

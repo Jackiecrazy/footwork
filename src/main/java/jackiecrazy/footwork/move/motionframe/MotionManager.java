@@ -3,44 +3,12 @@ package jackiecrazy.footwork.move.motionframe;
 import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class MotionManager {
-    public MotionManager setAngularVelocity(Vector3f angularVelocity) {
-        this.angular_velocity = angularVelocity;
-        return this;
-    }
-
-    private Vector3f angular_velocity = new Vector3f();       // radians per tick, axis * speed
-    protected Quaternionf getRuntimeRotation(int ticks, float partialTick, Quaternionf out) {
-        float speed = angular_velocity.length();
-        if (speed < 1e-6f) {
-            return out.identity();
-        }
-
-        Vector3f axis = new Vector3f(angular_velocity).normalize();
-
-        // Total angle = ω × time
-        float angle = speed * (ticks + partialTick);
-
-        return out.fromAxisAngleRad(axis, angle);
-    }
-
-    protected Quaternionf resolveFinalRotation(MotionFrame frame,
-                                               Vector3f prevRot,
-                                               int ticks, float partial, Quaternionf out) {
-        Quaternionf base = new Quaternionf(frame.renderOrientation());
-        Quaternionf spin = getRuntimeRotation(ticks, partial, new Quaternionf());
-
-        return out.set(base).mul(spin).normalize(); // local space spin
-    }
-
-
-
     public static EntityDataSerializer<MotionManager> SERIALIZER = new EntityDataSerializer<>() {
 
         @Override
@@ -51,7 +19,7 @@ public abstract class MotionManager {
             int numOfFrames = mm.getDuration() / (increments + 1);
             buf.writeInt(numOfFrames);
             for (int x = 0; x < numOfFrames; x += increments) {
-                MotionFrame.SERIALIZER.write(buf, mm.getNextPoint(x));
+                MotionFrame.SERIALIZER.write(buf, mm.getNextPoint(x ));
             }
         }
 
@@ -71,6 +39,16 @@ public abstract class MotionManager {
             return new MotionManagers.FixedMM(new MotionFrame(mm.getStartFrame().direction(), mm.getStartFrame().offset(), mm.getStartFrame().renderOrientation()), mm.getDuration());
         }
     };
+    private Vector3f angular_velocity = new Vector3f();       // radians per tick, axis * speed
+
+    public MotionManager setAngularVelocity(Vector3f angularVelocity) {
+        this.angular_velocity = angularVelocity;
+        return this;
+    }
+
+    public Vector3f getSpin() {
+        return angular_velocity;
+    }
 
     public abstract MotionFrame getNextPoint(int elapsedTicks);
 
@@ -87,4 +65,6 @@ public abstract class MotionManager {
     public MotionFrame getEndFrame() {
         return getNextPoint(getDuration());
     }
+
+    public abstract MotionManager flipFrames();
 }

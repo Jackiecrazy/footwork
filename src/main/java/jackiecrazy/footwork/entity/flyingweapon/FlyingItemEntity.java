@@ -86,9 +86,12 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected int animProgress = 0;
     protected MotionFrame update;
     protected Vector4d recalculatedOrientation;
+    protected boolean wasIdle = false;
+    protected FrameEffects currentEffects = null;
     private int version = 0;
     private Entity target, tether;
-    private Vector3f current_rotation=new Vector3f();
+    private Vector3f currentSpin = new Vector3f();
+    private boolean prevSpinning = false;
 
     public FlyingItemEntity(EntityType<? extends FlyingItemEntity> type, Level level) {
         super(type, level);
@@ -148,7 +151,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (update == null) last = getIdlePose().getEndFrame();
         //animProgress = 0;//why do you need this?
         //add the transition in, actual move, and transition out
-        if (inTick > 0) moveQueue.add(new MotionManagers.TransitionMM(last, path, inTick, EasingFunctionEnum.IN_OUT_CUBIC));
+        if (inTick > 0)
+            moveQueue.add(new MotionManagers.TransitionMM(last, path, inTick, EasingFunctionEnum.IN_OUT_CUBIC));
         moveQueue.add(path);
         if (outTick > 0)
             moveQueue.add(new MotionManagers.TransitionMM(path, getIdlePose(), outTick, EasingFunctionEnum.LINEAR));
@@ -198,7 +202,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         final int id = entityData.get(TARGET_ID);
         if (target == null || target.getId() != id)
             target = level().getEntity(id);
-        if(target==null)return getOwner();
+        if (target == null) return getOwner();
         return target;
     }
 
@@ -219,16 +223,16 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (owner == null) return false;
         MotionManager motion = moveQueue.peek();
         if (motion == null || motion.hasEnded(animProgress) || forceskip) {
-            if(motion!=null)
+            if (motion != null)
                 updateFrameEffects(motion.getEndFrame().effects());
             moveQueue.poll();
             motion = moveQueue.peek();
-            if(motion!=null)
+            if (motion != null)
                 this.updateFrameEffects(motion.getStartFrame().effects());
             //setTransitioning(motion == null || motion instanceof MotionManagers.TransitionMM);
             animProgress = 0;
             flushTrailHistory();
-            currentEffects=null;
+            currentEffects = null;
             return true;
         }
         return false;
@@ -291,9 +295,23 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public boolean hasEffect(FlyingWeaponEffect f) {
-        if (f == FlyingWeaponEffect.LOCK_POSITION) return getEntityData().get(LOCK_POS).equals(BOGUS);
-        if (f == FlyingWeaponEffect.LOCK_ORIENTATION) return getEntityData().get(LOCK_LOOK).equals(BOGUS);
-        return ((getRawVisualTag() >> f.ordinal()) & 1) > 0;
+        switch (f){
+            case LOCK_POSITION -> {
+                return !getEntityData().get(LOCK_POS).equals(BOGUS);
+            }
+            case LOCK_ORIENTATION -> {
+                return !getEntityData().get(LOCK_LOOK).equals(BOGUS);
+            }
+            case UNLOCK_POSITION -> {
+                return getEntityData().get(LOCK_POS).equals(BOGUS);
+            }
+            case UNLOCK_ORIENTATION -> {
+                return getEntityData().get(LOCK_LOOK).equals(BOGUS);
+            }
+            default -> {
+                return ((getRawVisualTag() >> f.ordinal()) & 1) > 0;
+            }
+        }
     }
 
     public void setEffect(FlyingWeaponEffect f, boolean enable) {
@@ -325,20 +343,17 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public void setEffect(FlyingWeaponEffect... ff) {
         if (level().isClientSide() || ff == null) return;
         int finalMask = 0;
-        boolean hasLockP = false, hasLockO = false;
         for (FlyingWeaponEffect f : ff) {
             if (f == null) continue;
-            if (f == FlyingWeaponEffect.LOCK_ORIENTATION) {
-                hasLockO = true;
+            if (f == FlyingWeaponEffect.UNLOCK_ORIENTATION) {
+                setEffect(FlyingWeaponEffect.LOCK_ORIENTATION, false);
             }
-            if (f == FlyingWeaponEffect.LOCK_POSITION) {
-                hasLockP = true;
+            if (f == FlyingWeaponEffect.UNLOCK_POSITION) {
+                setEffect(FlyingWeaponEffect.LOCK_ORIENTATION, false);
             }
             int mask = 1 << f.ordinal();
             finalMask |= mask;
         }
-        setEffect(FlyingWeaponEffect.LOCK_ORIENTATION, hasLockO);
-        setEffect(FlyingWeaponEffect.LOCK_POSITION, hasLockP);
         entityData.set(VISUAL_TAG, finalMask); // Clear the bit
     }
 
@@ -363,21 +378,21 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (getOwner() != null && getMotionTarget() != null) {
 
             if (!moveQueue.isEmpty()) {
-                wasIdle=false;
+                wasIdle = false;
                 entityData.set(IDLE_TICK, 0);
                 animProgress++;
                 executeMoveQueue();
             } else if (getState() == STATE.THROW_TRACK) {
-                wasIdle=false;
+                wasIdle = false;
                 trackingFly();
             } else if (getState() == STATE.THROW_NATURAL) {
-                wasIdle=false;
+                wasIdle = false;
                 naturallyFly();
             } else if (isIdle()) {
                 //idle state
-                if(!wasIdle)
+                if (!wasIdle)
                     updateFrameEffects(getIdlePose().getStartFrame().effects());
-                wasIdle=true;
+                wasIdle = true;
                 entityData.set(IDLE_TICK, getIdlePose().getDuration());
                 returnToIdle(getIdlePose().getDuration());
             }
@@ -400,7 +415,6 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             }
         }
     }
-    protected boolean wasIdle=false;
 
     private void trackingFly() {
         Vec3 velocity = getDeltaMovement();
@@ -413,6 +427,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             setDeltaMovement(dir.scale(getMinimumSpeed()));
             return;
         }
+        updateSpin(getIdlePose());
 
         Vec3 toTargetDir = getMotionTarget().getEyePosition()
                 .subtract(position()).normalize();
@@ -446,9 +461,11 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     private void naturallyFly() {
+        MotionFrame nextPoint = getIdlePose().getNextPoint(tickCount);
+        updateSpin(getIdlePose());
         if (getDeltaMovement().lengthSqr() > 0.003) {
             //recalculatedOrientation = recalculateOrientation(nothing, 1);
-            recalculatedOrientation = recalculateOrientation(getIdlePose().getNextPoint(tickCount).renderOrientation().normalize(), 1);
+            recalculatedOrientation = recalculateOrientation(nextPoint.renderOrientation().normalize(), 1);
         }
     }
 
@@ -503,6 +520,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public void unlock() {
         if (level().isClientSide()) return;
         getEntityData().set(CURRENT_STATE, STATE.FOLLOW);
+        unlockLook();
+        unlockPos();
     }
 
     protected abstract boolean onHitEntity(List<Entity> targets);
@@ -525,6 +544,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (getMotionTarget() == null) return;
         //idle animation, float next to the player
         update = getIdlePose().getEndFrame();
+        updateSpin(getIdlePose());
         final Tuple<Vec3, Vec3> bundle = stateDependentPositionLook();
         Vec3 transformedDirection = update.resolveTargetOffset(bundle, getUniversalOffset(), 1);
 
@@ -543,7 +563,21 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         displacementO = getDisplacementForRender();
     }
 
-    protected FrameEffects currentEffects=null;
+    private void updateSpin(MotionManager cur) {
+        if (cur.getSpin().lengthSquared() == 0) {
+            if (prevSpinning) {
+                //instantly modulo spin
+                currentSpin = new Vector3f(GeneralUtils.clampAndInvert(currentSpin.x), GeneralUtils.clampAndInvert(currentSpin.y), GeneralUtils.clampAndInvert(currentSpin.z));
+                prevSpinning=false;
+            }
+            //gradually reduce spin
+            currentSpin = currentSpin.mul(0.5f, 0.5f, 0.5f);
+            if (currentSpin.lengthSquared() < 0.05) currentSpin = new Vector3f();
+        } else {
+            currentSpin = currentSpin.add(cur.getSpin());
+            prevSpinning = true;
+        }
+    }
 
     protected void executeMoveQueue() {
         MotionManager activeMove = moveQueue.peek();
@@ -552,7 +586,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         // Recalculate target every tick relative to player
         //keep the lerped frame for future movement
         update = activeMove.getNextPoint(animProgress);
-        if(update.effects()!=currentEffects){
+        updateSpin(activeMove);
+        if (update.effects() != currentEffects) {
             updateFrameEffects(update.effects());
         }
         final Tuple<Vec3, Vec3> bundle = stateDependentPositionLook();
@@ -597,7 +632,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 Vector3f look = getEntityData().get(LOCK_LOOK);
                 Vec3 poss = new Vec3(pos);
                 Vec3 lookk = new Vec3(look);
-                if (pos.equals(BOGUS)) poss = getMotionTarget().position().add(0, getMotionTarget().getBbHeight() / 2, 0);
+                if (pos.equals(BOGUS))
+                    poss = getMotionTarget().position().add(0, getMotionTarget().getBbHeight() / 2, 0);
                 if (look.equals(BOGUS)) lookk = getMotionTarget().getLookAngle();
                 return new Tuple<>(poss, lookk);//fixme
             }
@@ -670,18 +706,39 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         return getDeltaMovement();
     }
 
+    public Quaternionf applySpin(Quaternionf base, Vector3f prevRot) {
+        Quaternionf out = new Quaternionf();
+        Quaternionf spin = getRuntimeRotation(prevRot);
+
+        return out.set(base).mul(spin).normalize(); // local space spin
+    }
+
+    protected Quaternionf getRuntimeRotation(Vector3f cur) {
+        Quaternionf out = new Quaternionf();
+
+        float speed = cur.length();
+        if (speed < 1e-6f) {
+            return out.identity();
+        }
+
+        Vector3f axis = new Vector3f(cur).normalize();
+
+        // Total angle = ω × time
+        float angle = speed;// * (ticks + partialTick);
+
+        return out.fromAxisAngleRad(axis, angle);
+    }
+
 
     public Vector4d recalculateOrientation(Quaternionf localOrientation, float snappiness) {
         // Get world-space base rotation
         Vec3 worldBase = stateDependentOrientation(); // Identity for base
-        if(worldBase.lengthSqr()<0.003) worldBase=new Vec3(0,-1,0);//fallback
+        if (worldBase.lengthSqr() < 0.003) worldBase = new Vec3(0, -1, 0);//fallback
 
         // rotate into world frame
         Quaternionf worldQuat = MotionFrame.lookQuatFromVec(worldBase).normalize();
 
-        //Footwork.LOGGER.debug("world at "+worldBase);
-        //Footwork.LOGGER.debug("it's quat "+worldQuat);
-        //Footwork.LOGGER.debug("local orient to "+localOrientation);
+        localOrientation = applySpin(localOrientation, currentSpin);
 
         // Build target quat from effective world forward (look-at)
         Quaternionf targetQuat = worldQuat.mul(localOrientation);

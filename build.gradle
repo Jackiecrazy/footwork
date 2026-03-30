@@ -125,7 +125,6 @@ dependencies {
 
     //Patchouli
     compileOnly fg.deobf("curse.maven:patchouli-306770:4636277")
-    runtimeOnly fg.deobf("curse.maven:patchouli-306770:4636277")
 
     runtimeOnly fg.deobf("curse.maven:armorpoints-396094:4817924")
     runtimeOnly fg.deobf("curse.maven:moonlight-499980:4800629")

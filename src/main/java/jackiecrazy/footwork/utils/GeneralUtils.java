@@ -946,4 +946,11 @@ public class GeneralUtils {
         //if (is.getItem() == Items.IRON_AXE) return true;
         return is.getTag() != null && is.getTag().getBoolean("kit");
     }
+
+    public static float clampAndInvert(float from) {
+        float ret=from%Mth.PI;
+        if(ret>0)ret-=Mth.PI;
+        else if(ret<0)ret+=Mth.PI;
+        return ret;
+    }
 }

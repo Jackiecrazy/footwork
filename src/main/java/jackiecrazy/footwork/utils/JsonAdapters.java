@@ -5,6 +5,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import jackiecrazy.footwork.move.motionframe.*;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
@@ -243,7 +244,7 @@ public class JsonAdapters {
                 throw new JsonParseException("'spin' must be a number, array[3], or object{x,y,z}");
             }
 
-            targetFrame.setAngularVelocity(spinVector);
+            targetFrame.setAngularVelocity(spinVector.mul(Mth.DEG_TO_RAD));
         }
 
     }

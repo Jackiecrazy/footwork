@@ -5,6 +5,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4d;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MotionGroup {
@@ -116,5 +117,10 @@ public class MotionGroup {
         MotionFrame end = frames().get(segment + 1);
         final MotionFrame lerp = start.lerp(end, localT);
         return lerp;
+    }
+    public MotionGroup invert(){
+        List<MotionFrame> flipped=new ArrayList<>();
+        frames.forEach(a->flipped.add(a.flip()));
+        return new MotionGroup(flipped, easing, duration);
     }
 }

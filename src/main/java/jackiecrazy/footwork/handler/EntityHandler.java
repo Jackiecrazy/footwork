@@ -3,6 +3,9 @@ package jackiecrazy.footwork.handler;
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.api.FootworkDamageArchetype;
+import jackiecrazy.footwork.capability.action.ActionData;
+import jackiecrazy.footwork.capability.action.AttachAction;
+import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.timeslow.TimeCapability;
@@ -46,7 +49,9 @@ public class EntityHandler {
 
     @SubscribeEvent
     public static void caps(AttachCapabilitiesEvent<Entity> e) {
+        e.addCapability(new ResourceLocation("footwork:targeting"), new GoalCapabilityProvider());
         e.addCapability(new ResourceLocation("footwork:timeslow"), new TimeSlowData(e.getObject()));
+        e.addCapability(new ResourceLocation("footwork:actions"), new ActionData(new AttachAction(e.getObject())));
     }
 
     @SubscribeEvent
@@ -166,6 +171,16 @@ public class EntityHandler {
             }
         }
         if (e.getAmount() < 0) e.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void tickActions(LivingEvent.LivingTickEvent e) {
+        LivingEntity elb = e.getEntity();
+        if (CombatData.getCap(elb).isKnockdown() || CombatData.getCap(elb).isPinned() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
+            elb.setXRot(elb.xRotO);
+            elb.setYRot(elb.yRotO);
+            elb.yHeadRot = elb.yHeadRotO;
+        }
     }
 
     @SubscribeEvent

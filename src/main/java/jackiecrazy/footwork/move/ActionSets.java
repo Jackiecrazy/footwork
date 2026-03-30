@@ -34,6 +34,11 @@ public class ActionSets extends SimpleJsonResourceReloadListener {
                          ProfilerFiller profilerFiller) {
         moves.clear();
         object.forEach((key, value) -> {
+            if(!value.isJsonArray()){
+                JsonArray wrapper=new JsonArray();
+                wrapper.add(value);
+                value=wrapper;
+            }
             JsonArray file = JsonUtils.parseSyntacticSugar(value.getAsJsonArray()).getAsJsonArray();
             Footwork.LOGGER.debug("loading action set definition found under {}", key);
             try {

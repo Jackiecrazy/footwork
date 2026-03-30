@@ -12,6 +12,7 @@ public class RawItemStackArgument implements Argument<ItemStack>{
     private Argument<ResourceLocation> item;
     private Argument<Double> count = FixedNumberArgument.ZERO;
     private CompoundTag tag;
+    //todo store/retrieve stacks
 
     public ItemStack resolve(ArgumentContext argumentContext) {
         ItemStack ret = new ItemStack(ForgeRegistries.ITEMS.getValue(item.resolve(argumentContext)));

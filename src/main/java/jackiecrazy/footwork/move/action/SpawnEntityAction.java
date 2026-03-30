@@ -2,6 +2,7 @@ package jackiecrazy.footwork.move.action;
 
 import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.vector.ContextualVectorArgument;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
@@ -28,7 +29,7 @@ public class SpawnEntityAction extends Action {
     private CompoundTag tag;
     private Argument<Double> quantity = FixedNumberArgument.ONE;
     private Argument<Double> spread = FixedNumberArgument.ZERO;
-    private Argument<Vec3> position = PositionVectorArgument.CASTER;
+    private Argument<Vec3> position = ContextualVectorArgument.INSTANCE;
     private Argument<Vec3> facing = new LookVectorArgument();
     private Argument<Vec3> velocity = RawVectorArgument.ZERO;
     private List<Action> on_spawn = new ArrayList<>();

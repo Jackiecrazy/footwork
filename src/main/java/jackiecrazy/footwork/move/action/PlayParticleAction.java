@@ -3,6 +3,7 @@ package jackiecrazy.footwork.move.action;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.vector.ContextualVectorArgument;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
@@ -25,7 +26,7 @@ public class PlayParticleAction extends Action {
     private String particle_parameters = "";
     private Condition seen_by_player = TrueCondition.INSTANCE;
     private Condition force = FalseCondition.INSTANCE;
-    private Argument<Vec3> position = PositionVectorArgument.CASTER, direction = RawVectorArgument.ZERO;
+    private Argument<Vec3> position = ContextualVectorArgument.INSTANCE, direction = RawVectorArgument.ZERO;
     private Argument<Double> quantity = FixedNumberArgument.ZERO;
 
     @Override

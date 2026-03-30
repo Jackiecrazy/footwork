@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.mixin;
 
+import jackiecrazy.footwork.capability.action.ActionData;
+import jackiecrazy.footwork.capability.action.AttachAction;
 import jackiecrazy.footwork.capability.timeslow.TimeSlowData;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
@@ -16,10 +18,12 @@ public abstract class MixinTimeSlowServer {
         int tickResult = TimeSlowData.getCap(ent).tickDown(ent.tickCount);
         if (ent instanceof Player){
             ent.tick();
+            ActionData.getCap(ent).update();
             return;
         }
         while(tickResult>=0){
             ent.tick();
+            ActionData.getCap(ent).update();
             tickResult--;
         }
     }

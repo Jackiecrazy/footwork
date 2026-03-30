@@ -36,6 +36,7 @@ public class AttachAction implements IAttachAction {
 
     @Override
     public void update() {
+        if(marks.isEmpty())return;
         marks.forEach((entity, lists) -> lists.forEach(ms -> ms.tick(entity, tiedTo)));
         marks.values().forEach(wrappers -> wrappers.removeIf(wrapper -> !wrapper.executing()));
         marks.entrySet().removeIf(entry -> entry.getValue().isEmpty());

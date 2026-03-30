@@ -11,6 +11,7 @@ import jackiecrazy.footwork.client.particle.FootworkParticles;
 import jackiecrazy.footwork.client.render.ItemEntityRenderer;
 import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
+import jackiecrazy.footwork.command.SteveTimeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
@@ -20,13 +21,11 @@ import jackiecrazy.footwork.move.action.ActionRegistry;
 import jackiecrazy.footwork.move.argument.ArgumentRegistry;
 import jackiecrazy.footwork.move.condition.ConditionRegistry;
 import jackiecrazy.footwork.move.filter.FilterRegistry;
-import jackiecrazy.footwork.move.motionframe.HitInfo;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.networking.FootworkChannel;
 import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
 import jackiecrazy.footwork.potion.FootworkEffects;
-import jackiecrazy.footwork.utils.JsonAdapters;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.world.entity.EntityType;
@@ -143,5 +142,6 @@ public class Footwork {
 
     private void commands(final RegisterCommandsEvent event) {
         AttributizeCommand.register(event.getDispatcher());
+        SteveTimeCommand.register(event.getDispatcher());
     }
 }

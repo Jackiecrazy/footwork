@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move.action;
 
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.DamageArgument;
@@ -17,10 +18,10 @@ import java.util.List;
 
 public class ExplodeAction extends Action {
 
-    private Argument<Double> damage;//todo use custom explosion class
-    private Argument<Double> radius;
-    private DamageArgument damage_source;
-    private Argument<Vec3> position = new PositionVectorArgument();
+    private Argument<Double> damage=new FixedNumberArgument(5);//todo use custom explosion class
+    private Argument<Double> radius=new FixedNumberArgument(5);
+    private DamageArgument damage_source=new DamageArgument();
+    private Argument<Vec3> position = PositionVectorArgument.TARGET;
     private Argument<Entity> exploder = CasterEntityArgument.INSTANCE;
 
     private Condition self_damage = FalseCondition.INSTANCE;

@@ -265,7 +265,7 @@ public class ActionJsonAdapters {
                 return json.getAsBoolean() ? TrueCondition.INSTANCE : FalseCondition.INSTANCE;
             }
             if(json.isJsonArray()&&json.getAsJsonArray().get(0).isJsonObject()){
-                return new AndCondition(jsonDeserializationContext.deserialize(json.getAsJsonArray(), List.class));
+                return new AndCondition(jsonDeserializationContext.deserialize(json.getAsJsonArray(), new TypeToken<ArrayList<Condition>>() {}.getType()));
             }
             if (!json.isJsonObject()) {
                 ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
