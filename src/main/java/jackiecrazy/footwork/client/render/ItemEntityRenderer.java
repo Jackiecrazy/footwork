@@ -372,7 +372,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             float alpha = (1.0f - (i * alphaStep)) / 2;
 
             if (last != null && !last.equals(point) && point.getA().corporeal()) {
-                drawQuad(consumer, poseStack, last.getB().position(), last.getA().position(), point.getA().position(), point.getB().position(), Color.BLUE, alpha);
+                drawQuad(consumer, poseStack, last.getB().position(), last.getA().position(), point.getA().position(), point.getB().position(), point.getA().color(), alpha);
             }
             last = point;
         }

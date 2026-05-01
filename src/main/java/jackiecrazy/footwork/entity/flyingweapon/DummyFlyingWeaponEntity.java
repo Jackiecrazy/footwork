@@ -124,7 +124,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
                     new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), 45));
             setInteractionRange(6);
             animProgress = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(slash, EasingFunctionEnum.IN_OUT_CUBIC, 10)), 0, 0);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(slash, EasingFunctionEnum.IN_OUT_CUBIC, 100)), 0, 0);
             setIntangible(false);
             //setFlipRender(!flipClientRender());
             setFlipRender(!flipClientRender());

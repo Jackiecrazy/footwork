@@ -77,6 +77,15 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     private static final Vector3f BOGUS = new Vector3f(0, 100000, 0);
     //first one goes up to attack range, second does not scale
     protected final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
+    private final Color[] RAINBOW = {
+            Color.RED,
+            Color.ORANGE,
+            Color.YELLOW,
+            Color.GREEN,
+            Color.CYAN,
+            Color.blue,
+            Color.MAGENTA
+    };
     public Quaternionf rollO = new Quaternionf();
     public float displacementO, sizeO;
     public int renderLag = 0, renderLagO = 0;
@@ -89,6 +98,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected Vector4d recalculatedOrientation;
     protected boolean wasIdle = false;
     protected FrameEffects currentEffects = null;
+    Vec3 prevShadPos = Vec3.ZERO;
+    Vec3 prevTrailPos = Vec3.ZERO;
     private int version = 0;
     private Entity target, tether;
     private Vector3f currentSpin = new Vector3f();
@@ -296,7 +307,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public boolean hasEffect(FlyingWeaponEffect f) {
-        switch (f){
+        switch (f) {
             case LOCK_POSITION -> {
                 return !getEntityData().get(LOCK_POS).equals(BOGUS);
             }
@@ -569,7 +580,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             if (prevSpinning) {
                 //instantly modulo spin
                 currentSpin = new Vector3f(GeneralUtils.clampAndInvert(currentSpin.x), GeneralUtils.clampAndInvert(currentSpin.y), GeneralUtils.clampAndInvert(currentSpin.z));
-                prevSpinning=false;
+                prevSpinning = false;
             }
             //gradually reduce spin
             currentSpin = currentSpin.mul(0.5f, 0.5f, 0.5f);
@@ -641,19 +652,6 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         }
     }
 
-    Vec3 prevShadPos=Vec3.ZERO;
-    Vec3 prevTrailPos=Vec3.ZERO;
-
-    private final Color[] RAINBOW = {
-            Color.RED,
-            Color.ORANGE,
-            Color.YELLOW,
-            Color.GREEN,
-            Color.CYAN,
-            Color.blue,
-            Color.MAGENTA
-    };
-
     protected void updateClientData() {
         renderLagO = renderLag;
         sizeO = getInteractionRange();
@@ -677,18 +675,20 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
             final Tuple<Vec3, Vec3> bundle = stateDependentPositionLook();
             //lerp from(to)
-            Vec3 toTrailPos = to.resolveTargetOffset(bundle, universalOffset, getInteractionRange()+2);
-            Vec3 toShadowPos = to.resolveTargetOffset(bundle, universalOffset, 1);
+            Vec3 toTrailPos = to.resolveTargetOffset(bundle, universalOffset, getInteractionRange() + 1);
+            Vec3 toShadowPos = to.resolveTargetOffset(bundle, universalOffset, 2);
+            Vec3 fromVec = fromTrailPos.subtract(fromShadowPos), toVec = toTrailPos.subtract(toShadowPos);
+            double fromLength = fromVec.length(), toLength = toVec.length();
             for (double i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
                 double partialTick = i / CLIENT_SMOOTHING_SUBTICKS;
 
-                //trail, max range
-                Vec3 trailPosition = fromTrailPos.lerp(toTrailPos, partialTick);
-                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int)i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
-
                 //shadow, range 1
-                trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
-                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int)i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                Vec3 trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
+                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int) i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+
+                //trail, max range
+                trailPosition = trailPosition.add(fromVec.lerp(toVec, partialTick).normalize().scale(Mth.lerp(partialTick, fromLength, toLength)));//fromTrailPos.lerp(toTrailPos, partialTick);
+                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int) i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 trailHistory.addFirst(new Tuple<>(trail, shadow));
             }
@@ -701,8 +701,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             trailHistory.clear();
             version = getEntityData().get(LAST_UPD);
         }
-        prevShadPos=position().add(getLookAngle());
-        prevTrailPos=position().add(getLookAngle().scale(getInteractionRange()));
+        prevShadPos = position().add(getLookAngle());
+        prevTrailPos = position().add(getLookAngle().scale(getInteractionRange()));
     }
 
     protected abstract void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location);

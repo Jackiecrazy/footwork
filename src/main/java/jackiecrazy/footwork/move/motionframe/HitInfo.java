@@ -57,6 +57,10 @@ public class HitInfo {
         return invulnerable_frames;
     }
 
+    public DragInfo getDrag() {
+        return drag;
+    }
+
     public HitInfo setSpirit_multiplier(double spirit_multiplier) {
         this.spirit_multiplier = spirit_multiplier;
         return this;
