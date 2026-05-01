@@ -8,10 +8,11 @@ import net.minecraft.world.entity.Entity;
 
 public class RemoveFromExistenceAction extends Action {
     private Argument<Entity> entity = TargetEntityArgument.INSTANCE;
+    private Entity.RemovalReason reason = Entity.RemovalReason.KILLED;
 
     @Override
     public int perform(ActionContext actionContext) {
-        entity.resolve(actionContext).remove(Entity.RemovalReason.KILLED);
+        entity.resolve(actionContext).remove(reason);
         return 0;
     }
 }

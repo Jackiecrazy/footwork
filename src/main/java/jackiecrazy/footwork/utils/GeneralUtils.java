@@ -53,6 +53,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
 public class GeneralUtils {
+    public static boolean kbHandled = false;
+
     public static double getSpeedSq(Entity e) {
         if (e.getVehicle() != null) if (e.getRootVehicle() instanceof LivingEntity)
             return CombatData.getCap((LivingEntity) e.getRootVehicle()).getMotionConsistently().lengthSqr();
@@ -173,34 +175,53 @@ public class GeneralUtils {
      * modified getdistancesq to account for thicc mobs
      */
     public static double getDistSqCompensated(Entity from, Entity to) {
-        double x = from.getX() - to.getX();
-        x = Math.max(Math.abs(x) - ((from.getBbWidth() / 2) + (to.getBbWidth() / 2)), 0);
-        //stupid inconsistent game
-        double y = (from.getY() + from.getBbHeight() / 2) - (to.getY() + to.getBbHeight() / 2);
-        y = Math.max(Math.abs(y) - (from.getBbHeight() / 2 + to.getBbHeight() / 2), 0);
-        double z = from.getZ() - to.getZ();
-        z = Math.max(Math.abs(z) - (from.getBbWidth() / 2 + to.getBbWidth() / 2), 0);
-        double me = x * x + y * y + z * z;
+        AABB fromBB = from.getBoundingBox(), toBB = to.getBoundingBox();
+        Vec3 closestFrom = new Vec3(
+                Mth.clamp(to.getX(), fromBB.minX, fromBB.maxX),
+                Mth.clamp(to.getY(), fromBB.minY, fromBB.maxY),
+                Mth.clamp(to.getZ(), fromBB.minZ, fromBB.maxZ)
+        );
+        Vec3 closestTo = new Vec3(
+                Mth.clamp(closestFrom.x, toBB.minX, toBB.maxX),
+                Mth.clamp(closestFrom.y, toBB.minY, toBB.maxY),
+                Mth.clamp(closestFrom.z, toBB.minZ, toBB.maxZ)
+        );
+//        double x = from.getX() - to.getX();
+//        x = Math.max(Math.abs(x) - ((from.getBbWidth() / 2) + (to.getBbWidth() / 2)), 0);
+//        //stupid inconsistent game
+//        double y = (from.getY() + from.getBbHeight() / 2) - (to.getY() + to.getBbHeight() / 2);
+//        y = Math.max(Math.abs(y) - (from.getBbHeight() / 2 + to.getBbHeight() / 2), 0);
+//        double z = from.getZ() - to.getZ();
+//        z = Math.max(Math.abs(z) - (from.getBbWidth() / 2 + to.getBbWidth() / 2), 0);
+//        double me = x * x + y * y + z * z;
+        double me = closestFrom.distanceToSqr(closestTo);
         double you = from.distanceToSqr(to);
         return Math.min(me, you);
     }
 
     public static float getActualHealth(LivingEntity of) {
-        return of.getHealth()-CombatData.getCap(of).getRecordedDamage();
+        return of.getHealth() - CombatData.getCap(of).getRecordedDamage();
     }
 
     /**
      * modified getdistancesq to account for thicc mobs
      */
     public static double getDistSqCompensated(Entity from, Vec3 to) {
-        double x = from.getX() - to.x;
-        x = Math.max(Math.abs(x) - ((from.getBbWidth() / 2)), 0);
-        //stupid inconsistent game
-        double y = (from.getY() + from.getBbHeight() / 2) - (to.y);
-        y = Math.max(Math.abs(y) - (from.getBbHeight() / 2), 0);
-        double z = from.getZ() - to.z;
-        z = Math.max(Math.abs(z) - (from.getBbWidth() / 2), 0);
-        return x * x + y * y + z * z;
+        AABB fromBB = from.getBoundingBox();
+        Vec3 closestFrom = new Vec3(
+                Mth.clamp(to.x(), fromBB.minX, fromBB.maxX),
+                Mth.clamp(to.y(), fromBB.minY, fromBB.maxY),
+                Mth.clamp(to.z(), fromBB.minZ, fromBB.maxZ)
+        );
+//        double x = from.getX() - to.x;
+//        x = Math.max(Math.abs(x) - ((from.getBbWidth() / 2)), 0);
+//        //stupid inconsistent game
+//        double y = (from.getY() + from.getBbHeight() / 2) - (to.y);
+//        y = Math.max(Math.abs(y) - (from.getBbHeight() / 2), 0);
+//        double z = from.getZ() - to.z;
+//        z = Math.max(Math.abs(z) - (from.getBbWidth() / 2), 0);
+//        return x * x + y * y + z * z;
+        return closestFrom.distanceToSqr(to);
     }
 
     /**
@@ -217,7 +238,7 @@ public class GeneralUtils {
         return x * x + y * y + z * z;
     }
 
-    public static Vec3 getExactCollision(Entity ent, Vec3 start, Vec3 end){
+    public static Vec3 getExactCollision(Entity ent, Vec3 start, Vec3 end) {
         AABB box = ent.getBoundingBox().inflate(0.3); // optional forgiveness
 
         Optional<Vec3> hit = box.clip(start, end);
@@ -948,9 +969,9 @@ public class GeneralUtils {
     }
 
     public static float clampAndInvert(float from) {
-        float ret=from%Mth.PI;
-        if(ret>0)ret-=Mth.PI;
-        else if(ret<0)ret+=Mth.PI;
+        float ret = from % Mth.PI;
+        if (ret > 0) ret -= Mth.PI;
+        else if (ret < 0) ret += Mth.PI;
         return ret;
     }
 }

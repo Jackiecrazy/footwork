@@ -68,19 +68,19 @@ public class EffectUtils {
             case ADD:
                 length = toAdd.getDuration() + pe.getDuration();
                 break;
-            case MAXDURATION:
+            case MAX_DURATION:
                 length = Math.max(pe.getDuration(), toAdd.getDuration());
                 break;
-            case MAXPOTENCY:
+            case MAX_POTENCY:
                 length = pe.getAmplifier() == toAdd.getAmplifier() ? Math.max(pe.getDuration(), toAdd.getDuration()) : pe.getAmplifier() > toAdd.getAmplifier() ? pe.getDuration() : toAdd.getDuration();
                 break;
-            case MINDURATION:
+            case MIN_DURATION:
                 length = Math.min(pe.getDuration(), toAdd.getDuration());
                 break;
-            case MINPOTENCY:
+            case MIN_POTENCY:
                 length = pe.getAmplifier() == toAdd.getAmplifier() ? Math.min(pe.getDuration(), toAdd.getDuration()) : pe.getAmplifier() < toAdd.getAmplifier() ? pe.getDuration() : toAdd.getDuration();
                 break;
-            case ONLYADD:
+            case ONLY_ADD:
                 potency = toAdd.getAmplifier();
                 length = toAdd.getDuration() + pe.getDuration();
                 break;
@@ -116,10 +116,10 @@ public class EffectUtils {
     public enum StackingMethod {
         NONE,
         ADD,
-        MAXDURATION,
-        MAXPOTENCY,
-        MINDURATION,
-        MINPOTENCY,
-        ONLYADD
+        MAX_DURATION,
+        MAX_POTENCY,
+        MIN_DURATION,
+        MIN_POTENCY,
+        ONLY_ADD
     }
 }

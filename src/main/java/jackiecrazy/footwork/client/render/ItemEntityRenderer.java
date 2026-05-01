@@ -38,6 +38,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
+import java.awt.*;
 import java.util.Deque;
 
 public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
@@ -278,6 +279,12 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 brd.renderSingleBlock(base, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY,//itemRenderer.getModel(stack, entity.level(), null, packedlight).getModelData(),
                                       null);
 
+                //proof of concept for swinging structures
+//                for(int x=0;x<5;x++) {
+//                    poseStack.translate(0.0, 1.0, 0.0);
+//                    brd.renderSingleBlock(base, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY,//itemRenderer.getModel(stack, entity.level(), null, packedlight).getModelData(),
+//                                          null);
+//                }
                 poseStack.popPose();
             }
         } else {
@@ -365,7 +372,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             float alpha = (1.0f - (i * alphaStep)) / 2;
 
             if (last != null && !last.equals(point) && point.getA().corporeal()) {
-                drawQuad(consumer, poseStack, last.getB().position(), last.getA().position(), point.getA().position(), point.getB().position(), alpha);
+                drawQuad(consumer, poseStack, last.getB().position(), last.getA().position(), point.getA().position(), point.getB().position(), Color.BLUE, alpha);
             }
             last = point;
         }
@@ -379,12 +386,14 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                             Vec3 from2,
                             Vec3 to1,
                             Vec3 to2,
+                            Color c,
                             float alpha) {
         PoseStack.Pose pose = poseStack.last();
         Matrix4f matrix = pose.pose();
         Matrix3f normalMatrix = pose.normal();
         Vector3f p1 = from1.toVector3f(), p2 = from2.toVector3f(), p3 = to1.toVector3f(), p4 = to2.toVector3f();
 
+        //float r = c.getRed()/255f, g = c.getGreen()/255f, b = c.getBlue()/255f;
         float r = 0.6f, g = 0.8f, b = 1.0f;
         int light = 15728880;
 

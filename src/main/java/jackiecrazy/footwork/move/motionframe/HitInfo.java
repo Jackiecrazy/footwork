@@ -14,9 +14,32 @@ public class HitInfo {
     public boolean breach = false;
     public double crit_damage = 1.5;
     public double spirit_multiplier = 1;
-    protected int guard_frames=0;
-    protected int dodge_frames=0;
-    protected int parry_frames=0;
+    public double armor_pierce = 0;
+    protected int guard_frames = 0;
+    protected int dodge_frames = 0;
+    protected int parry_frames = 0;
+    protected int invulnerable_frames = 0;
+    protected Vec3 knockback_direction=null;
+    protected HitEffects hit_self = new HitEffects();
+    protected HitEffects damage_self = new HitEffects();
+    protected HitEffects hit_other = new HitEffects();
+    protected HitEffects damage_other = new HitEffects();
+    protected DragInfo drag=null;
+    public HitInfo() {
+    }
+    public HitInfo(double knockback,
+                   double damage_scale,
+                   double posture_scale,
+                   boolean crit,
+                   boolean breach,
+                   double crit_damage) {
+        this.knockback = knockback;
+        this.damage_scale = damage_scale;
+        this.posture_scale = posture_scale;
+        this.crit = crit;
+        this.breach = breach;
+        this.crit_damage = crit_damage;
+    }
 
     public int guard_frames() {
         return guard_frames;
@@ -32,30 +55,6 @@ public class HitInfo {
 
     public int invulnerable_frames() {
         return invulnerable_frames;
-    }
-
-    protected int invulnerable_frames=0;
-    protected Vec3 knockback_direction = new Vec3(0, 0.2, 0.98);
-    protected HitEffects hit_self = new HitEffects();
-    protected HitEffects damage_self = new HitEffects();
-    protected HitEffects hit_other = new HitEffects();
-    protected HitEffects damage_other = new HitEffects();
-
-    public HitInfo() {
-    }
-
-    public HitInfo(double knockback,
-                   double damage_scale,
-                   double posture_scale,
-                   boolean crit,
-                   boolean breach,
-                   double crit_damage) {
-        this.knockback = knockback;
-        this.damage_scale = damage_scale;
-        this.posture_scale = posture_scale;
-        this.crit = crit;
-        this.breach = breach;
-        this.crit_damage = crit_damage;
     }
 
     public HitInfo setSpirit_multiplier(double spirit_multiplier) {
@@ -110,6 +109,7 @@ public class HitInfo {
         f.writeBoolean(crit);
         f.writeDouble(crit_damage);
         f.writeDouble(spirit_multiplier);
+        f.writeDouble(armor_pierce);
     }
 
     public void read(FriendlyByteBuf f) {
@@ -119,6 +119,7 @@ public class HitInfo {
         crit = f.readBoolean();
         crit_damage = f.readDouble();
         spirit_multiplier = f.readDouble();
+        armor_pierce = f.readDouble();
     }
 
     public boolean runEffects(LivingEntity hitter, LivingEntity target, boolean self, boolean damage) {

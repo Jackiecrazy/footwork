@@ -30,6 +30,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
 
+import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -362,13 +363,13 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public void tick() {
         super.tick();
         setGlowingTag(false);
-        entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), getRoll()));
+        //entityData.set(LAST_FRAME, new MotionFrame(position().add(getLookAngle()).subtract(stateDependentPositionLook().getA()), position().add(getLookAngle().scale(getInteractionRange())).subtract(stateDependentPositionLook().getA()), getRoll()));
         // Movement logic
         if (level().isClientSide) {
             rollO = getRoll();
             displacementO = getDisplacementForRender();
             this.move(MoverType.SELF, this.getDeltaMovement());
-            updateTetheringVelocity();
+            //updateTetheringVelocity();//is this necessary?
             updateClientData();
             //how can the client get ahold of moveset data for smoothing?
             // answer: don't. It's painful. Just sync whether it's idle
@@ -640,6 +641,19 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         }
     }
 
+    Vec3 prevShadPos=Vec3.ZERO;
+    Vec3 prevTrailPos=Vec3.ZERO;
+
+    private final Color[] RAINBOW = {
+            Color.RED,
+            Color.ORANGE,
+            Color.YELLOW,
+            Color.GREEN,
+            Color.CYAN,
+            Color.blue,
+            Color.MAGENTA
+    };
+
     protected void updateClientData() {
         renderLagO = renderLag;
         sizeO = getInteractionRange();
@@ -654,24 +668,27 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         //lerp 5 points between each tick
         if (getMotionTarget() != null) {
             Vec3 universalOffset = getUniversalOffset();
-            MotionFrame from = entityData.get(LAST_FRAME);//position, look, (xrot, yrot, roll)
+            MotionFrame from = entityData.get(LAST_FRAME);//position, trail position, (xrot, yrot, roll)
             MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (xrot, yrot, zrot... in theory)
             double dist = intangible() ? -1 : getInteractionRange() - 1;//the -1 here is necessary to counteract the base
-            Vec3 fromTrailPos = from.direction().add(from.offset().scale(dist));
+            Vec3 fromTrailPos = prevTrailPos;//position().add(from.offset());
             //this is NOT accurate!
-            Vec3 fromShadowPos = from.direction();
-            Vec3 toTrailPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, getInteractionRange());
-            Vec3 toShadowPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, 1);
+            Vec3 fromShadowPos = prevShadPos;//position().add(from.direction());
+
+            final Tuple<Vec3, Vec3> bundle = stateDependentPositionLook();
+            //lerp from(to)
+            Vec3 toTrailPos = to.resolveTargetOffset(bundle, universalOffset, getInteractionRange()+2);
+            Vec3 toShadowPos = to.resolveTargetOffset(bundle, universalOffset, 1);
             for (double i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
                 double partialTick = i / CLIENT_SMOOTHING_SUBTICKS;
 
                 //trail, max range
                 Vec3 trailPosition = fromTrailPos.lerp(toTrailPos, partialTick);
-                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int)i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 //shadow, range 1
                 trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
-                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int)i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 trailHistory.addFirst(new Tuple<>(trail, shadow));
             }
@@ -684,6 +701,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             trailHistory.clear();
             version = getEntityData().get(LAST_UPD);
         }
+        prevShadPos=position().add(getLookAngle());
+        prevTrailPos=position().add(getLookAngle().scale(getInteractionRange()));
     }
 
     protected abstract void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location);

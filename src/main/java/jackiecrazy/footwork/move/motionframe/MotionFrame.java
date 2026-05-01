@@ -15,7 +15,7 @@ public class MotionFrame {
         @Override
         public void write(FriendlyByteBuf buf, MotionFrame frame) {
             buf.writeVector3f(frame.direction.toVector3f());
-            buf.writeVector3f(frame.offset.toVector3f());
+            buf.writeVector3f(frame.offset.toVector3f());//fixme why do I not automatically orient?
             buf.writeDouble(frame.renderRotation.x);
             buf.writeDouble(frame.renderRotation.y);
             buf.writeDouble(frame.renderRotation.z);
@@ -38,6 +38,7 @@ public class MotionFrame {
     private FrameEffects effects;
 
     public MotionFrame() {
+        //set quaternion to null explicitly so the json adapter fills it in later
         this(new Vec3(0, 0, 1), new Vec3(0, 0, 1), (Quaternionf) null);
     }
 
@@ -183,7 +184,7 @@ public class MotionFrame {
         Vec3 forward = referent.getLookAngle().normalize();
         if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
 
-        return resolveTargetOffset(forward, referent.position().add(0, 1, 0), defaultOffset, range);
+        return resolveTargetOffset(referent.position().add(0, 1, 0), forward, defaultOffset, range);
     }
 
     public MotionFrame lerp(MotionFrame with, double partial) {
@@ -202,6 +203,10 @@ public class MotionFrame {
         reconstruct.x*=-1;
         reconstruct.w*=-1;
         return new MotionFrame(direction.multiply(-1,1,1), offset.multiply(-1,1,1), reconstruct, effects);
+    }
+
+    public void _setRenderRotationRaw(Quaternionf spin){
+        renderRotation=spin;
     }
 
     public MotionFrame setRenderRotation(Quaternionf spin){

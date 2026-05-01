@@ -40,24 +40,24 @@ public class SelectorArgument implements Argument<List<Entity>> {
             if (GeneralUtils.getDistSqCompensated(argumentContext.target(), pos) < ra * ra) resolved.add(argumentContext.target());
             return resolved;
         }
-        double radius = width.resolve(argumentContext);
+        double width = this.width.resolve(argumentContext);
         for (Entity ent : filter.filter(argumentContext, argumentContext.target().level().getEntities(null, new AABB(pos, pos).inflate(ra * 1.5)))) {
             //type specific sweep checks
             switch (shape) {
                 case CONE -> {
-                    if (!GeneralUtils.isFacingEntity(pos, look, ent, (int) radius, 40)) continue;
+                    if (!GeneralUtils.isFacingEntity(pos, look, ent, (int) width, 40)) continue;
                     if (GeneralUtils.getDistSqCompensated(ent, pos) > ra * ra) continue;
                 }
                 case CLEAVE -> {
-                    if (!GeneralUtils.isFacingEntity(pos, look, ent, 40, (int) radius)) continue;
+                    if (!GeneralUtils.isFacingEntity(pos, look, ent, 40, (int) width)) continue;
                     if (GeneralUtils.getDistSqCompensated(ent, pos) > ra * ra) continue;
                 }
                 case CIRCLE -> {
-                    if (GeneralUtils.getDistSqCompensated(ent, pos) > radius * radius) continue;
+                    if (GeneralUtils.getDistSqCompensated(ent, pos) > ra * ra) continue;
                 }
                 case LINE -> {
-                    Vec3 end = pos.add(look.normalize().scale(radius));
-                    if (!ent.getBoundingBox().inflate(radius).intersects(pos, end)) continue;
+                    Vec3 end = pos.add(look.normalize().scale(width));
+                    if (!ent.getBoundingBox().inflate(width).intersects(pos, end)) continue;
                 }
             }
             resolved.add(ent);

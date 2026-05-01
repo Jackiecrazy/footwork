@@ -1,6 +1,8 @@
 package jackiecrazy.footwork.api;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +30,18 @@ public interface ITetherAnchor {
 
     default void moveTargetTowards(Entity toBeMoved, Vec3 point, double force) {
         double length = Math.max(getTetherLength(), 0);
-        double distsq = toBeMoved.distanceToSqr(point);
+        Vec3 currentPos = toBeMoved.position();
+        if (fuzzyTargeting()) {
+            AABB entityBB = toBeMoved.getBoundingBox();
+            currentPos = new Vec3(
+                    Mth.clamp(point.x, entityBB.minX, entityBB.maxX),
+                    Mth.clamp(point.y, entityBB.minY, entityBB.maxY),
+                    Mth.clamp(point.z, entityBB.minZ, entityBB.maxZ)
+            );
+        }
+        double distsq = currentPos.distanceToSqr(point);
+        if (cappedForce())
+            force = Math.min(Math.sqrt(distsq), force);
 //        if (offset != null) {
 //            distsq = GeneralUtils.getDistSqCompensated(toBeMoved, offset);
 //            point = offset;
@@ -43,13 +56,16 @@ public interface ITetherAnchor {
         //if the distance is below tether length, do nothing
         //if the distance is above tether length, apply centripetal force to the point
         if (length * length < distsq) {
-            Vec3 modify = new Vec3((point.x - toBeMoved.getX()) * force, (point.y - toBeMoved.getY()) * force, (point.z - toBeMoved.getZ()) * force);
-            toBeMoved.setDeltaMovement(finalMomentum.add(modify));
+            Vec3 modify = new Vec3((point.x - currentPos.x()), (point.y - currentPos.y()), (point.z - currentPos.z())).normalize().scale(force);
+            final Vec3 addVel = finalMomentum.add(modify);
+//            final Vec3 apply = toBeMoved.position().add(finalMomentum).distanceToSqr(point) > toBeMoved.position().add(addVel).distanceToSqr(point)
+            toBeMoved.setDeltaMovement(addVel);
             toBeMoved.hasImpulse = true;
         }
         if (shouldRepel() && length * length > distsq) {
-            Vec3 modify = new Vec3((point.x - toBeMoved.getX()) * -force, (point.y - toBeMoved.getY()) * -force, (point.z - toBeMoved.getZ()) * -force);
-            toBeMoved.setDeltaMovement(finalMomentum.add(modify));
+            Vec3 modify = new Vec3((point.x - currentPos.x()), (point.y - currentPos.y()), (point.z - currentPos.z())).normalize().scale(-force);
+            final Vec3 addVel = finalMomentum.add(modify);
+            toBeMoved.setDeltaMovement(addVel);
             toBeMoved.hasImpulse = true;
         }//else e.motionZ=e.motionX=e.motionY=0;
         toBeMoved.hurtMarked = true;
@@ -74,6 +90,14 @@ public interface ITetherAnchor {
     double getTetherLength();
 
     default boolean shouldRepel() {
+        return false;
+    }
+
+    default boolean fuzzyTargeting() {
+        return false;
+    }
+
+    default boolean cappedForce() {
         return false;
     }
 }

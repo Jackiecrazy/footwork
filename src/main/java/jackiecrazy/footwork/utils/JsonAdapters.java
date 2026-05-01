@@ -43,7 +43,7 @@ public class JsonAdapters {
                     }
                 }
             }
-            return NAIVE.fromJson(json, HitInfo.class);
+            return ActionJsonAdapters.gson.fromJson(json, HitInfo.class);//todo check
         }
     }
 
@@ -134,7 +134,8 @@ public class JsonAdapters {
                     } else {
                         throw new JsonParseException("'render_rotation' must be a number, array[4], or object{x,y,z,w}");
                     }
-                } else mf = new MotionFrame(mf.direction(), mf.offset()).setEffects(mf.effects());
+                } else if (!o.has("_skipOrientationCalculation"))
+                    mf = new MotionFrame(mf.direction(), mf.offset()).setEffects(mf.effects());
             }
             return mf;
         }
@@ -142,6 +143,13 @@ public class JsonAdapters {
 
     public static class MotionManagerDeserializer implements JsonDeserializer<MotionManager> {
 
+
+        private static double signedAngle(Vec3 a, Vec3 b, Vec3 edgeNormal) {
+            Vec3 cross = a.cross(b);
+            double dot = a.dot(b);
+            double sign = edgeNormal.dot(cross);
+            return Math.atan2(sign, dot);
+        }
         @Override
         public MotionManager deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -160,13 +168,43 @@ public class JsonAdapters {
                 JsonArray framesArray = obj.getAsJsonArray("frames");
 
                 List<MotionFrame> frames = new ArrayList<>();
+                boolean manuallyCalculate = framesArray.size() > 1;
                 for (JsonElement elem : framesArray) {
+                    if (manuallyCalculate) elem.getAsJsonObject().addProperty("_skipOrientationCalculation", true);
                     MotionFrame frame = context.deserialize(elem, MotionFrame.class);
                     frames.add(frame);
                 }
 
                 if (frames.isEmpty()) {
                     throw new JsonParseException("frames array cannot be empty for DefinitionMM");
+                }
+
+                //compute frames from bottom to top.
+                if (manuallyCalculate) {
+                    //todo dot products are inherently positive and so we can't extract the sign, what to do?
+                    for (int x = frames.size() - 1; x >= 1; x--) {
+                        //If they have no render orientation, set their orientation to their direction, and their angling to the angle of the frame change
+                        final MotionFrame mf = frames.get(x);
+                        if (mf.renderOrientation() != null) continue;
+                        Vec3 endFrame = mf.direction();
+                        Vec3 startFrame = frames.get(x - 1).direction();
+                        final Vec3 down = new Vec3(0, -1, 0);
+                        final Vec3 movement = endFrame.subtract(startFrame);
+                        double angleRadians = signedAngle(down, movement, new Vec3(0,0,-1));
+                        double angleDegrees = Math.toDegrees(angleRadians);
+                        mf._setRenderRotationRaw(MotionFrame.buildLocalRotation(new Vector4d(endFrame.x, endFrame.y, endFrame.z, angleDegrees)));
+                    }
+                    //finally compute the first frame from the second frame
+                    final MotionFrame mf = frames.get(0);
+                    if (mf.renderOrientation() == null) {
+                        Vec3 startFrame = mf.direction();
+                        Vec3 endFrame = frames.get(1).direction();
+                        final Vec3 down = new Vec3(0, -1, 0);
+                        final Vec3 movement = endFrame.subtract(startFrame);
+                        double angleRadians = signedAngle(down, movement, new Vec3(0,0,-1));
+                        double angleDegrees = Math.toDegrees(angleRadians);
+                        mf._setRenderRotationRaw(MotionFrame.buildLocalRotation(new Vector4d(startFrame.x, startFrame.y, startFrame.z, angleDegrees)));
+                    }
                 }
 
                 // Extract MotionGroup fields (easing, duration)

@@ -2,6 +2,7 @@ package jackiecrazy.footwork.utils;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -57,7 +58,7 @@ public class MovementUtils {
     public static void applyVelocity(Vec3 vec, LivingEntity e, boolean set) {
         final Vec3 vel = resolveVelocity(e.getLookAngle(), vec);
         final boolean iszero = vel.lengthSqr()==0;
-        if (set && !iszero) {
+        if (set) {// && !iszero//todo why did I add this check???
             e.setDeltaMovement(vel);
         } else e.addDeltaMovement(vel);
         if (set || !iszero)
@@ -78,5 +79,45 @@ public class MovementUtils {
         if (Y != 0) lookAdjusted = new Vec3(lookAdjusted.x, Y, lookAdjusted.z);
 
         return lookAdjusted;
+    }
+
+    public static void knockBack(LivingEntity to,
+                                 float strength,
+                                 double xRatio,
+                                 double yRatio,
+                                 double zRatio,
+                                 boolean bypassEventCheck) {
+        if (!bypassEventCheck) {
+            net.minecraftforge.event.entity.living.LivingKnockBackEvent event = net.minecraftforge.common.ForgeHooks.onLivingKnockBack(to, strength, xRatio, zRatio);
+            if (event.isCanceled()) return;
+            strength = event.getStrength();
+            xRatio = event.getRatioX();
+            zRatio = event.getRatioZ();
+        }
+        strength *= (float) Math.max(0, 1 - GeneralUtils.getAttributeValueSafe(to, Attributes.KNOCKBACK_RESISTANCE));
+        if (strength != 0f) {
+            Vec3 vec = to.getDeltaMovement();
+            double motionX = vec.x, motionY = vec.y, motionZ = vec.z;
+            to.hasImpulse = true;
+            double pythagora = Math.sqrt(xRatio * xRatio + zRatio * zRatio);
+            if (to.onGround()) {
+                motionY /= 2.0D;
+                motionY += Math.abs(strength);
+
+                if (motionY > 0.4000000059604645D) {
+                    motionY = 0.4000000059604645D;
+                }
+            } else if (yRatio != 0) {
+                pythagora = Math.sqrt(xRatio * xRatio + zRatio * zRatio + yRatio * yRatio);
+                motionY /= 2.0D;
+                motionY -= yRatio / (double) pythagora * (double) strength;
+            }
+            motionX /= 2.0D;
+            motionZ /= 2.0D;
+            motionX -= xRatio / (double) pythagora * (double) strength;
+            motionZ -= zRatio / (double) pythagora * (double) strength;
+            to.setDeltaMovement(motionX, motionY, motionZ);
+            to.hurtMarked = true;
+        }
     }
 }

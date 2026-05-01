@@ -27,7 +27,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     public DummyFlyingWeaponEntity(EntityType<? extends FlyingItemEntity> type,
                                    Level level) {
         super(type, level);
-        final ItemStack stack = new ItemStack(Items.IRON_SWORD);
+        final ItemStack stack = new ItemStack(Items.CACTUS);
         stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION,1);
         //setHeldItem(ItemStack.EMPTY);
         setHeldItem(stack);
@@ -82,7 +82,8 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         if(getMotionTarget()==getOwner()){
             setUniversalOffset(new Vec3(1.3,0,0));
         }
-
+        lockPos(new Vec3(0,-50-animProgress/5d, 0));
+        lockLook(new Vec3(0,0, 1).yRot(animProgress));
         super.tick();
     }
 
@@ -103,10 +104,10 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         alreadyHit.clear();
         //provisional. Used to test movement.
         setState(STATE.FOLLOW);
-        setEffect(FlyingWeaponEffect.WEAPON);
+        setEffect(FlyingWeaponEffect.TRAIL);
         animProgress++;
         if (animProgress > 20) {
-            setHeldItem(new ItemStack(Items.IRON_AXE));
+            //setHeldItem(new ItemStack(Items.IRON_AXE));
             List<MotionFrame> loop=List.of(
                     new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90, new FrameEffects().setEffects(FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.LOCK_POSITION, FlyingWeaponEffect.LOCK_ORIENTATION)),
                     new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), -90),
@@ -123,14 +124,14 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
                     new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), 45));
             setInteractionRange(6);
             animProgress = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(chop, EasingFunctionEnum.IN_OUT_CUBIC, 60)), 0, 0);
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(slash, EasingFunctionEnum.IN_OUT_CUBIC, 10)), 0, 0);
             setIntangible(false);
             //setFlipRender(!flipClientRender());
             setFlipRender(!flipClientRender());
+            lockPos(new Vec3(0,-50, 0));
+            lockLook(new Vec3(0,0,1));
+            //setPos(getX(), getY()+10, getZ());
             while (!trailHistory.isEmpty()) trailHistory.pop();
-            //setIdlePose(idlePose == firstIdle ? secondIdle : firstIdle);
-            lock(getOwner());
-            //setEffect(FlyingWeaponEffect.BIG_SHADOW, true);
         }
         //recalculatedOrientation = recalculateOrientation(null, update.renderOrientation(), (float) 0.1f);
     }

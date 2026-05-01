@@ -39,13 +39,12 @@ public class CombatDamageSource extends DamageSource {
     private float cdmg = 1.5f;
     private float postureDamage = -1;
     private float armorPierce = 0f, knockback = 1f, multiplier = 1f;
+    private Vec3 knockbackVector = null;
     private FootworkDamageArchetype damageTyping = FootworkDamageArchetype.PHYSICAL;
     private boolean canBreach = true;
-
     public CombatDamageSource(@Nonnull Entity entity) {
         this(entity, entity, entity.position());
     }
-
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy) {
         this(entity, proxy, entity.position());
     }
@@ -61,6 +60,16 @@ public class CombatDamageSource extends DamageSource {
 
     public static CombatDamageSource causeSelfDamage(LivingEntity to) {
         return new CombatDamageSource(to);
+    }
+
+    @Nullable
+    public Vec3 getKnockbackVector() {
+        return knockbackVector;
+    }
+
+    public CombatDamageSource setKnockbackVector(Vec3 knockbackVector) {
+        this.knockbackVector = knockbackVector;
+        return this;
     }
 
     public boolean canBreach() {

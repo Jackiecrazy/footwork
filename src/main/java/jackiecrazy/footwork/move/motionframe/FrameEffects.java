@@ -10,6 +10,11 @@ public class FrameEffects extends HitEffects {
     private HitInfo attack_info = null;
     private List<FlyingWeaponEffect> effects = null;
     private double range = -1;
+    private boolean reset_hit = false;
+
+    public FrameEffects() {
+
+    }
 
     public FrameEffects resetHit(boolean reset_hit) {
         this.reset_hit = reset_hit;
@@ -20,21 +25,19 @@ public class FrameEffects extends HitEffects {
         return reset_hit;
     }
 
-    private boolean reset_hit=false;
-
-    public FrameEffects() {
-
+    public HitEffects copy() {
+        FrameEffects he = new FrameEffects();
+        he.run_actions = run_actions;
+        he.command = command;
+        he.velocity = velocity;
+        he.set_velocity = set_velocity;
+        he.attack_info = attack_info;
+        he.reset_hit = reset_hit;
+        if (effects != null)
+            he.setEffects(effects.toArray(new FlyingWeaponEffect[0]));
+        he.setRange(range);
+        return he;
     }
-
-//    public FrameEffects clone() {
-//        FrameEffects ret = new FrameEffects();
-//        ret.hit = hit;
-//        ret.effects = effects;
-//        ret.range = range;
-//        ret.velocity = velocity;
-//        ret.setVelocity = setVelocity;
-//        return ret;
-//    }
 
     public HitInfo getHit() {
         return attack_info;
@@ -43,6 +46,12 @@ public class FrameEffects extends HitEffects {
     public FrameEffects setHit(HitInfo attack_info) {
         this.attack_info = attack_info;
         return this;
+    }
+
+    public FrameEffects copyWithHit(HitInfo attack_info) {
+        FrameEffects fe = (FrameEffects) copy();
+        fe.attack_info = attack_info;
+        return fe;
     }
 
     public List<FlyingWeaponEffect> getEffects() {
