@@ -11,6 +11,7 @@ public class FrameEffects extends HitEffects {
     private List<FlyingWeaponEffect> effects = null;
     private double range = -1;
     private boolean reset_hit = false;
+    private boolean unDrag = false;
 
     public FrameEffects() {
 
@@ -88,5 +89,9 @@ public class FrameEffects extends HitEffects {
     public FrameEffects setSetVelocity(boolean setVelocity) {
         this.set_velocity = setVelocity;
         return this;
+    }
+
+    public boolean shouldUndrag() {
+        return unDrag;
     }
 }

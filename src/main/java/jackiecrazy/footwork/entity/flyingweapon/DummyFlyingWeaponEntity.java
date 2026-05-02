@@ -15,7 +15,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 import org.joml.Vector4d;
 
 import java.util.ArrayList;
@@ -82,8 +81,8 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         if(getMotionTarget()==getOwner()){
             setUniversalOffset(new Vec3(1.3,0,0));
         }
-        lockPos(new Vec3(0,-50-animProgress/5d, 0));
-        lockLook(new Vec3(0,0, 1).yRot(animProgress));
+//        lockPos(new Vec3(0, -50- animTicker /5d, 0));
+//        lockLook(new Vec3(0,0, 1).yRot(animTicker));
         super.tick();
     }
 
@@ -97,6 +96,11 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     }
 
     @Override
+    protected double getWeight() {
+        return 0.5;
+    }
+
+    @Override
     protected void returnToIdle(int duration) {
         super.returnToIdle(duration);
         //lock(getOwner());
@@ -105,8 +109,8 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         //provisional. Used to test movement.
         setState(STATE.FOLLOW);
         setEffect(FlyingWeaponEffect.TRAIL);
-        animProgress++;
-        if (animProgress > 20) {
+        animTicker++;
+        if (animTicker > 20) {
             //setHeldItem(new ItemStack(Items.IRON_AXE));
             List<MotionFrame> loop=List.of(
                     new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90, new FrameEffects().setEffects(FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.LOCK_POSITION, FlyingWeaponEffect.LOCK_ORIENTATION)),
@@ -123,8 +127,8 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
                     new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1), 45),
                     new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), 45));
             setInteractionRange(6);
-            animProgress = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(slash, EasingFunctionEnum.IN_OUT_CUBIC, 100)), 0, 0);
+            animTicker = 0;
+            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(slash, EasingFunctionEnum.IN_OUT_CUBIC, 10)), 0, 0);
             setIntangible(false);
             //setFlipRender(!flipClientRender());
             setFlipRender(!flipClientRender());

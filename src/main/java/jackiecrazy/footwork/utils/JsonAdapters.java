@@ -19,6 +19,7 @@ public class JsonAdapters {
     public static final Gson NAIVE = new GsonBuilder()
             .registerTypeAdapter(CompoundTag.class, new ActionJsonAdapters.NBTAdapter())
             .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter())
+            .registerTypeAdapter(HitInfo.class, new JsonAdapters.HitInfoAdapter())//is this okay?
             .setPrettyPrinting()
             .create();
 

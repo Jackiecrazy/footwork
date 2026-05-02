@@ -152,7 +152,6 @@ public class JsonUtils {
         if (ret.getEffects() == null) {
             ret.setEffects(FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.TRAIL);
         }
-        //fixme figure out when should main class hit info overwrite frame-specific hit
 
         return ret;
     }

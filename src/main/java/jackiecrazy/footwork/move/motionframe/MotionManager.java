@@ -19,7 +19,7 @@ public abstract class MotionManager {
             int numOfFrames = mm.getDuration() / (increments + 1);
             buf.writeInt(numOfFrames);
             for (int x = 0; x < numOfFrames; x += increments) {
-                MotionFrame.SERIALIZER.write(buf, mm.getNextPoint(x ));
+                MotionFrame.SERIALIZER.write(buf, mm.getNextPoint(x));
             }
         }
 
@@ -50,12 +50,12 @@ public abstract class MotionManager {
         return angular_velocity;
     }
 
-    public abstract MotionFrame getNextPoint(int elapsedTicks);
+    public abstract MotionFrame getNextPoint(double elapsedTicks);
 
     public abstract int getDuration();
 
-    public boolean hasEnded(int atTick) {
-        return atTick > getDuration();
+    public boolean hasEnded(int atTick, double atTimer) {
+        return atTick > getDuration() * 1.5 || atTimer > getDuration();
     }
 
     public MotionFrame getStartFrame() {

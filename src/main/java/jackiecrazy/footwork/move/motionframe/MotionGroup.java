@@ -82,7 +82,7 @@ public class MotionGroup {
         return frames.get(frames.size() - 1);
     }
 
-    public MotionFrame interpret(int time) {
+    public MotionFrame interpret(double time) {
         int frameCount = frames.size();
         if (frameCount < 2) return frames.get(0);
 

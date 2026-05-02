@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public abstract class FlyingItemEntity extends Entity implements OwnableEntity, ITetherAnchor, Targeting {
     public static final EntityDataSerializer<STATE> STATESERIALIZER = EntityDataSerializer.simpleEnum(STATE.class);
     public static final int MAX_TRAIL_LENGTH = 6;
-    public static final int CLIENT_SMOOTHING_SUBTICKS = 7;
+    public static final int CLIENT_SMOOTHING_SUBTICKS = 1;
     protected static final List<MotionFrame> STAB = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, -1)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)));
     protected static final List<MotionFrame> CIRCLE = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)), new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), new Vector4d(-1, 0, 0, 90)), new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 90)), new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), new Vector4d(1, 0, 0, 90)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)));
     protected static final List<MotionFrame> SLASH = List.of(new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45)));
@@ -93,7 +93,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected int internalIdleTimer = 0;
     protected LivingEntity owner;
     protected Deque<MotionManager> moveQueue = new ConcurrentLinkedDeque<>();
-    protected int animProgress = 0;
+    protected int animTicker = 0;
+    protected double animProgress = 0;
     protected MotionFrame update;
     protected Vector4d recalculatedOrientation;
     protected boolean wasIdle = false;
@@ -234,7 +235,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         LivingEntity owner = getOwner();
         if (owner == null) return false;
         MotionManager motion = moveQueue.peek();
-        if (motion == null || motion.hasEnded(animProgress) || forceskip) {
+        if (motion == null || motion.hasEnded(animTicker, animProgress) || forceskip) {
             if (motion != null)
                 updateFrameEffects(motion.getEndFrame().effects());
             moveQueue.poll();
@@ -242,7 +243,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             if (motion != null)
                 this.updateFrameEffects(motion.getStartFrame().effects());
             //setTransitioning(motion == null || motion instanceof MotionManagers.TransitionMM);
-            animProgress = 0;
+            animProgress=animTicker = 0;
             flushTrailHistory();
             currentEffects = null;
             return true;
@@ -373,9 +374,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     @Override
     public void tick() {
         super.tick();
-        setGlowingTag(false);
-        //entityData.set(LAST_FRAME, new MotionFrame(position().add(getLookAngle()).subtract(stateDependentPositionLook().getA()), position().add(getLookAngle().scale(getInteractionRange())).subtract(stateDependentPositionLook().getA()), getRoll()));
-        // Movement logic
+        entityData.set(LAST_FRAME, new MotionFrame(position(), getLookAngle(), getRoll()));// Movement logic
         if (level().isClientSide) {
             rollO = getRoll();
             displacementO = getDisplacementForRender();
@@ -392,7 +391,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             if (!moveQueue.isEmpty()) {
                 wasIdle = false;
                 entityData.set(IDLE_TICK, 0);
-                animProgress++;
+                animTicker++;
+                animProgress+=getWeight();
                 executeMoveQueue();
             } else if (getState() == STATE.THROW_TRACK) {
                 wasIdle = false;
@@ -426,6 +426,10 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 entityData.set(CURRENT_FRAME, reconstructed);
             }
         }
+    }
+
+    protected double getWeight() {
+        return 1;
     }
 
     private void trackingFly() {
@@ -614,9 +618,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         recalculatedOrientation = recalculateOrientation(update.renderOrientation(), 1f);
 
         //prevent recursion
-        if (animProgress == 0) return;
+        if (animTicker == 0) return;
 
-        if (activeMove.hasEnded(animProgress)) {//end current path, execute next path (either transition or next path)
+        if (activeMove.hasEnded(animTicker, animProgress)) {//end current path, execute next path (either transition or next path)
             updateMotionTargets(false);
         } else {
             if (activeMove != getIdlePose()) {
@@ -666,29 +670,24 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         //lerp 5 points between each tick
         if (getMotionTarget() != null) {
             Vec3 universalOffset = getUniversalOffset();
-            MotionFrame from = entityData.get(LAST_FRAME);//position, trail position, (xrot, yrot, roll)
+            MotionFrame from = entityData.get(LAST_FRAME);//position, look, (xrot, yrot, roll)
             MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (xrot, yrot, zrot... in theory)
             double dist = intangible() ? -1 : getInteractionRange() - 1;//the -1 here is necessary to counteract the base
-            Vec3 fromTrailPos = prevTrailPos;//position().add(from.offset());
+            Vec3 fromTrailPos = from.direction().add(from.offset().scale(dist));
             //this is NOT accurate!
-            Vec3 fromShadowPos = prevShadPos;//position().add(from.direction());
-
-            final Tuple<Vec3, Vec3> bundle = stateDependentPositionLook();
-            //lerp from(to)
-            Vec3 toTrailPos = to.resolveTargetOffset(bundle, universalOffset, getInteractionRange() + 1);
-            Vec3 toShadowPos = to.resolveTargetOffset(bundle, universalOffset, 2);
-            Vec3 fromVec = fromTrailPos.subtract(fromShadowPos), toVec = toTrailPos.subtract(toShadowPos);
-            double fromLength = fromVec.length(), toLength = toVec.length();
+            Vec3 fromShadowPos = from.direction();
+            Vec3 toTrailPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, getInteractionRange());
+            Vec3 toShadowPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, 1);
             for (double i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
                 double partialTick = i / CLIENT_SMOOTHING_SUBTICKS;
 
-                //shadow, range 1
-                Vec3 trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
-                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int) i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
-
                 //trail, max range
-                trailPosition = trailPosition.add(fromVec.lerp(toVec, partialTick).normalize().scale(Mth.lerp(partialTick, fromLength, toLength)));//fromTrailPos.lerp(toTrailPos, partialTick);
-                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), RAINBOW[(int) i], from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                Vec3 trailPosition = fromTrailPos.lerp(toTrailPos, partialTick);
+                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), Color.red, from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+
+                //shadow, range 1
+                trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
+                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), Color.red, from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 trailHistory.addFirst(new Tuple<>(trail, shadow));
             }
@@ -701,8 +700,6 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             trailHistory.clear();
             version = getEntityData().get(LAST_UPD);
         }
-        prevShadPos = position().add(getLookAngle());
-        prevTrailPos = position().add(getLookAngle().scale(getInteractionRange()));
     }
 
     protected abstract void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location);

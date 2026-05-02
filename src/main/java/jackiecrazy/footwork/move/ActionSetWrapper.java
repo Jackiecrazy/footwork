@@ -96,8 +96,8 @@ public class ActionSetWrapper {
         Action act;
         for (; index < actions.size(); index++) {
             act = actions.get(index % actions.size());
-            act.canRun(new ActionContext(this, null, performer, target));
-            trigger(act, null, performer, target);
+            if (act.canRun(new ActionContext(this, null, performer, target)))
+                trigger(act, null, performer, target);
             if (act instanceof TimerAction ta) return ta;
         }
         return null;

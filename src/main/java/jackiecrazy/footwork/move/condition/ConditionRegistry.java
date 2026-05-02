@@ -41,4 +41,5 @@ public class ConditionRegistry {
     public static final RegistryObject<ConditionType> BLOCK_IN_TAG = CONDITIONS.register("block_in_tag", () -> new ConditionType(IsTaggedWithCondition.Bloc.class));
     public static final RegistryObject<ConditionType> BLOCK_IN_RANGE = CONDITIONS.register("block_in_range", () -> new ConditionType(BlockInRangeCondition.class));
     public static final RegistryObject<ConditionType> ENTITY_IN_RANGE = CONDITIONS.register("entity_in_range", () -> new ConditionType(EntityInRangeCondition.class));
+    public static final RegistryObject<ConditionType> RANDOM = CONDITIONS.register("random", () -> new ConditionType(RNGCondition.class));
 }

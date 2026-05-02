@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move.action;
 
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.condition.FalseCondition;
 import jackiecrazy.footwork.move.condition.TrueCondition;
@@ -17,7 +18,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 public class AddEffectAction extends Action {
     private Argument<ResourceLocation> effect;
     private transient MobEffect me;
-    private Argument<Double> potency, duration;
+    private Argument<Double> potency= FixedNumberArgument.ZERO, duration;
     private Argument<Entity> recipient = TargetEntityArgument.INSTANCE;
     private EffectUtils.StackingMethod stacking = EffectUtils.StackingMethod.NONE;
     private Condition forced = FalseCondition.INSTANCE;
@@ -25,6 +26,7 @@ public class AddEffectAction extends Action {
 
     @Override
     public int perform(ActionContext actionContext) {
+        //todo technically this doesn't allow dynamic reassignment... but is it worth it to do that?
         if (me == null)
             me = ForgeRegistries.MOB_EFFECTS.getValue(effect.resolve(actionContext));
         if (me != null && recipient.resolve(actionContext) instanceof LivingEntity e) {

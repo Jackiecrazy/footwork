@@ -10,6 +10,7 @@ import jackiecrazy.footwork.move.argument.resourcelocation.RegistryNameArgument;
 import jackiecrazy.footwork.move.argument.resourcelocation.ResourceLocationArgument;
 import jackiecrazy.footwork.move.argument.stack.EquippedItemArgument;
 import jackiecrazy.footwork.move.argument.stack.RawItemStackArgument;
+import jackiecrazy.footwork.move.argument.stack.TagItemArgument;
 import jackiecrazy.footwork.move.argument.vector.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
@@ -68,6 +69,7 @@ public class ArgumentRegistry {
     //itemstack//
     public static final RegistryObject<ArgumentType<ItemStack>> RAW_ITEM = ARGUMENTS.register("itemstack", ()  -> new ArgumentType<>(RawItemStackArgument.class));
     public static final RegistryObject<ArgumentType<ItemStack>> EQUIPPED_ITEM = ARGUMENTS.register("equipped_item", ()  -> new ArgumentType<>(EquippedItemArgument.class));
+    public static final RegistryObject<ArgumentType<ItemStack>> TAG_ITEM = ARGUMENTS.register("item_with_tag", ()  -> new ArgumentType<>(TagItemArgument.class));
 
     //misc//
     public static final RegistryObject<ArgumentType<DamageSource>> DAMAGE = ARGUMENTS.register("damage", ()  -> new ArgumentType<>(DamageArgument.class));

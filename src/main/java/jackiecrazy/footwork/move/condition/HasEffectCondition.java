@@ -14,7 +14,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 public class HasEffectCondition extends Condition {
     private Argument<ResourceLocation> effect;
     private transient MobEffect me;
-    private Argument<Double> minimum_potency= FixedNumberArgument.ZERO, minimum_duration= FixedNumberArgument.ZERO;
+    private Argument<Double> minimum_potency= FixedNumberArgument.ZERO, minimum_duration= new FixedNumberArgument(-2);
     private Argument<Entity> tested = TargetEntityArgument.INSTANCE;
 
     @Override

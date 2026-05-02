@@ -16,7 +16,7 @@ public class MotionManagers {
         }
 
         @Override
-        public MotionFrame getNextPoint(int elapsedTicks) {
+        public MotionFrame getNextPoint(double elapsedTicks) {
             return frame;
         }
 
@@ -84,7 +84,7 @@ public class MotionManagers {
         }
 
         @Override
-        public MotionFrame getNextPoint(int elapsedTicks) {
+        public MotionFrame getNextPoint(double elapsedTicks) {
             MotionFrame lerped = from.lerp(to, easing.ease((double) elapsedTicks / totalDuration));
             return lerped;
         }
@@ -157,7 +157,7 @@ public class MotionManagers {
         }
 
         @Override
-        public MotionFrame getNextPoint(int elapsedTicks) {
+        public MotionFrame getNextPoint(double elapsedTicks) {
             return from.lerp(to, easing.ease((double) elapsedTicks / totalDuration));
         }
 
@@ -238,7 +238,7 @@ public class MotionManagers {
         }
 
         @Override
-        public MotionFrame getNextPoint(int elapsedTicks) {
+        public MotionFrame getNextPoint(double elapsedTicks) {
             final MotionFrame lerped = def.interpret(elapsedTicks);
             return lerped;
         }

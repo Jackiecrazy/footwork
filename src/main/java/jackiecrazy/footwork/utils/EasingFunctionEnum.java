@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.utils;
 
+import net.minecraft.util.Mth;
+
 public enum EasingFunctionEnum implements EasingFunction {
 
 
@@ -25,7 +27,7 @@ public enum EasingFunctionEnum implements EasingFunction {
 
     @Override
     public double ease(double partialDuration) {
-        return delegate.ease(partialDuration);
+        return delegate.ease(Mth.clamp(partialDuration,0,1));
     }
 
     // Optional: nice toString / name for debugging

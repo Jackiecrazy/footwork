@@ -41,7 +41,7 @@ public class OperateArgument implements Argument<Double> {
         }
 
         public String toString() {
-            return this.value; //will return , or ' instead of COMMA or APOSTROPHE
+            return this.value;
         }
     }
 }

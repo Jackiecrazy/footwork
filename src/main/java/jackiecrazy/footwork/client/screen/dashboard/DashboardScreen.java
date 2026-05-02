@@ -47,7 +47,11 @@ public class DashboardScreen extends Screen {
                 clickOn.alpha -= 0.1f;
                 if (clickOn.alpha <= 0)
                     clickOn.onClick(0, 0);
-            } else clickOn.alpha = Math.min(1, clickOn.alpha + 0.05f);
+            } else{
+                clickOn.yVelocity=(height/2d-(clickOn.getY()+clickOn.getHeight()/2d))/40d;
+                clickOn.xVelocity=(width/2d-(clickOn.getX()+clickOn.getWidth()/2d))/40d;
+                clickOn.alpha = Math.min(1, clickOn.alpha + 0.05f);
+            }
         }
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
