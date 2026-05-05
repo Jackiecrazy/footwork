@@ -51,6 +51,8 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> DEAL_DAMAGE = ACTIONS.register("deal_damage", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, DealDamageAction.class));
     public static final RegistryObject<ActionType> ADD_EFFECT = ACTIONS.register("add_effect", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AddEffectAction.class));
     public static final RegistryObject<ActionType> EXPLODE = ACTIONS.register("explode", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ExplodeAction.class));
+    public static final RegistryObject<ActionType> FREEZE = ACTIONS.register("freeze", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, FreezeAction.class));
+    public static final RegistryObject<ActionType> IGNITE = ACTIONS.register("ignite", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, IgniteAction.class));
     public static final RegistryObject<ActionType> LOOK_AT = ACTIONS.register("look_at", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, LookAtAction.class));
     public static final RegistryObject<ActionType> SET_AGGRESSIVE = ACTIONS.register("set_aggressive", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, SetAggressiveAction.class));
     public static final RegistryObject<ActionType> ATTACH_ACTION = ACTIONS.register("attach_action", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AttachActionAction.class));
@@ -59,6 +61,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> PLAY_PARTICLE = ACTIONS.register("play_particle", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, PlayParticleAction.class));
     public static final RegistryObject<ActionType> PLAY_SOUND = ACTIONS.register("play_sound", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, PlaySoundAction.class));
     public static final RegistryObject<ActionType> TELEPORT = ACTIONS.register("teleport", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, TeleportAction.class));
+    public static final RegistryObject<ActionType> COMMAND = ACTIONS.register("run_command", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, RunCommandAction.class));
     public static final RegistryObject<ActionType> SWING_ARM = ACTIONS.register("swing_arm", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, SwingArmAction.class));
     public static final RegistryObject<ActionType> REMOVE = ACTIONS.register("remove", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, RemoveFromExistenceAction.class));
     public static final RegistryObject<ActionType> MOUNT = ACTIONS.register("mount", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MountAction.class));

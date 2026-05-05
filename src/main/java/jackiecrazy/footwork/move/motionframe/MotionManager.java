@@ -43,6 +43,7 @@ public abstract class MotionManager {
 
     public MotionManager setAngularVelocity(Vector3f angularVelocity) {
         this.angular_velocity = angularVelocity;
+        //fixme you're setting it on a singleton instance causing thrown weapons to lose their spin after hitting a wall
         return this;
     }
 

@@ -28,6 +28,8 @@ public class ConditionRegistry {
     public static final RegistryObject<ConditionType> ON_GROUND = CONDITIONS.register("on_ground", () -> new ConditionType(OnGroundCondition.class));
     public static final RegistryObject<ConditionType> CAN_SEE = CONDITIONS.register("can_see", () -> new ConditionType(CanSeeCondition.class));
     public static final RegistryObject<ConditionType> IS_ALIVE = CONDITIONS.register("is_alive", () -> new ConditionType(IsAliveCondition.class));
+    public static final RegistryObject<ConditionType> IS_HOSTILE = CONDITIONS.register("hostile_to", () -> new ConditionType(IsEnemyCondition.class));
+    public static final RegistryObject<ConditionType> IS_ALLY = CONDITIONS.register("allied_to", () -> new ConditionType(IsAllyCondition.class));
     public static final RegistryObject<ConditionType> HAS_EFFECT = CONDITIONS.register("has_effect", () -> new ConditionType(HasEffectCondition.class));
     public static final RegistryObject<ConditionType> IS_NAMED = CONDITIONS.register("is_named", () -> new ConditionType(IsNamedCondition.class));
     public static final RegistryObject<ConditionType> MOB_IN_TAG = CONDITIONS.register("mob_in_tag", () -> new ConditionType(IsTaggedWithCondition.Mob.class));

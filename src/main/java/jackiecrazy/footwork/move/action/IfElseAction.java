@@ -23,7 +23,7 @@ public class IfElseAction extends Action{
     @Override
     public int perform(ActionContext actionContext) {
         if(condition.resolve(actionContext)){
-            return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), then);
-        }else return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), otherwise);
+            return runActions(actionContext, then);
+        }else return runActions(actionContext, otherwise);
     }
 }

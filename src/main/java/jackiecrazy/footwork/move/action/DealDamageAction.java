@@ -25,13 +25,13 @@ public class DealDamageAction extends Action {
         boolean success = actionContext.target().hurt(baked, amount.resolve(actionContext).floatValue());
         if (baked instanceof CombatDamageSource cds)
             actionContext.performer().getPersistentData().putDouble("footwork:finalized_damage", cds.getFinalDamage());
-        int ret = runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), on_hit);
+        int ret = runActions(actionContext, on_hit);
         if (success) {
             if (!actionContext.target().isAlive()) {
-                int damageRet = runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), on_kill);
+                int damageRet = runActions(actionContext, on_kill);
                 if (damageRet != 0) ret = damageRet;
             }
-            int damageRet = runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), on_damage);
+            int damageRet = runActions(actionContext, on_damage);
             if (damageRet != 0) ret = damageRet;
         }
         actionContext.performer().getPersistentData().remove("footwork:finalized_damage");

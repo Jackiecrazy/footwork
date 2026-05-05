@@ -23,7 +23,7 @@ public abstract class Action extends Move {
         if (actions == null) return 0;
         int returnCode = 0;
         for (Action child : actions) {
-            if (child.canRun(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()))) {
+            if (child.canRun(actionContext)) {
                 returnCode = actionContext.wrapper().trigger(child, actionContext.parent(), actionContext.performer(), actionContext.target());
                 if (returnCode > 0) return returnCode;
             }

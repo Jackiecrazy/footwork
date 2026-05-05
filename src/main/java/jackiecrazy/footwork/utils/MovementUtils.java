@@ -57,10 +57,15 @@ public class MovementUtils {
 
     public static void applyVelocity(Vec3 vec, LivingEntity e, boolean set) {
         final Vec3 vel = resolveVelocity(e.getLookAngle(), vec);
-        final boolean iszero = vel.lengthSqr()==0;
+        final boolean iszero = vel.lengthSqr() == 0;
         if (set) {// && !iszero//todo why did I add this check???
             e.setDeltaMovement(vel);
-        } else e.addDeltaMovement(vel);
+        } else {
+            //velocity negation for better overall feel
+            if (vel.y * e.getDeltaMovement().y < 0)//both are nonzero and the two do not have the same sign
+                e.setDeltaMovement(e.getDeltaMovement().multiply(1, 0, 1));
+            e.addDeltaMovement(vel);
+        }
         if (set || !iszero)
             e.hurtMarked = true;
     }

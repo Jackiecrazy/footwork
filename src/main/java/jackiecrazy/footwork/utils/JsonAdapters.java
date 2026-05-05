@@ -103,15 +103,16 @@ public class JsonAdapters {
                     } else if (spinElem.isJsonArray()) {
                         // [x, y, z]
                         JsonArray arr = spinElem.getAsJsonArray();
-                        if (arr.size() != 4) {
-                            throw new JsonParseException("render_rotation array must have exactly 4 elements");
+                        if (arr.size() < 3||arr.size()>4) {
+                            throw new JsonParseException("render_rotation array must have either 3 or 4 elements.");
                         }
                         Vector4d spinVector = new Vector4d(
                                 arr.get(0).getAsDouble(),
                                 arr.get(1).getAsDouble(),
                                 arr.get(2).getAsDouble(),
-                                arr.get(3).getAsDouble()
+                                0
                         );
+                        if(arr.size()>3)spinVector.w=arr.get(3).getAsDouble();
                         if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
                             throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
                         }
@@ -182,7 +183,6 @@ public class JsonAdapters {
 
                 //compute frames from bottom to top.
                 if (manuallyCalculate) {
-                    //todo dot products are inherently positive and so we can't extract the sign, what to do?
                     for (int x = frames.size() - 1; x >= 1; x--) {
                         //If they have no render orientation, set their orientation to their direction, and their angling to the angle of the frame change
                         final MotionFrame mf = frames.get(x);
@@ -283,7 +283,7 @@ public class JsonAdapters {
                 throw new JsonParseException("'spin' must be a number, array[3], or object{x,y,z}");
             }
 
-            targetFrame.setAngularVelocity(spinVector.mul(Mth.DEG_TO_RAD));
+            targetFrame.setAngularVelocity(spinVector);
         }
 
     }

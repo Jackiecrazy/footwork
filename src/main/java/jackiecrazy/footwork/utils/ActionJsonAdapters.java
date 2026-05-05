@@ -264,8 +264,9 @@ public class ActionJsonAdapters {
             if (json.isJsonPrimitive()) {
                 return json.getAsBoolean() ? TrueCondition.INSTANCE : FalseCondition.INSTANCE;
             }
-            if(json.isJsonArray()&&json.getAsJsonArray().get(0).isJsonObject()){
-                return new AndCondition(jsonDeserializationContext.deserialize(json.getAsJsonArray(), new TypeToken<ArrayList<Condition>>() {}.getType()));
+            if (json.isJsonArray() && json.getAsJsonArray().get(0).isJsonObject()) {
+                return new AndCondition(jsonDeserializationContext.deserialize(json.getAsJsonArray(), new TypeToken<ArrayList<Condition>>() {
+                }.getType()));
             }
             if (!json.isJsonObject()) {
                 ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
@@ -275,9 +276,16 @@ public class ActionJsonAdapters {
             }
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
+                boolean flip = false;
+                String id = sub.get("ID").getAsString();
+                while (id.startsWith("!")) {
+                    flip = !flip;
+                    id = id.substring(1);
+                }
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(id));
                 if (ConditionRegistry.SUPPLIER.get().containsKey(rl)) {
-                    return ConditionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
+                    final Condition bake = (Condition) ConditionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
+                    return flip ? NotCondition.of(bake) : bake;
                 }
                 throw new JsonParseException("invalid ID " + rl + " defined for condition object: " + json);
             }

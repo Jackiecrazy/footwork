@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ProjectHitboxAction extends TimerAction {
+    public static boolean multihit_override=false;
     /**
      * 0 for once only, other hitboxes repeat every x ticks.
      */
@@ -27,6 +28,7 @@ public class ProjectHitboxAction extends TimerAction {
     @Override
     public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
         HashMap<Entity, Long> lastHit = wrapper.getData(this);
+        multihit_override=true;
         for (Entity e : selector.resolve(new ActionContext(wrapper, this, performer, target))) {
             if (hit_cooldown == 0 && lastHit.containsKey(e)) continue;
             if (lastHit.containsKey(e) && lastHit.get(e) + hit_cooldown < e.level().getGameTime()) continue;
@@ -34,6 +36,7 @@ public class ProjectHitboxAction extends TimerAction {
             if (childRet != 0) return childRet;
             lastHit.put(e, e.level().getGameTime());
         }
+        multihit_override=false;
         return super.tick(wrapper, performer, target);
     }
 

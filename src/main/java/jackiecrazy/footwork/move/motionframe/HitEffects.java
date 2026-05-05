@@ -54,7 +54,10 @@ public class HitEffects {
     public boolean runEffects(LivingEntity hitter, LivingEntity target) {
         Level level = target.level();
         if (!level.isClientSide) {
-            MovementUtils.applyVelocity(velocity, target, set_velocity);
+            if(!CombatData.getCap(target).alreadyProc(this.toString())) {
+                MovementUtils.applyVelocity(velocity, target, set_velocity);
+                CombatData.getCap(target).tickProc(this.toString());
+            }
             if (!run_actions.isEmpty())
                 ActionData.getCap(target).mark(hitter, new ActionSetWrapper(run_actions));//todo check if this works
             MinecraftServer minecraftserver = level.getServer();

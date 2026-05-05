@@ -23,6 +23,6 @@ public class MetaAction extends Action{
 
     @Override
     public int perform(ActionContext actionContext) {
-        return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), actions);
+        return runActions(actionContext, actions);
     }
 }

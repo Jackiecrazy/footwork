@@ -19,6 +19,6 @@ public class Trigger extends Action {
 
     @Override
     public int perform(ActionContext actionContext) {
-        return runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), actionContext.target()), execute);
+        return runActions(actionContext, execute);
     }
 }

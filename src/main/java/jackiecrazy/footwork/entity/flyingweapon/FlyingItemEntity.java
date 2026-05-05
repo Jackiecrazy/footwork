@@ -70,6 +70,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final EntityDataAccessor<Vector3f> UNIVERSAL_OFFSET = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
     protected static final EntityDataAccessor<Vector3f> LOCK_POS = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
     protected static final EntityDataAccessor<Vector3f> LOCK_LOOK = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
+    //protected static final EntityDataAccessor<Vector3f> SPIN = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.VECTOR3);
     //how the weapon floats when idle: point downwards
     protected static final EntityDataAccessor<MotionManager> IDLE_POSE = SynchedEntityData.defineId(FlyingItemEntity.class, MotionManager.SERIALIZER);
     protected static final EntityDataAccessor<STATE> CURRENT_STATE = SynchedEntityData.defineId(FlyingItemEntity.class, STATESERIALIZER);
@@ -295,6 +296,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         this.entityData.define(UNIVERSAL_OFFSET, new Vector3f());
         this.entityData.define(LOCK_POS, BOGUS);
         this.entityData.define(LOCK_LOOK, BOGUS);
+        //this.entityData.define(SPIN, new Vector3f());
         this.entityData.define(IDLE_POSE, new MotionManagers.FixedMM(new MotionFrame(new Vec3(0, -1, 0), Vec3.ZERO, new Vector4d(0, 0, 1, 0)), 5));
         this.entityData.define(ATTACK_RANGE, 3f);
         this.entityData.define(VISUAL_TAG, 11);//binary value 1011
@@ -579,7 +581,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         displacementO = getDisplacementForRender();
     }
 
-    private void updateSpin(MotionManager cur) {
+    protected void updateSpin(MotionManager cur) {
         if (cur.getSpin().lengthSquared() == 0) {
             if (prevSpinning) {
                 //instantly modulo spin

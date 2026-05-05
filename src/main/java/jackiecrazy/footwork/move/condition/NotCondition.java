@@ -9,4 +9,10 @@ public class NotCondition extends Condition {
     public Boolean resolve(ArgumentContext argumentContext) {
         return !of.resolve(argumentContext);
     }
+
+    public static NotCondition of(Condition c){
+        NotCondition ret =new NotCondition();
+        ret.of=c;
+        return ret;
+    }
 }
