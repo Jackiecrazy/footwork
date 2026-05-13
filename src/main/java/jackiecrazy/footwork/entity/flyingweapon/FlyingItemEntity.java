@@ -119,6 +119,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     public void setIdlePose(MotionManager idlePose) {
         entityData.set(IDLE_POSE, idlePose);
+        if(isIdle())
         updateFrameEffects(idlePose.getStartFrame().effects());
     }
 
@@ -161,8 +162,10 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (moveQueue.peekLast() instanceof MotionManagers.TransitionMM) moveQueue.removeLast();
         //grab the (new) end of move queue, or idle if we are currently idle
         //CHANGED: grab the last motion we did
+        //just... find the last frame it'll be in
         MotionFrame last = update;
-        if (update == null) last = getIdlePose().getEndFrame();
+        if (isIdle()) last = getIdlePose().getEndFrame();
+        else if(!moveQueue.isEmpty()) last = moveQueue.getLast().getEndFrame();
         //animProgress = 0;//why do you need this?
         //add the transition in, actual move, and transition out
         if (inTick > 0)
@@ -417,8 +420,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
             // Collision and attack logic
             if (!level().isClientSide()) {
-                handleBlockCollisions();
                 handleEntityCollisions();
+                handleBlockCollisions();
             }
 
             // update client for trail rendering, done after block collision checks

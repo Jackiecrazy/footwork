@@ -42,6 +42,10 @@
   "footwork.two_handing.desc": "At 0, you wield two-handed weapons normally. -1 disallows receiving bonuses from two-handing. 1 allows you to wield a two-handed weapon with a one-handed weapon in the offhand. 2 allows you to do so while maintaining the main hand two-handed bonus. 3 allows dual wielding two-handers with no offhand bonus, and 4 allows you to maintain the two-handing bonus of both.",
   "footwork:skill_effectiveness": "Skill Effectiveness",
   "footwork:skill_effectiveness.desc": "Increases the effectiveness of skills.",
+"footwork:air_jumps": "Air Jumps",
+  "footwork:air_jumps.desc": "Increases the number of times you can jump in the air.",
+"footwork:breach_rally": "Breach Rally",
+  "footwork:breach_rally.desc": "Upon successfully breaching an enemy you will immediately recover this percentage of your locked \"gray\" posture as rallyable \"red\" posture.",
 
   "footwork.combat.on": "Combat Mode Activated",
   "footwork.combat.off": "Combat Mode Deactivated",
