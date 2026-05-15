@@ -1,9 +1,6 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
-import jackiecrazy.footwork.move.motionframe.FrameEffects;
-import jackiecrazy.footwork.move.motionframe.MotionFrame;
-import jackiecrazy.footwork.move.motionframe.MotionGroup;
-import jackiecrazy.footwork.move.motionframe.MotionManagers;
+import jackiecrazy.footwork.move.motionframe.*;
 import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.core.BlockPos;
@@ -36,6 +33,11 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         //pose.setAngularVelocity(new Vector3f(0.1f,0,0));
         setIdlePose(pose);
         this.setUniversalOffset(new Vec3(-1.3,0,0));
+        setCosmeticItem(new RenderItemGroup(
+                new ItemNode(stack, Vec3.ZERO, Vec3.ZERO),
+                new ItemNode(ItemStack.EMPTY, new Vec3(0,45,0), new Vec3(0,1,0)),
+                new ItemNode(new ItemStack(Items.IRON_AXE), new Vec3(0,90,0), new Vec3(0,2,0))
+        ));
     }
 
     @Override
@@ -108,7 +110,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         alreadyHit.clear();
         //provisional. Used to test movement.
         setState(STATE.FOLLOW);
-        setEffect(FlyingWeaponEffect.TRAIL);
+        setEffect(FlyingWeaponEffect.WEAPON);
         animTicker++;
         if (animTicker > 20) {
             //setHeldItem(new ItemStack(Items.IRON_AXE));

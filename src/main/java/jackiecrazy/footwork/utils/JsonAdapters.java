@@ -1,12 +1,19 @@
 package jackiecrazy.footwork.utils;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
+import jackiecrazy.footwork.move.argument.stack.RawItemStackArgument;
+import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.motionframe.*;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
 
@@ -19,9 +26,11 @@ public class JsonAdapters {
     public static final Gson NAIVE = new GsonBuilder()
             .registerTypeAdapter(CompoundTag.class, new ActionJsonAdapters.NBTAdapter())
             .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter())
-            .registerTypeAdapter(HitInfo.class, new JsonAdapters.HitInfoAdapter())//is this okay?
+            .registerTypeAdapter(HitInfo.class, new JsonAdapters.HitInfoAdapter())
+            .registerTypeAdapter(RenderItemArgument.class, new ActionJsonAdapters.RenderItemAdapter())
             .setPrettyPrinting()
             .create();
+
 
     public static class HitInfoAdapter implements JsonDeserializer<HitInfo> {
 
@@ -44,7 +53,7 @@ public class JsonAdapters {
                     }
                 }
             }
-            return ActionJsonAdapters.gson.fromJson(json, HitInfo.class);//todo check
+            return ActionJsonAdapters.gson.fromJson(json, HitInfo.class);
         }
     }
 
@@ -103,7 +112,7 @@ public class JsonAdapters {
                     } else if (spinElem.isJsonArray()) {
                         // [x, y, z]
                         JsonArray arr = spinElem.getAsJsonArray();
-                        if (arr.size() < 3||arr.size()>4) {
+                        if (arr.size() < 3 || arr.size() > 4) {
                             throw new JsonParseException("render_rotation array must have either 3 or 4 elements.");
                         }
                         Vector4d spinVector = new Vector4d(
@@ -112,7 +121,7 @@ public class JsonAdapters {
                                 arr.get(2).getAsDouble(),
                                 0
                         );
-                        if(arr.size()>3)spinVector.w=arr.get(3).getAsDouble();
+                        if (arr.size() > 3) spinVector.w = arr.get(3).getAsDouble();
                         if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
                             throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
                         }
@@ -152,6 +161,7 @@ public class JsonAdapters {
             double sign = edgeNormal.dot(cross);
             return Math.atan2(sign, dot);
         }
+
         @Override
         public MotionManager deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -191,7 +201,7 @@ public class JsonAdapters {
                         Vec3 startFrame = frames.get(x - 1).direction();
                         final Vec3 down = new Vec3(0, -1, 0);
                         final Vec3 movement = endFrame.subtract(startFrame);
-                        double angleRadians = signedAngle(down, movement, new Vec3(0,0,-1));
+                        double angleRadians = signedAngle(down, movement, new Vec3(0, 0, -1));
                         double angleDegrees = Math.toDegrees(angleRadians);
                         mf._setRenderRotationRaw(MotionFrame.buildLocalRotation(new Vector4d(endFrame.x, endFrame.y, endFrame.z, angleDegrees)));
                     }
@@ -202,7 +212,7 @@ public class JsonAdapters {
                         Vec3 endFrame = frames.get(1).direction();
                         final Vec3 down = new Vec3(0, -1, 0);
                         final Vec3 movement = endFrame.subtract(startFrame);
-                        double angleRadians = signedAngle(down, movement, new Vec3(0,0,-1));
+                        double angleRadians = signedAngle(down, movement, new Vec3(0, 0, -1));
                         double angleDegrees = Math.toDegrees(angleRadians);
                         mf._setRenderRotationRaw(MotionFrame.buildLocalRotation(new Vector4d(startFrame.x, startFrame.y, startFrame.z, angleDegrees)));
                     }

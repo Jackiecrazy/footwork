@@ -4,7 +4,6 @@ import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.utils.ActionContext;
-import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MoveToAction extends TimerAction {
-    private List<Action> on_start = new ArrayList<>();
     private List<Action> tick = new ArrayList<>();
     private Argument<Double> speed_modifier = FixedNumberArgument.ONE;
     private Argument<Vec3> position;
@@ -37,7 +35,6 @@ public class MoveToAction extends TimerAction {
 
     @Override
     public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
-        runActions(new ActionContext(wrapper, this, performer, target), on_start);
 
         //m.getMoveControl().setWantedPosition(dir.x, dir.y, dir.z, speed_modifier.resolve(wrapper, this, performer, target));
         super.start(wrapper, performer, target);

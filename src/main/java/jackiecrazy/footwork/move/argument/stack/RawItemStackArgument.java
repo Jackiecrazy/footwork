@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move.argument.stack;
 
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.resourcelocation.ResourceLocationArgument;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import net.minecraft.nbt.CompoundTag;
@@ -20,5 +21,10 @@ public class RawItemStackArgument implements Argument<ItemStack>{
         if (tag != null)
             ret.setTag(tag.copy());
         return ret;
+    }
+
+    public RawItemStackArgument setItem(String rl){
+        item=new ResourceLocationArgument.Raw(rl);
+        return this;
     }
 }

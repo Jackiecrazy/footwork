@@ -1,10 +1,7 @@
 package jackiecrazy.footwork.move.action;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.action.timer.AddVelocityAction;
-import jackiecrazy.footwork.move.action.timer.MoveToAction;
-import jackiecrazy.footwork.move.action.timer.ProjectHitboxAction;
-import jackiecrazy.footwork.move.action.timer.WaitAction;
+import jackiecrazy.footwork.move.action.timer.*;
 import jackiecrazy.footwork.move.action.trigger.Trigger;
 import jackiecrazy.footwork.move.argument.entity.EntityArgument;
 import jackiecrazy.footwork.move.argument.number.NumberArgument;
@@ -28,6 +25,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> ADD_VELOCITY = ACTIONS.register("add_velocity", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AddVelocityAction.class));
     public static final RegistryObject<ActionType> MOVE_TO = ACTIONS.register("move_to", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MoveToAction.class));
     public static final RegistryObject<ActionType> PROJECT_HITBOX = ACTIONS.register("project_hitbox", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ProjectHitboxAction.class));
+    public static final RegistryObject<ActionType> FOLLOW_PATH = ACTIONS.register("move_along_path", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MoveAlongPathAction.class));
 
     //Triggers//
     public static final RegistryObject<ActionType> ACTION_ON_HIT = ACTIONS.register("trigger_on_hit", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, Trigger.class));

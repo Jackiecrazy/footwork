@@ -14,6 +14,8 @@ import java.util.List;
 
 
 public abstract class TimerAction extends Action {
+    protected List<Action> on_start = new ArrayList<>();
+
     public List<Trigger> getTriggers() {
         return triggers;
     }
@@ -43,6 +45,7 @@ public abstract class TimerAction extends Action {
     }
 
     public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
+        runActions(new ActionContext(wrapper, this, performer, target), on_start);
     }
 
     public int perform(ActionContext actionContext) {
@@ -51,6 +54,8 @@ public abstract class TimerAction extends Action {
 
     public void stop(ActionContext actionContext, boolean recursive) {
         actionContext.wrapper().immediatelyExpire(this);
+        if(recursive)
+            on_start.forEach(a->a.stop(actionContext, true));
     }
 
 

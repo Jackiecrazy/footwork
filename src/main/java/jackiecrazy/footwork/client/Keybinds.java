@@ -15,7 +15,7 @@ import org.lwjgl.glfw.GLFW;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Footwork.MODID)
 public class Keybinds {
-    public static final KeyMapping SELECT = new KeyMapping("footwork.trance", KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, "key.categories.wardance");
+    public static final KeyMapping SELECT = new KeyMapping("footwork.trance", KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_SEMICOLON, "key.categories.wardance");
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void handleInputEvent(InputEvent event) {
         Minecraft mc = Minecraft.getInstance();

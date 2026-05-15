@@ -63,7 +63,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final EntityDataAccessor<Boolean> IS_INTANGIBLE = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<Boolean> OFFHAND_RENDER = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.BOOLEAN);
     protected static final EntityDataAccessor<ItemStack> HELD = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
-    protected static final EntityDataAccessor<ItemStack> COSMETIC = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.ITEM_STACK);
+    protected static final EntityDataAccessor<RenderItemGroup> COSMETIC = SynchedEntityData.defineId(FlyingItemEntity.class, RenderItemGroup.SERIALIZER);
     protected static final EntityDataAccessor<MotionFrame> LAST_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     protected static final EntityDataAccessor<MotionFrame> CURRENT_FRAME = SynchedEntityData.defineId(FlyingItemEntity.class, MotionFrame.SERIALIZER);
     //uses
@@ -267,11 +267,15 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         setCosmeticItem(stack);
     }
 
-    public ItemStack getCosmeticItem() {
+    public RenderItemGroup getCosmeticItem() {
         return entityData.get(COSMETIC);
     }
 
     public void setCosmeticItem(ItemStack stack) {
+        setCosmeticItem(new RenderItemGroup(new ItemNode(stack, Vec3.ZERO, Vec3.ZERO)));
+    }
+
+    public void setCosmeticItem(RenderItemGroup stack) {
         entityData.set(COSMETIC, stack);
     }
 
@@ -291,7 +295,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         this.entityData.define(LAST_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(CURRENT_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(HELD, ItemStack.EMPTY);
-        this.entityData.define(COSMETIC, ItemStack.EMPTY);
+        this.entityData.define(COSMETIC, new RenderItemGroup(new ItemNode(ItemStack.EMPTY, Vec3.ZERO, Vec3.ZERO)));
         this.entityData.define(DATA_OWNERUUID_ID, Optional.empty());
         this.entityData.define(MOB_OWNER, 0);
         this.entityData.define(TARGET_ID, 0);
@@ -756,7 +760,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         Vec3 worldBase = stateDependentOrientation(); // Identity for base
         if (worldBase.lengthSqr() < 0.003) worldBase = new Vec3(0, -1, 0);//fallback
 
-        // rotate into world frame
+        // rotation into world frame
         Quaternionf worldQuat = MotionFrame.lookQuatFromVec(worldBase).normalize();
 
         localOrientation = applySpin(localOrientation, currentSpin);

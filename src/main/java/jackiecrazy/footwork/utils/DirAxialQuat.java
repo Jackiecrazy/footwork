@@ -128,7 +128,7 @@ public final class DirAxialQuat {
         proj.normalize();
 
         // Compute reference 'zero-roll' direction in world space:
-        // zeroRoll = rotate basisUp to be perpendicular to worldDir, using basisRight/basisUp/basisForward basis.
+        // zeroRoll = rotation basisUp to be perpendicular to worldDir, using basisRight/basisUp/basisForward basis.
         Vector3d worldForward = worldDir; // axis
         // Compute basis's up projected onto plane:
         Vector3d basisUpProj = new Vector3d(basisUp);

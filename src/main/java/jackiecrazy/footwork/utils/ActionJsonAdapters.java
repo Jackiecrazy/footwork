@@ -12,19 +12,25 @@ import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.ArgumentRegistry;
 import jackiecrazy.footwork.move.argument.SingletonArgumentType;
+import jackiecrazy.footwork.move.argument.misc.ItemNodeArgument;
+import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.number.NumberArgument;
 import jackiecrazy.footwork.move.argument.resourcelocation.ResourceLocationArgument;
+import jackiecrazy.footwork.move.argument.stack.RawItemStackArgument;
 import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
 import jackiecrazy.footwork.move.argument.vector.VectorArgument;
 import jackiecrazy.footwork.move.condition.*;
 import jackiecrazy.footwork.move.filter.Filter;
 import jackiecrazy.footwork.move.filter.FilterRegistry;
 import jackiecrazy.footwork.move.filter.SingletonFilterType;
+import jackiecrazy.footwork.move.motionframe.*;
 import net.minecraft.commands.arguments.CompoundTagArgument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
@@ -50,14 +56,18 @@ public class ActionJsonAdapters {
             .registerTypeAdapter(NumberArgument.class, new NumberAdapter())
             .registerTypeAdapter(VectorArgument.class, new VectorAdapter())
             .registerTypeAdapter(ResourceLocationArgument.class, new ResourceAdapter())
-            //.registerTypeAdapter(EntityArgument.class, new ArgumentAdapter())
+            .registerTypeAdapter(RenderItemArgument.class, new RenderItemAdapter())
+            // .registerTypeAdapter(EntityArgument.class, new ArgumentAdapter())
             .registerTypeAdapter(Condition.class, new ConditionAdapter())
             .registerTypeAdapter(Filter.class, new FilterAdapter())
             .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
             .registerTypeAdapter(CompoundTag.class, new NBTAdapter())
             .registerTypeAdapter(Vec3.class, new JsonAdapters.Vec3TypeAdapter())
-            .setPrettyPrinting()
-            .create();
+
+            .registerTypeAdapter(MotionFrame.class, new JsonAdapters.MotionFrameAdapter())
+            .registerTypeAdapter(MotionManager.class, new JsonAdapters.MotionManagerDeserializer())
+            .registerTypeAdapter(HitInfo.class, new JsonAdapters.HitInfoAdapter())
+            .setPrettyPrinting().create();
 
     private static void testRequired(JsonElement je, Type type) throws JsonParseException {
         Object pojo = new Gson().fromJson(je, type);
@@ -79,8 +89,8 @@ public class ActionJsonAdapters {
         }
     }
 
-    private static @NotNull String enforceNamespace(String id) {
-        if (!id.contains(":")) id = Footwork.MODID + ":" + id;
+    private static @NotNull String enforceNamespace(String id, String namespace) {
+        if (!id.contains(":")) id = namespace + ":" + id;
         return id;
     }
 
@@ -131,7 +141,7 @@ public class ActionJsonAdapters {
         private Action parseAction(JsonElement json) {
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString(), Footwork.MODID));
                 if (ActionRegistry.SUPPLIER.get().containsKey(rl)) {
                     return ActionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
                 }
@@ -148,31 +158,44 @@ public class ActionJsonAdapters {
                                        Type type,
                                        JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (!json.isJsonObject()) {
-                //everything is awful
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
-                if (ArgumentRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonArgumentType<?> sat) {
-                    return (Argument<T>) sat.bake(null);
-                }
-                Class<?> grabby = (Class<?>) ((ParameterizedType) TypeToken.of(type).getType()).getActualTypeArguments()[0];
-                if (grabby == Boolean.class) {
-                    return json.getAsBoolean() ? (Argument<T>) TrueCondition.INSTANCE : (Argument<T>) FalseCondition.INSTANCE;
-                } else if (grabby == Double.class) {
-                    if (json.isJsonPrimitive())
-                        return (Argument<T>) new FixedNumberArgument(json.getAsDouble());
-                    if (!json.isJsonObject())
-                        return (Argument<T>) FixedNumberArgument.ZERO;
-                } else if (grabby == Vec3.class) {
-                    if (!json.isJsonObject()) return (Argument<T>) RawVectorArgument.ZERO;
-                } else if (grabby == ResourceLocation.class) {
-                    String id = json.getAsString();
-                    if (!json.isJsonObject())
-                        return (Argument<T>) new ResourceLocationArgument.Raw(enforceNamespace(id));
+                try {
+                    //everything is awful
+                    //fixme the very act of getting it as string will break vec3s
+                    ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString(), Footwork.MODID));
+                    if (ArgumentRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonArgumentType<?> sat) {
+                        return (Argument<T>) sat.bake(null);
+                    }
+                    Class<?> grabby = (Class<?>) ((ParameterizedType) TypeToken.of(type).getType()).getActualTypeArguments()[0];
+                    if (grabby == Boolean.class) {
+                        return json.getAsBoolean() ? (Argument<T>) TrueCondition.INSTANCE : (Argument<T>) FalseCondition.INSTANCE;
+                    } else if (grabby == Double.class) {
+                        if (json.isJsonPrimitive()) return (Argument<T>) new FixedNumberArgument(json.getAsDouble());
+                        if (!json.isJsonObject()) return (Argument<T>) FixedNumberArgument.ZERO;
+                    } else if (grabby == Vec3.class) {
+                        if (!json.isJsonObject()) return (Argument<T>) RawVectorArgument.ZERO;
+                    } else if (grabby == ItemStack.class) {
+                        //try to see if it's a proper ID first. If not, assume it's an item.
+                        ResourceLocation id = new ResourceLocation(enforceNamespace(json.getAsString(), Footwork.MODID));
+                        if (ArgumentRegistry.SUPPLIER.get().containsKey(id)) {
+                            try {
+                                return (Argument<T>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(new JsonObject());
+                            } catch (ClassCastException ignored) {
+                            }
+                        }
+                        return (Argument<T>) new RawItemStackArgument().setItem(enforceNamespace(json.getAsString(), "minecraft"));
+                    } else if (grabby == ResourceLocation.class) {
+                        String id = json.getAsString();
+                        if (!json.isJsonObject())
+                            return (Argument<T>) new ResourceLocationArgument.Raw(enforceNamespace(id, Footwork.MODID));
+                    }
+                } catch (Exception e) {
+                    throw new JsonParseException("unreadable argument: "+json);
                 }
                 throw new JsonParseException("argument is not a singleton: " + json);
             }
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString(), Footwork.MODID));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<T>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -194,7 +217,7 @@ public class ActionJsonAdapters {
             if (!json.isJsonObject()) return RawVectorArgument.ZERO;
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString(), Footwork.MODID));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<Vec3>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -213,13 +236,11 @@ public class ActionJsonAdapters {
         public Argument<Double> deserialize(JsonElement json,
                                             Type type,
                                             JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            if (json.isJsonPrimitive())
-                return new FixedNumberArgument(json.getAsDouble());
-            if (!json.isJsonObject())
-                return new FixedNumberArgument(0);
+            if (json.isJsonPrimitive()) return new FixedNumberArgument(json.getAsDouble());
+            if (!json.isJsonObject()) return new FixedNumberArgument(0);
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString(), Footwork.MODID));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<Double>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -239,10 +260,10 @@ public class ActionJsonAdapters {
                                                       Type type,
                                                       JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (json.isJsonPrimitive())
-                return new ResourceLocationArgument.Raw(enforceNamespace(json.getAsString()));
+                return new ResourceLocationArgument.Raw(enforceNamespace(json.getAsString(), Footwork.MODID));
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString(), Footwork.MODID));
                 if (ArgumentRegistry.SUPPLIER.get().containsKey(rl)) {
                     try {
                         return (Argument<ResourceLocation>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(sub);
@@ -256,20 +277,48 @@ public class ActionJsonAdapters {
         }
     }
 
+
+    public static class RenderItemAdapter implements JsonDeserializer<RenderItemArgument> {
+
+        @Override
+        public RenderItemArgument deserialize(JsonElement json,
+                                                     Type typeOfT,
+                                                     JsonDeserializationContext context) throws JsonParseException {
+            if (json.isJsonPrimitive()) {
+                //the name of an item.
+                RawItemStackArgument risa = new RawItemStackArgument().setItem(json.getAsString());
+                return new RenderItemArgument().withNodes(new ItemNodeArgument().setStack(risa));
+            }
+            if (json.isJsonObject()) {
+                //single item node, deserialize that
+                ItemNodeArgument deserialize = gson.fromJson(json, ItemNodeArgument.class);
+                if (deserialize.getStack() == null)
+                    deserialize = new ItemNodeArgument().setStack(gson.fromJson(json, Argument.class));
+                return new RenderItemArgument().withNodes(new ItemNodeArgument[]{deserialize});
+            }
+            if (json.isJsonArray()) {
+                List<ItemNodeArgument> nodes = gson.fromJson(json.getAsJsonArray(), new TypeToken<ArrayList<ItemNodeArgument>>() {
+                }.getType());
+                return new RenderItemArgument().withNodes(nodes.toArray(new ItemNodeArgument[0]));
+            }
+            throw new JsonParseException("item render argument is unreadable: " + json);
+        }
+    }
+
     public static class ConditionAdapter implements JsonDeserializer<Argument<Boolean>> {
         @Override
         public Argument<Boolean> deserialize(JsonElement json,
                                              Type type,
-                                             JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+                                             JsonDeserializationContext ctx) throws JsonParseException {
             if (json.isJsonPrimitive()) {
                 return json.getAsBoolean() ? TrueCondition.INSTANCE : FalseCondition.INSTANCE;
             }
             if (json.isJsonArray() && json.getAsJsonArray().get(0).isJsonObject()) {
-                return new AndCondition(jsonDeserializationContext.deserialize(json.getAsJsonArray(), new TypeToken<ArrayList<Condition>>() {
+                return new AndCondition(ctx.deserialize(json.getAsJsonArray(), new TypeToken<ArrayList<Condition>>() {
                 }.getType()));
             }
             if (!json.isJsonObject()) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString(), Footwork.MODID));
                 if (ConditionRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonConditionType sat) {
                     return sat.bake(null);
                 } else throw new JsonParseException("condition is not a singleton: " + json);
@@ -282,7 +331,7 @@ public class ActionJsonAdapters {
                     flip = !flip;
                     id = id.substring(1);
                 }
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(id));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(id, Footwork.MODID));
                 if (ConditionRegistry.SUPPLIER.get().containsKey(rl)) {
                     final Condition bake = (Condition) ConditionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
                     return flip ? NotCondition.of(bake) : bake;
@@ -300,14 +349,14 @@ public class ActionJsonAdapters {
                                   Type type,
                                   JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (!json.isJsonObject()) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString(), Footwork.MODID));
                 if (FilterRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonFilterType sat) {
                     return sat.bake(null);
                 } else throw new JsonParseException("filter is not a singleton: " + json);
             }
             JsonObject sub = json.getAsJsonObject();
             if (sub.has("ID")) {
-                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString()));
+                ResourceLocation rl = new ResourceLocation(enforceNamespace(sub.get("ID").getAsString(), Footwork.MODID));
                 if (FilterRegistry.SUPPLIER.get().containsKey(rl)) {
                     return FilterRegistry.SUPPLIER.get().getValue(rl).bake(sub);
                 }
@@ -325,7 +374,7 @@ public class ActionJsonAdapters {
                                        JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             if (!json.isJsonPrimitive()) throw new JsonParseException("not an NBT tag: " + json);
             try {
-                return CompoundTagArgument.compoundTag().parse(new StringReader(enforceNamespace(json.getAsString())));
+                return CompoundTagArgument.compoundTag().parse(new StringReader(enforceNamespace(json.getAsString(), Footwork.MODID)));
             } catch (CommandSyntaxException e) {
                 throw new JsonParseException("invalid NBT definition: " + json);
             }

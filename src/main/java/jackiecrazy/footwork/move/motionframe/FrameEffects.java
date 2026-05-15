@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move.motionframe;
 
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEffect;
+import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -9,12 +10,17 @@ import java.util.List;
 public class FrameEffects extends HitEffects {
     private HitInfo attack_info = null;
     private List<FlyingWeaponEffect> effects = null;
+    private RenderItemArgument display_items = null;
     private double range = -1;
     private boolean reset_hit = false;
     private boolean unDrag = false;
 
     public FrameEffects() {
 
+    }
+
+    public RenderItemArgument getDisplayItems() {
+        return display_items;
     }
 
     public FrameEffects resetHit(boolean reset_hit) {
@@ -37,6 +43,8 @@ public class FrameEffects extends HitEffects {
         if (effects != null)
             he.setEffects(effects.toArray(new FlyingWeaponEffect[0]));
         he.setRange(range);
+        if (display_items != null)
+            he.display_items = display_items;
         return he;
     }
 

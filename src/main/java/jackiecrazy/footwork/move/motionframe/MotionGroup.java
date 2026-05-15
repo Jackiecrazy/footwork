@@ -86,7 +86,7 @@ public class MotionGroup {
         int frameCount = frames.size();
         if (frameCount < 2) return frames.get(0);
 
-        double progress = (double) time / duration();
+        double progress = Mth.clamp(time / duration(),0d,1d);
         double easedProgress = easing().ease(progress); // Output in [0, 1]
 
 //        // Total number of segments is one less than the number of frames

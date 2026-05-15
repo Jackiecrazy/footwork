@@ -157,7 +157,7 @@ public class MotionFrame {
                 .add(up.scale(defaultOffset.y));
 
         // --- Step 1: Modify the forward vector using the direction vector ---
-        // The direction vector says "rotate forward this much toward right and up"
+        // The direction vector says "rotation forward this much toward right and up"
         Vec3 lookAdjusted = forward.scale(direction.z)
                 .add(right.scale(direction.x))
                 .add(up.scale(direction.y))
