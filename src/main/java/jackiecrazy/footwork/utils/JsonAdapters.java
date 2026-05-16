@@ -1,19 +1,13 @@
 package jackiecrazy.footwork.utils;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
-import jackiecrazy.footwork.move.argument.stack.RawItemStackArgument;
-import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.motionframe.*;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
 
@@ -22,38 +16,57 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class JsonAdapters {
     public static final Gson NAIVE = new GsonBuilder()
             .registerTypeAdapter(CompoundTag.class, new ActionJsonAdapters.NBTAdapter())
             .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter())
-            .registerTypeAdapter(HitInfo.class, new JsonAdapters.HitInfoAdapter())
             .registerTypeAdapter(RenderItemArgument.class, new ActionJsonAdapters.RenderItemAdapter())
+            .registerTypeAdapterFactory(new HitInfoAdapterFactory())
             .setPrettyPrinting()
             .create();
 
 
-    public static class HitInfoAdapter implements JsonDeserializer<HitInfo> {
+    public static class HitInfoAdapterFactory implements TypeAdapterFactory {
 
         @Override
-        public HitInfo deserialize(JsonElement json,
-                                   Type typeOfT,
-                                   JsonDeserializationContext context) throws JsonParseException {
-            final JsonObject obj = json.getAsJsonObject();
-            for (String first : new String[]{"hit", "damage"}) {
-                for (String second : new String[]{"_self", "_other"}) {
-                    for (String third : new String[]{"command", "velocity", "set_velocity"}) {
-                        final String joined = first + second + "_" + third;
-                        if (obj.has(joined)) {
-                            //add property if not there
-                            final String key = first + second;
-                            if (!obj.has(key))
-                                obj.add(key, new JsonObject());
-                            obj.get(key).getAsJsonObject().add(third, obj.get(joined));
+        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+            if (type.getRawType() != HitInfo.class)
+                return null;
+
+            TypeAdapter<HitInfo> delegate =
+                    gson.getDelegateAdapter(this, TypeToken.get(HitInfo.class));
+
+            TypeAdapter<JsonElement> elementAdapter =
+                    gson.getAdapter(JsonElement.class);
+
+            return (TypeAdapter<T>) new TypeAdapter<HitInfo>(){
+
+                @Override
+                public void write(JsonWriter out, HitInfo value) throws IOException {
+                    delegate.write(out, value);
+                }
+
+                @Override
+                public HitInfo read(JsonReader in) throws IOException {
+                    JsonObject obj = elementAdapter.read(in).getAsJsonObject();
+                    for (String first : new String[]{"hit", "damage"}) {
+                        for (String second : new String[]{"_self", "_other"}) {
+                            for (String third : new String[]{"command", "velocity", "set_velocity"}) {
+                                final String joined = first + second + "_" + third;
+                                if (obj.has(joined)) {
+                                    //add property if not there
+                                    final String key = first + second;
+                                    if (!obj.has(key))
+                                        obj.add(key, new JsonObject());
+                                    obj.get(key).getAsJsonObject().add(third, obj.get(joined));
+                                }
+                            }
                         }
                     }
+                    return delegate.fromJsonTree(obj);
                 }
-            }
-            return ActionJsonAdapters.gson.fromJson(json, HitInfo.class);
+            };
         }
     }
 
@@ -87,68 +100,87 @@ public class JsonAdapters {
         }
     }
 
-    public static class MotionFrameAdapter implements JsonDeserializer<MotionFrame> {
+    public static class MotionFrameAdapterFactory implements TypeAdapterFactory {
 
         @Override
-        public MotionFrame deserialize(JsonElement json,
-                                       Type typeOfT,
-                                       JsonDeserializationContext context) throws JsonParseException {
-            if (!json.isJsonObject()) throw new JsonParseException(json + " is not a json object");
-            JsonObject o = json.getAsJsonObject();
-            MotionFrame mf = NAIVE.fromJson(json, MotionFrame.class);
-            assert mf.direction() != null;
-            assert mf.offset() != null;
-            if (mf.effects() == null)
-                mf.setEffects(JsonUtils.extractRootFrameEffects(o, context, false));
-            if (mf.renderOrientation() == null) {
-                //try checking other fields: int rotation or vec4f dir+rot
-                if (o.has("render_rotation")) {
-                    JsonElement spinElem = o.get("render_rotation");
-                    if (spinElem.isJsonPrimitive() && spinElem.getAsJsonPrimitive().isNumber()) {
-                        // Scalar number → apply to X-axis only (common convention for yaw spin)
-                        int scalar = spinElem.getAsInt();
-                        mf = new MotionFrame(mf.direction(), mf.offset(), scalar).setEffects(mf.effects());
+        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+            if (type.getRawType() != MotionFrame.class)
+                return null;
 
-                    } else if (spinElem.isJsonArray()) {
-                        // [x, y, z]
-                        JsonArray arr = spinElem.getAsJsonArray();
-                        if (arr.size() < 3 || arr.size() > 4) {
-                            throw new JsonParseException("render_rotation array must have either 3 or 4 elements.");
-                        }
-                        Vector4d spinVector = new Vector4d(
-                                arr.get(0).getAsDouble(),
-                                arr.get(1).getAsDouble(),
-                                arr.get(2).getAsDouble(),
-                                0
-                        );
-                        if (arr.size() > 3) spinVector.w = arr.get(3).getAsDouble();
-                        if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
-                            throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
-                        }
-                        mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
+            TypeAdapter<MotionFrame> delegate =
+                    gson.getDelegateAdapter(this, TypeToken.get(MotionFrame.class));
 
-                    } else if (spinElem.isJsonObject()) {
-                        // {"x":, "y":, "z":}
-                        JsonObject spinObj = spinElem.getAsJsonObject();
-                        Vector4d spinVector = new Vector4d(
-                                spinObj.has("x") ? spinObj.get("x").getAsDouble() : 0,
-                                spinObj.has("y") ? spinObj.get("y").getAsDouble() : 0,
-                                spinObj.has("z") ? spinObj.get("z").getAsDouble() : 0,
-                                spinObj.has("w") ? spinObj.get("w").getAsDouble() : 0
-                        );
+            TypeAdapter<JsonElement> elementAdapter =
+                    gson.getAdapter(JsonElement.class);
 
-                        if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
-                            throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
-                        }
-                        mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
+            return (TypeAdapter<T>) new TypeAdapter<MotionFrame>() {
 
-                    } else {
-                        throw new JsonParseException("'render_rotation' must be a number, array[4], or object{x,y,z,w}");
+                @Override
+                public void write(JsonWriter out, MotionFrame value) throws IOException {
+                    delegate.write(out, value);
+                }
+
+                @Override
+                public MotionFrame read(JsonReader in) throws IOException {
+                    JsonElement json = elementAdapter.read(in);
+                    if (!json.isJsonObject()) throw new JsonParseException(json + " is not a json object");
+                    JsonObject o = json.getAsJsonObject();
+                    MotionFrame mf = delegate.fromJsonTree(json);
+                    assert mf.direction() != null;
+                    assert mf.offset() != null;
+                    if (mf.effects() == null)
+                        mf.setEffects(JsonUtils.extractRootFrameEffects(o, false));
+                    if (mf.renderOrientation() == null) {
+                        //try checking other fields: int rotation or vec4f dir+rot
+                        if (o.has("render_rotation")) {
+                            JsonElement spinElem = o.get("render_rotation");
+                            if (spinElem.isJsonPrimitive() && spinElem.getAsJsonPrimitive().isNumber()) {
+                                // Scalar number → apply to X-axis only (common convention for yaw spin)
+                                int scalar = spinElem.getAsInt();
+                                mf = new MotionFrame(mf.direction(), mf.offset(), scalar).setEffects(mf.effects());
+
+                            } else if (spinElem.isJsonArray()) {
+                                // [x, y, z]
+                                JsonArray arr = spinElem.getAsJsonArray();
+                                if (arr.size() < 3 || arr.size() > 4) {
+                                    throw new JsonParseException("render_rotation array must have either 3 or 4 elements.");
+                                }
+                                Vector4d spinVector = new Vector4d(
+                                        arr.get(0).getAsDouble(),
+                                        arr.get(1).getAsDouble(),
+                                        arr.get(2).getAsDouble(),
+                                        0
+                                );
+                                if (arr.size() > 3) spinVector.w = arr.get(3).getAsDouble();
+                                if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
+                                    throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
+                                }
+                                mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
+
+                            } else if (spinElem.isJsonObject()) {
+                                // {"x":, "y":, "z":}
+                                JsonObject spinObj = spinElem.getAsJsonObject();
+                                Vector4d spinVector = new Vector4d(
+                                        spinObj.has("x") ? spinObj.get("x").getAsDouble() : 0,
+                                        spinObj.has("y") ? spinObj.get("y").getAsDouble() : 0,
+                                        spinObj.has("z") ? spinObj.get("z").getAsDouble() : 0,
+                                        spinObj.has("w") ? spinObj.get("w").getAsDouble() : 0
+                                );
+
+                                if (spinVector.x == 0 && spinVector.y == 0 && spinVector.z == 0) {
+                                    throw new JsonParseException("render_rotation array must define a nonzero length vector with its xyz");
+                                }
+                                mf = new MotionFrame(mf.direction(), mf.offset(), spinVector).setEffects(mf.effects());
+
+                            } else {
+                                throw new JsonParseException("'render_rotation' must be a number, array[4], or object{x,y,z,w}");
+                            }
+                        } else if (!o.has("_skipOrientationCalculation"))
+                            mf = new MotionFrame(mf.direction(), mf.offset()).setEffects(mf.effects());
                     }
-                } else if (!o.has("_skipOrientationCalculation"))
-                    mf = new MotionFrame(mf.direction(), mf.offset()).setEffects(mf.effects());
-            }
-            return mf;
+                    return mf;
+                }
+            };
         }
     }
 

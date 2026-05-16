@@ -85,7 +85,7 @@ public class JsonUtils {
      * If yes → deserializes them + other FrameEffects fields into one object.
      * Returns null if no HitInfo-related fields were found.
      */
-    static FrameEffects extractRootFrameEffects(JsonObject obj, JsonDeserializationContext context,
+    static FrameEffects extractRootFrameEffects(JsonObject obj,
                                                 boolean wipeVelocity) {
         String[] frameEffectFields = {
                 "hit",
@@ -137,7 +137,7 @@ public class JsonUtils {
             return null;  // ← none present → no override / return null
         }
 
-        FrameEffects ret = context.deserialize(obj, FrameEffects.class);
+        FrameEffects ret = ActionJsonAdapters.gson.fromJson(obj, FrameEffects.class);
 
         if (wipeVelocity) {
             ret.setVelocity(Vec3.ZERO);
@@ -147,7 +147,7 @@ public class JsonUtils {
 
         if (hasHitInfo && ret.getHit() == null) {
             // Still check if other FrameEffects fields exist
-            ret.setHit(context.deserialize(obj, HitInfo.class));
+            ret.setHit(ActionJsonAdapters.gson.fromJson(obj, HitInfo.class));
         }
         if (ret.getEffects() == null) {
             ret.setEffects(FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.TRAIL);

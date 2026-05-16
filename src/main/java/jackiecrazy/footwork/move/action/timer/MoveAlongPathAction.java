@@ -21,18 +21,18 @@ public class MoveAlongPathAction extends TimerAction {
     private Argument<Entity> subject=ArgumentContext::target;
     private MotionManager path;
     private Argument<Vec3> position;
-    private Argument<Vec3> offset;
+    private Argument<Vec3> orientation;
 
     @Override
     public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
         super.start(wrapper, performer, target);
     }
 
-    @Override
-    public boolean isFinished(ActionSetWrapper wrapper, Entity performer, Entity target) {
-        if (super.isFinished(wrapper, performer, target)) return true;
-        return wrapper.getTimer(this)>path.getDuration();
-    }
+//    @Override
+//    public boolean isFinished(ActionSetWrapper wrapper, Entity performer, Entity target) {
+//        if (super.isFinished(wrapper, performer, target)) return true;
+//        return wrapper.getTimer(this)>path.getDuration();
+//    }
 
     @Override
     public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
@@ -43,8 +43,8 @@ public class MoveAlongPathAction extends TimerAction {
 //            updateFrameEffects(update.effects());
 //        }
         final ActionContext ctx = new ActionContext(wrapper, this, performer, target);
-        final Tuple<Vec3, Vec3> bundle = new Tuple<>(position.resolve(ctx), offset.resolve(ctx));
-        Vec3 transformedDirection = update.resolveTargetOffset(bundle, Vec3.ZERO, 0);
+        final Tuple<Vec3, Vec3> bundle = new Tuple<>(position.resolve(ctx), orientation.resolve(ctx));
+        Vec3 transformedDirection = update.resolveTargetOffset(bundle, Vec3.ZERO, 1);
 
         target.setPos(transformedDirection);
         int childRet = runActions(ctx, tick);

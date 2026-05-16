@@ -28,6 +28,8 @@ public interface ITetherAnchor {
         }
     }
 
+
+
     default void moveTargetTowards(Entity toBeMoved, Vec3 point, double force) {
         double length = Math.max(getTetherLength(), 0);
         Vec3 currentPos = toBeMoved.position();

@@ -50,5 +50,7 @@ public class FootworkEffects {
     public static final RegistryObject<MobEffect> REACH = EFFECTS.register("reach", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x949494).addAttributeModifier(ForgeMod.ENTITY_REACH.get(), "55FCED67-E92A-486E-9800-B47F202C4386", 1, AttributeModifier.Operation.ADDITION));
     //stuns are upgraded to knockdowns when unsteady
     public static final RegistryObject<MobEffect> UNSTEADY = EFFECTS.register("unsteady", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x949494));
+    //always considered to be wet
+    public static final RegistryObject<MobEffect> WET = EFFECTS.register("wet", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x0000f0));
 
 }

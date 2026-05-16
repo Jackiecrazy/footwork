@@ -6,8 +6,7 @@
   "mixins": [
     "EffectStartAccessor",
     "MixinAttackSpeed",
-    "MixinPlayerEntity",
-    "MixinTagEntry",
+    "MixinPlayerEntity", "WetMixin",
     "MixinTimeSlow",
     "MixinTimeSlowServer"
   ],

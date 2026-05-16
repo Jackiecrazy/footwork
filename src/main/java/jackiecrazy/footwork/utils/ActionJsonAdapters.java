@@ -30,7 +30,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
@@ -63,10 +62,9 @@ public class ActionJsonAdapters {
             .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
             .registerTypeAdapter(CompoundTag.class, new NBTAdapter())
             .registerTypeAdapter(Vec3.class, new JsonAdapters.Vec3TypeAdapter())
-
-            .registerTypeAdapter(MotionFrame.class, new JsonAdapters.MotionFrameAdapter())
             .registerTypeAdapter(MotionManager.class, new JsonAdapters.MotionManagerDeserializer())
-            .registerTypeAdapter(HitInfo.class, new JsonAdapters.HitInfoAdapter())
+            .registerTypeAdapterFactory(new JsonAdapters.MotionFrameAdapterFactory())
+            .registerTypeAdapterFactory(new JsonAdapters.HitInfoAdapterFactory())
             .setPrettyPrinting().create();
 
     private static void testRequired(JsonElement je, Type type) throws JsonParseException {
