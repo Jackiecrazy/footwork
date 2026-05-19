@@ -11,6 +11,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
 
+import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class JsonAdapters {
             .registerTypeAdapter(CompoundTag.class, new ActionJsonAdapters.NBTAdapter())
             .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter())
             .registerTypeAdapter(RenderItemArgument.class, new ActionJsonAdapters.RenderItemAdapter())
+            .registerTypeAdapter(Color.class, new ColorAdapter())
             .registerTypeAdapterFactory(new HitInfoAdapterFactory())
             .setPrettyPrinting()
             .create();
@@ -67,6 +69,40 @@ public class JsonAdapters {
                     return delegate.fromJsonTree(obj);
                 }
             };
+        }
+    }
+
+    public static class ColorAdapter extends TypeAdapter<Color> {
+
+        @Override
+        public void write(JsonWriter out, Color value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+            out.beginArray();
+            out.value(value.getRed());
+            out.value(value.getGreen());
+            out.value(value.getBlue());
+            out.value(value.getAlpha());
+            out.endArray();
+        }
+
+        @Override
+        public Color read(JsonReader in) throws IOException {
+            if (in.peek() == com.google.gson.stream.JsonToken.NULL) {
+                in.nextNull();
+                return null;
+            }
+            in.beginArray();
+            int x = in.nextInt();
+            int y = in.nextInt();
+            int z = in.nextInt();
+            int a =255;
+            if(in.hasNext())
+                a=in.nextInt();
+            in.endArray();
+            return new Color(x, y, z, a);
         }
     }
 

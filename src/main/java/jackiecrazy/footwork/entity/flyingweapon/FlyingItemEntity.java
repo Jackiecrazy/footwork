@@ -74,6 +74,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     //how the weapon floats when idle: point downwards
     protected static final EntityDataAccessor<MotionManager> IDLE_POSE = SynchedEntityData.defineId(FlyingItemEntity.class, MotionManager.SERIALIZER);
     protected static final EntityDataAccessor<STATE> CURRENT_STATE = SynchedEntityData.defineId(FlyingItemEntity.class, STATESERIALIZER);
+    protected static final EntityDataAccessor<Color> TRAIL_COLOR = SynchedEntityData.defineId(FlyingItemEntity.class, FrameEffects.COLOR);
     private static final Quaternionf nothing = new Quaternionf(0, 0, 0, 1);
     private static final Vector3f BOGUS = new Vector3f(0, 100000, 0);
     //first one goes up to attack range, second does not scale
@@ -267,6 +268,14 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         setCosmeticItem(stack);
     }
 
+    public Color getTrailColor() {
+        return entityData.get(TRAIL_COLOR);
+    }
+
+    public void setTrailColor(Color c) {
+        entityData.set(TRAIL_COLOR, c);
+    }
+
     public RenderItemGroup getCosmeticItem() {
         return entityData.get(COSMETIC);
     }
@@ -310,6 +319,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         this.entityData.define(IDLE_TICK, 10);
         this.entityData.define(LAST_UPD, 0);
         this.entityData.define(CURRENT_STATE, STATE.FOLLOW);
+        this.entityData.define(TRAIL_COLOR, new Color(0.6f, 0.8f, 1.0f));
     }
 
     public int getRawVisualTag() {
@@ -692,11 +702,11 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
                 //trail, max range
                 Vec3 trailPosition = fromTrailPos.lerp(toTrailPos, partialTick);
-                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), Color.red, from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                SwingHistory trail = new SwingHistory(trailPosition, !intangible(), getTrailColor(), from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 //shadow, range 1
                 trailPosition = fromShadowPos.lerp(toShadowPos, partialTick);
-                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), Color.red, from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
+                SwingHistory shadow = new SwingHistory(trailPosition, !intangible(), getTrailColor(), from.renderOrientation().slerp(to.renderOrientation(), (float) partialTick, new Quaternionf()));//yes, this is correct, stop asking
 
                 trailHistory.addFirst(new Tuple<>(trail, shadow));
             }

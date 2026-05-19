@@ -6,6 +6,7 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -325,9 +326,16 @@ public class GeneralUtils {
     public static List<Entity> raytraceEntities(Level world, LivingEntity attacker, double range) {
         return raytraceEntities(world, (Entity) attacker, range);
     }
+    
+    public static DamageSource player_ds_override=null;
 
     public static void attack(LivingEntity e, Entity target) {
+        attack(e, target, null);
+    }
+
+    public static void attack(LivingEntity e, Entity target, DamageSource dsOverride) {
         if (e instanceof Player p) {
+            player_ds_override=dsOverride;
             p.setOnGround(false);
             p.attack(target);
         } else e.doHurtTarget(target);

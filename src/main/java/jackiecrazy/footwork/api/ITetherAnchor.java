@@ -2,6 +2,7 @@ package jackiecrazy.footwork.api;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,58 @@ public interface ITetherAnchor {
         }
     }
 
+    default void swing() {
+        // --- variables ---
+        final Entity toMove = getTetheringEntity();
+        final Entity moveTo = getTetheredEntity();
+        if (toMove == null || moveTo == null) return;
+        Vec3 hookPos = moveTo.position().add(getTetheredOffset());
+        Vec3 playerEyePos = toMove.getEyePosition();
+        Vec3 vecToHook = hookPos.subtract(playerEyePos);
+        Vec3 unitVector = vecToHook.normalize();
+        double maxDistance = getTetherLength();
+        double dist = vecToHook.length();
 
+        Vec3 velocity = toMove.getDeltaMovement().multiply(1.05, 0.9, 1.05);
+        double vRadial = velocity.dot(unitVector);
+        Vec3 vTangential = velocity.subtract(unitVector.scale(vRadial));
+
+        double vTangentialMultiplier = 1.01;
+
+
+        if (dist > maxDistance) {
+            double stretch = dist - maxDistance;
+
+            vTangentialMultiplier = 1.047;
+
+            double new_vRadial = stretch * 0.07;
+            if (vRadial <= new_vRadial) vRadial = new_vRadial;
+        }
+
+
+        if (!toMove.onGround() && (!(toMove instanceof Player p) || p.isFallFlying())) {
+            vTangential = vTangential.scale(vTangentialMultiplier);
+            vRadial = vRadial * 0.99;
+        }
+
+        Vec3 finalVelocity = vTangential.add(unitVector.scale(vRadial));//.multiply(0.5, 1.11, 0.5);
+
+        toMove.setDeltaMovement(finalVelocity);
+
+
+        if (!toMove.level().isClientSide()) {
+            // --- server logic for fall damage reset ---
+            toMove.resetFallDistance();
+            if (!toMove.onGround()) {
+                toMove.hurtMarked = false;
+                if ((dist + 0.6) > maxDistance) {
+                    if (unitVector.y > -0.15) {
+                        toMove.resetFallDistance();
+                    }
+                }
+            }
+        }
+    }
 
     default void moveTargetTowards(Entity toBeMoved, Vec3 point, double force) {
         double length = Math.max(getTetherLength(), 0);

@@ -23,7 +23,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     public DummyFlyingWeaponEntity(EntityType<? extends FlyingItemEntity> type,
                                    Level level) {
         super(type, level);
-        final ItemStack stack = new ItemStack(Items.CACTUS);
+        final ItemStack stack = new ItemStack(Items.IRON_AXE);
         stack.enchant(Enchantments.ALL_DAMAGE_PROTECTION,1);
         //setHeldItem(ItemStack.EMPTY);
         setHeldItem(stack);

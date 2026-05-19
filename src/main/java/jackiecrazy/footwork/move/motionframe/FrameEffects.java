@@ -2,18 +2,42 @@ package jackiecrazy.footwork.move.motionframe;
 
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEffect;
 import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.world.phys.Vec3;
 
+import java.awt.*;
 import java.util.List;
 
 //Not synced to the client!
 public class FrameEffects extends HitEffects {
+    public static EntityDataSerializer<Color> COLOR = new EntityDataSerializer<>(){
+
+        @Override
+        public void write(FriendlyByteBuf b, Color c) {
+            b.writeInt(c.getRed());
+            b.writeInt(c.getGreen());
+            b.writeInt(c.getBlue());
+            b.writeInt(c.getAlpha());
+        }
+
+        @Override
+        public Color read(FriendlyByteBuf b) {
+            return new Color(b.readInt(), b.readInt(),b.readInt(), b.readInt());
+        }
+
+        @Override
+        public Color copy(Color c) {
+            return new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+        }
+    };
     private HitInfo attack_info = null;
     private List<FlyingWeaponEffect> effects = null;
     private RenderItemArgument display_items = null;
     private double range = -1;
     private boolean reset_hit = false;
     private boolean unDrag = false;
+    private Color color=new Color(0.6f, 0.8f, 1.0f);
 
     public FrameEffects() {
 
@@ -101,5 +125,9 @@ public class FrameEffects extends HitEffects {
 
     public boolean shouldUndrag() {
         return unDrag;
+    }
+
+    public Color getColor() {
+        return color;
     }
 }

@@ -43,8 +43,9 @@ public interface ICombatCapability {
     void setSpirit(float spirit);
 
     float doConsumeSpirit(float amount);
-    default boolean consumeSpirit(float amount){
-        return doConsumeSpirit(amount)<=0;
+
+    default boolean consumeSpirit(float amount) {
+        return doConsumeSpirit(amount) <= 0;
     }
 
     float addSpirit(float amount);
@@ -68,16 +69,24 @@ public interface ICombatCapability {
 
     void setRally(float rally);
 
-    default void addRally(float rally){
-        setRally(getRally()+rally);
+    default void addRally(float rally) {
+        setRally(getRally() + rally);
     }
 
     void rally(float quantity);
 
-    float consumePosture(LivingEntity assailant, float amount, BreachLevel breach);
+    default float consumePosture(LivingEntity assailant, float amount, BreachLevel breach) {
+        return consumePosture(assailant, amount, 0.3f, breach);
+    }
+
+    float consumePosture(LivingEntity assailant, float amount, float rallyPerc, BreachLevel breach);
 
     default float consumePosture(LivingEntity assailant, float amount, boolean breach) {
         return consumePosture(assailant, amount, breach ? BreachLevel.STUN : BreachLevel.NO);
+    }
+
+    default float consumePosture(float amount, float rallyPerc) {
+        return consumePosture(null, amount, rallyPerc, BreachLevel.NO);
     }
 
     default float consumePosture(LivingEntity assailant, float amount) {
@@ -186,7 +195,7 @@ public interface ICombatCapability {
 
     void setHandBind(InteractionHand hand, int time);
 
-    default void bindHands(int time){
+    default void bindHands(int time) {
         setHandBind(InteractionHand.MAIN_HAND, time);
         setHandBind(InteractionHand.OFF_HAND, time);
     }
@@ -200,8 +209,6 @@ public interface ICombatCapability {
     void setOffhandAttack(boolean offhandAttack);
 
     enum BreachLevel {
-        NO,
-        STUN,
-        KNOCKDOWN
+        NO, STUN, KNOCKDOWN
     }
 }

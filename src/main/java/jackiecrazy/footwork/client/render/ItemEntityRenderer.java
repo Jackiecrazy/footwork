@@ -308,14 +308,14 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             poseStack.mulPose(Axis.YP.rotationDegrees((float) n.rotation().y));
             poseStack.mulPose(Axis.ZP.rotationDegrees((float) n.rotation().z));
             ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
-            GL11.glFrontFace(GL11.GL_CW);
+            //GL11.glFrontFace(GL11.GL_CW);
             if (left) {
                 poseStack.scale(-1, 1, 1);
             }
             poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
             itemRenderer.render(stack, ctx, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
             );
-            GL11.glFrontFace(GL11.GL_CCW);
+            //GL11.glFrontFace(GL11.GL_CCW);
             poseStack.popPose();
         }
     }
@@ -417,8 +417,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         Matrix3f normalMatrix = pose.normal();
         Vector3f p1 = from1.toVector3f(), p2 = from2.toVector3f(), p3 = to1.toVector3f(), p4 = to2.toVector3f();
 
-        //float r = c.getRed()/255f, g = c.getGreen()/255f, b = c.getBlue()/255f;
-        float r = 0.6f, g = 0.8f, b = 1.0f;
+        float r = c.getRed()/255f, g = c.getGreen()/255f, b = c.getBlue()/255f;
+        //float r = 0.6f, g = 0.8f, b = 1.0f;
         int light = 15728880;
 
         consumer.vertex(matrix, p1.x(), p1.y(), p1.z()).color(r, g, b, alpha).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normalMatrix, NORMAL.x(), NORMAL.y(), NORMAL.z()).endVertex();

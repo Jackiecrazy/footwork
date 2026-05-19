@@ -32,6 +32,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -63,6 +64,7 @@ public class ActionJsonAdapters {
             .registerTypeAdapter(CompoundTag.class, new NBTAdapter())
             .registerTypeAdapter(Vec3.class, new JsonAdapters.Vec3TypeAdapter())
             .registerTypeAdapter(MotionManager.class, new JsonAdapters.MotionManagerDeserializer())
+            .registerTypeAdapter(Color.class, new JsonAdapters.ColorAdapter())
             .registerTypeAdapterFactory(new JsonAdapters.MotionFrameAdapterFactory())
             .registerTypeAdapterFactory(new JsonAdapters.HitInfoAdapterFactory())
             .setPrettyPrinting().create();
