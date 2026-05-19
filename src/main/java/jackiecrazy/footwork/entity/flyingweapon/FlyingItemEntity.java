@@ -77,6 +77,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final EntityDataAccessor<Color> TRAIL_COLOR = SynchedEntityData.defineId(FlyingItemEntity.class, FrameEffects.COLOR);
     private static final Quaternionf nothing = new Quaternionf(0, 0, 0, 1);
     private static final Vector3f BOGUS = new Vector3f(0, 100000, 0);
+    public static final Color DEFAULT_TRAIL_COLOR = new Color(0.6f, 0.8f, 1.0f);
     //first one goes up to attack range, second does not scale
     protected final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
     private final Color[] RAINBOW = {
@@ -120,8 +121,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     public void setIdlePose(MotionManager idlePose) {
         entityData.set(IDLE_POSE, idlePose);
-        if(isIdle())
-        updateFrameEffects(idlePose.getStartFrame().effects());
+        if (isIdle())
+            updateFrameEffects(idlePose.getStartFrame().effects());
     }
 
     public Vec3 getUniversalOffset() {
@@ -166,7 +167,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         //just... find the last frame it'll be in
         MotionFrame last = update;
         if (isIdle()) last = getIdlePose().getEndFrame();
-        else if(!moveQueue.isEmpty()) last = moveQueue.getLast().getEndFrame();
+        else if (!moveQueue.isEmpty()) last = moveQueue.getLast().getEndFrame();
         //animProgress = 0;//why do you need this?
         //add the transition in, actual move, and transition out
         if (inTick > 0)
@@ -248,7 +249,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             if (motion != null)
                 this.updateFrameEffects(motion.getStartFrame().effects());
             //setTransitioning(motion == null || motion instanceof MotionManagers.TransitionMM);
-            animProgress=animTicker = 0;
+            animProgress = animTicker = 0;
             flushTrailHistory();
             currentEffects = null;
             return true;
@@ -319,7 +320,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         this.entityData.define(IDLE_TICK, 10);
         this.entityData.define(LAST_UPD, 0);
         this.entityData.define(CURRENT_STATE, STATE.FOLLOW);
-        this.entityData.define(TRAIL_COLOR, new Color(0.6f, 0.8f, 1.0f));
+        this.entityData.define(TRAIL_COLOR, DEFAULT_TRAIL_COLOR);
     }
 
     public int getRawVisualTag() {
@@ -411,7 +412,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 wasIdle = false;
                 entityData.set(IDLE_TICK, 0);
                 animTicker++;
-                animProgress+=getWeight();
+                animProgress += getWeight();
                 executeMoveQueue();
             } else if (getState() == STATE.THROW_TRACK) {
                 wasIdle = false;
@@ -818,6 +819,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             setOwnerUUID(tag.getUUID("ownerUUID"));
             owner = getOwner();
         }
+        if (tag.contains("cosmetic"))
+            setCosmeticItem(RenderItemGroup.fromTag(tag.getCompound("cosmetic")));
         setState(STATE.values()[tag.getInt("state")]);
         entityData.set(VISUAL_TAG, tag.getInt("visuals"));
         setInteractionRange(tag.getFloat("range"));
@@ -830,6 +833,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         tag.putInt("state", getState().ordinal());
         tag.putInt("visuals", getRawVisualTag());
         tag.putFloat("range", getInteractionRange());
+        if (getCosmeticItem() != null)
+            tag.put("cosmetic", getCosmeticItem().toTag());
     }
 
     @Override

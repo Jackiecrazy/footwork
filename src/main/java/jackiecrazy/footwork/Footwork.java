@@ -15,16 +15,15 @@ import jackiecrazy.footwork.command.SteveTimeCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
+import jackiecrazy.footwork.items.FootworkItems;
 import jackiecrazy.footwork.move.ActionSets;
 import jackiecrazy.footwork.move.Macros;
 import jackiecrazy.footwork.move.action.ActionRegistry;
 import jackiecrazy.footwork.move.argument.ArgumentRegistry;
 import jackiecrazy.footwork.move.condition.ConditionRegistry;
 import jackiecrazy.footwork.move.filter.FilterRegistry;
-import jackiecrazy.footwork.move.motionframe.ItemNode;
-import jackiecrazy.footwork.move.motionframe.MotionFrame;
-import jackiecrazy.footwork.move.motionframe.MotionManager;
-import jackiecrazy.footwork.move.motionframe.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.*;
+import jackiecrazy.footwork.networking.AnimationTesterSavePacket;
 import jackiecrazy.footwork.networking.FootworkChannel;
 import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
 import jackiecrazy.footwork.potion.FootworkEffects;
@@ -60,12 +59,10 @@ import java.util.Random;
 public class Footwork {
 
     public static final String MODID = "footwork";
-    public static File configDirPath;
-
     public static final Random rand = new Random();
-
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
+    public static File configDirPath;
 
     public Footwork() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -81,6 +78,7 @@ public class Footwork {
         FootworkEffects.EFFECTS.register(bus);
         FootworkEntities.ENTITIES.register(bus);
         FootworkParticles.PARTICLES.register(bus);
+        FootworkItems.ITEMS.register(bus);
         MinecraftForge.EVENT_BUS.addListener(this::commands);
 
         ArgumentRegistry.SUPPLIER = ArgumentRegistry.ARGUMENTS.makeRegistry(RegistryBuilder::new);
@@ -93,13 +91,18 @@ public class Footwork {
         FilterRegistry.FILTERS.register(bus);
     }
 
-    private void packets(FMLCommonSetupEvent e){
+    private void packets(FMLCommonSetupEvent e) {
         FootworkChannel.INSTANCE.registerMessage(1, UpdateTimeSlowPacket.class, new UpdateTimeSlowPacket.UpdateClientEncoder(), new UpdateTimeSlowPacket.UpdateClientDecoder(), new UpdateTimeSlowPacket.UpdateClientHandler());
+        FootworkChannel.INSTANCE.registerMessage(0, AnimationTesterSavePacket.class,
+                                                 AnimationTesterSavePacket::encode,
+                                                 AnimationTesterSavePacket::decode,
+                                                 AnimationTesterSavePacket::handle);
         EntityDataSerializers.registerSerializer(MotionFrame.SERIALIZER);
         EntityDataSerializers.registerSerializer(MotionManager.SERIALIZER);
         EntityDataSerializers.registerSerializer(FlyingItemEntity.STATESERIALIZER);
         EntityDataSerializers.registerSerializer(ItemNode.SERIALIZER);
         EntityDataSerializers.registerSerializer(RenderItemGroup.SERIALIZER);
+        EntityDataSerializers.registerSerializer(FrameEffects.COLOR);
     }
 
     private void setup(final RegisterCapabilitiesEvent event) {
@@ -125,11 +128,10 @@ public class Footwork {
     }
 
 
-
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onJsonListener(AddReloadListenerEvent event) {
         Macros.register(event);
-        ActionSets.register(event,"action_sets");
+        ActionSets.register(event, "action_sets");
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {

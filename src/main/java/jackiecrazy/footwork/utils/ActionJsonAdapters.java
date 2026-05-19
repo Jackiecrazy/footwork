@@ -38,6 +38,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -67,7 +68,8 @@ public class ActionJsonAdapters {
             .registerTypeAdapter(Color.class, new JsonAdapters.ColorAdapter())
             .registerTypeAdapterFactory(new JsonAdapters.MotionFrameAdapterFactory())
             .registerTypeAdapterFactory(new JsonAdapters.HitInfoAdapterFactory())
-            .setPrettyPrinting().create();
+            .setPrettyPrinting().excludeFieldsWithModifiers(Modifier.STATIC, Modifier.TRANSIENT)
+            .create();
 
     private static void testRequired(JsonElement je, Type type) throws JsonParseException {
         Object pojo = new Gson().fromJson(je, type);

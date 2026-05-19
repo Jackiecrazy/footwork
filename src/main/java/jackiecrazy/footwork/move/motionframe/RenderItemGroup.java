@@ -1,5 +1,8 @@
 package jackiecrazy.footwork.move.motionframe;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import org.jetbrains.annotations.NotNull;
@@ -34,4 +37,33 @@ public record RenderItemGroup(ItemNode... nodes) {
             return new RenderItemGroup(ret);
         }
     };
+
+    public CompoundTag toTag() {
+        CompoundTag tag = new CompoundTag();
+        ListTag list = new ListTag();
+
+        for (ItemNode node : nodes()) {
+            if (node != null) {
+                list.add(node.toTag());
+            }
+        }
+
+        tag.put("nodes", list);
+        return tag;
+    }
+
+    public static RenderItemGroup fromTag(CompoundTag tag) {
+        if (tag == null || !tag.contains("nodes", Tag.TAG_LIST)) {
+            return new RenderItemGroup(); // empty group
+        }
+
+        ListTag list = tag.getList("nodes", Tag.TAG_COMPOUND);
+        ItemNode[] nodes = new ItemNode[list.size()];
+
+        for (int i = 0; i < list.size(); i++) {
+            nodes[i] = ItemNode.fromTag(list.getCompound(i));
+        }
+
+        return new RenderItemGroup(nodes);
+    }
 }

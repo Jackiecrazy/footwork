@@ -1,12 +1,14 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.move.motionframe.*;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -20,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DummyFlyingWeaponEntity extends FlyingItemEntity {
     private final ArrayList<Entity> alreadyHit=new ArrayList<>();
+    private MotionManager testing=null;
     public DummyFlyingWeaponEntity(EntityType<? extends FlyingItemEntity> type,
                                    Level level) {
         super(type, level);
@@ -42,18 +45,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
 
     @Override
     protected boolean onHitEntity(List<Entity> targets) {
-        AtomicBoolean hit= new AtomicBoolean(false);
-        if (!level().isClientSide)
-            targets.forEach(a -> {
-                if(!alreadyHit.contains(a)) {
-                    a.setSecondsOnFire(1);
-                    a.invulnerableTime = 0;
-                    GeneralUtils.attack(getOwner(), a);
-                    hit.set(true);
-                    alreadyHit.add(a);
-                }
-            });
-        return hit.get();
+        return false;
     }
 
     @Override
@@ -63,43 +55,42 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
 
     @Override
     public void tick() {
-        //setInteractionRange(3 + 2 * Mth.sin(Mth.DEG_TO_RAD * tickCount * 10));
-//        setEffect(FlyingWeaponEffect.BIG_SHADOW, false);
-//        setEffect(FlyingWeaponEffect.AFTERIMAGE, false);
-//        setEffect(FlyingWeaponEffect.TRAIL, false);
-//        setEffect(FlyingWeaponEffect.WEAPON, true);
         if (getOwner() == null) {
             setOwner(level().getNearestPlayer(this, 16));
         }
-//        if (!level().isClientSide &&isIdle() && getMotionTarget() == null || getMotionTarget() == getOwner()) {
-//            for (Entity e : level().getEntities(this, this.getBoundingBox().inflate(16), a -> !TargetingUtils.isAlly(a, this))) {
-//                if (!(e instanceof FlyingItemEntity)) {
-//                    setMotionTarget(e);
-//                    setUniversalOffset(Vec3.ZERO);
-//                    break;
-//                }
-//            }
-//        }
         if(getMotionTarget()==getOwner()){
             setUniversalOffset(new Vec3(1.3,0,0));
         }
-//        lockPos(new Vec3(0, -50- animTicker /5d, 0));
-//        lockLook(new Vec3(0,0, 1).yRot(animTicker));
         super.tick();
     }
 
     @Override
     protected void updateFrameEffects(FrameEffects effects) {
-        if(effects!=null&&effects!=currentEffects){
-            if(effects.getRange() >=0)setInteractionRange((float) effects.getRange());
-            if(effects.getEffects() !=null)setEffect(effects.getEffects().toArray(new FlyingWeaponEffect[0]));
+        currentEffects = effects;
+        if (effects != null) {
+            setIntangible(false);
+            if (effects.getRange() >= 0) setInteractionRange((float) effects.getRange());
+            if (effects.getEffects() != null)
+                setEffect(effects.getEffects().toArray(new FlyingWeaponEffect[0]));
+            if (effects.reset_hit())
+                alreadyHit.clear();
+            LivingEntity e = getOwner();
+            if (e != null)
+                effects.runEffects(e, e);
+            if(effects.getDisplayItems()!=null)
+                setCosmeticItem(effects.getDisplayItems().resolve(new ArgumentContext(getOwner(), getOwner())));
+            if(effects.getColor()!=null)
+                setTrailColor(effects.getColor());
         }
-        currentEffects=effects;
     }
 
     @Override
     protected double getWeight() {
         return 0.5;
+    }
+
+    public void setTesting(MotionManager testing) {
+        this.testing = testing;
     }
 
     @Override
@@ -110,32 +101,13 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         alreadyHit.clear();
         //provisional. Used to test movement.
         setState(STATE.FOLLOW);
-        setEffect(FlyingWeaponEffect.WEAPON);
         animTicker++;
-        if (animTicker > 20) {
-            //setHeldItem(new ItemStack(Items.IRON_AXE));
-            List<MotionFrame> loop=List.of(
-                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90, new FrameEffects().setEffects(FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.LOCK_POSITION, FlyingWeaponEffect.LOCK_ORIENTATION)),
-                    new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), -90),
-                    new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), -90),
-                    new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), -90),
-                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), -90));
-            List<MotionFrame> chop=List.of(
-                    new MotionFrame(new Vec3(0, 0.6, -1), new Vec3(0, 0, 1),0, new FrameEffects().setEffects(FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.LOCK_POSITION, FlyingWeaponEffect.LOCK_ORIENTATION)),
-                    new MotionFrame(new Vec3(0, 1, 0), new Vec3(0, 0, 1)),
-                    new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
-                    new MotionFrame(new Vec3(0, -0.4, 0), new Vec3(0, 0, 1)));
-            List<MotionFrame> slash=List.of(
-                    new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1), 45),
-                    new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), 45));
-            setInteractionRange(6);
+        if (animTicker > 20&&testing!=null) {
             animTicker = 0;
-            queuePath(new MotionManagers.DefinitionMM(new MotionGroup(slash, EasingFunctionEnum.IN_OUT_CUBIC, 10)), 0, 0);
+            queuePath(testing, 0, 0);
             setIntangible(false);
             //setFlipRender(!flipClientRender());
             setFlipRender(!flipClientRender());
-            lockPos(new Vec3(0,-50, 0));
-            lockLook(new Vec3(0,0,1));
             //setPos(getX(), getY()+10, getZ());
             while (!trailHistory.isEmpty()) trailHistory.pop();
         }

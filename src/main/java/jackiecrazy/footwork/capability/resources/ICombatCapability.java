@@ -81,8 +81,8 @@ public interface ICombatCapability {
 
     float consumePosture(LivingEntity assailant, float amount, float rallyPerc, BreachLevel breach);
 
-    default float consumePosture(LivingEntity assailant, float amount, boolean breach) {
-        return consumePosture(assailant, amount, breach ? BreachLevel.STUN : BreachLevel.NO);
+    default float consumePosture(LivingEntity assailant, float amount, float rallyPerc, boolean breach) {
+        return consumePosture(assailant, amount, rallyPerc, breach ? BreachLevel.STUN : BreachLevel.NO);
     }
 
     default float consumePosture(float amount, float rallyPerc) {
