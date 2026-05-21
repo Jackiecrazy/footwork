@@ -55,9 +55,9 @@ public class MovementUtils {
         return boxes.hasNext();
     }
 
-    public static void applyVelocity(Vec3 vec, LivingEntity e, boolean set) {
+    public static void applyVelocity(Vec3 vec, Entity e, boolean set) {
         final Vec3 vel = resolveVelocity(e.getLookAngle(), vec);
-        final boolean iszero = vel.lengthSqr() == 0;
+        final boolean iszero = vel.lengthSqr() <= 0;
         if (set) {// && !iszero//todo why did I add this check???
             e.setDeltaMovement(vel);
         } else {

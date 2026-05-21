@@ -1,17 +1,19 @@
 package jackiecrazy.footwork.move.utils;
 
+import jackiecrazy.footwork.move.argument.Argument;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
+
+import java.util.HashMap;
 
 public class ArgumentContext {
     protected final Entity performer;
     protected final Entity target;
-    protected Vec3 position;
+    final HashMap<String, Object> context = new HashMap<>();
 
     public ArgumentContext(Entity performer, Entity target) {
         this.performer = performer;
         this.target = target;
-        position=performer.position();
+        addContext("position", performer.position());
     }
 
     public Entity performer() {
@@ -22,12 +24,17 @@ public class ArgumentContext {
         return target;
     }
 
-    public ArgumentContext setPosition(Vec3 pos){
-        position = pos;
+    public <T> T getContext(String a) {
+        return (T) (context.get(a));
+    }
+
+    public ArgumentContext addContext(HashMap<String, Object> ctx){
+        context.putAll(ctx);
         return this;
     }
 
-    public Vec3 getContextualPosition() {
-        return position;
+    public ArgumentContext addContext(String a, Object b) {
+        context.put(a, b);
+        return this;
     }
 }

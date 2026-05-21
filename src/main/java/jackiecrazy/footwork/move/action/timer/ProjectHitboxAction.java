@@ -29,7 +29,7 @@ public class ProjectHitboxAction extends TimerAction {
     public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
         HashMap<Entity, Long> lastHit = wrapper.getData(this);
         multihit_override=true;
-        for (Entity e : selector.resolve(new ActionContext(wrapper, this, performer, target))) {
+        for (Entity e : selector.resolve(new ActionContext(wrapper, this, performer, target).copyContextFrom(wrapper))) {
             if (hit_cooldown == 0 && lastHit.containsKey(e)) continue;
             if (lastHit.containsKey(e) && lastHit.get(e) + hit_cooldown < e.level().getGameTime()) continue;
             int childRet = runActions(new ActionContext(wrapper, this, performer, e), actions);

@@ -1,7 +1,10 @@
 package jackiecrazy.footwork.move.motionframe;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 public class HitInfo {
@@ -15,16 +18,16 @@ public class HitInfo {
     public double crit_damage = 1.5;
     public double spirit_multiplier = 1;
     public double armor_pierce = 0;
-    protected int guard_frames = 0;
-    protected int dodge_frames = 0;
-    protected int parry_frames = 0;
-    protected int invulnerable_frames = 0;
-    protected Vec3 knockback_direction=null;
+    protected Vec3 knockback_direction = null;
     protected HitEffects hit_self = new HitEffects();
     protected HitEffects damage_self = new HitEffects();
     protected HitEffects hit_other = new HitEffects();
     protected HitEffects damage_other = new HitEffects();
-    protected DragInfo drag=null;
+    //actually these are shoved in here so sweep attack and on_swing can proc them
+    // for on_x effects, write them to a common buffer and track how long they should last?
+    // or maybe write them down as marks with callbacks on defense actions, so they're technically a mark?
+    // that solves holding for longer, but it can't handle early expiry...
+    protected DragInfo drag = null;
     public HitInfo() {
     }
     public HitInfo(double knockback,
@@ -39,22 +42,6 @@ public class HitInfo {
         this.crit = crit;
         this.breach = breach;
         this.crit_damage = crit_damage;
-    }
-
-    public int guard_frames() {
-        return guard_frames;
-    }
-
-    public int dodge_frames() {
-        return dodge_frames;
-    }
-
-    public int parry_frames() {
-        return parry_frames;
-    }
-
-    public int invulnerable_frames() {
-        return invulnerable_frames;
     }
 
     public DragInfo getDrag() {
@@ -126,10 +113,14 @@ public class HitInfo {
         armor_pierce = f.readDouble();
     }
 
-    public boolean runEffects(LivingEntity hitter, LivingEntity target, boolean self, boolean damage) {
+//    public boolean runEffects(LivingEntity hitter, LivingEntity target, boolean self, boolean damage) {
+//        return runEffects(hitter, (Entity) target, self, damage);
+//    }
+
+    public boolean runEffects(LivingEntity hitter, Entity target, boolean self, boolean damage, InteractionHand hand, ItemStack stack) {
 
         HitEffects he = self ? (damage ? damage_self : hit_self) : (damage ? damage_other : hit_other);
-        return he.runEffects(hitter, target);
+        return he.runEffects(hitter, target, hand, stack);
     }
 
     public boolean canBreach() {

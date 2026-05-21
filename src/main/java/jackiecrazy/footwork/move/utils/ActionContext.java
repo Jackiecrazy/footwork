@@ -49,4 +49,12 @@ public final class ActionContext extends ArgumentContext {
                 "target=" + target + ']';
     }
 
+    public ActionContext copyContextFrom(ArgumentContext other){
+        return (ActionContext) addContext(other.context);
+    }
+
+    public ActionContext copyContextFrom(ActionSetWrapper other){
+        return (ActionContext) addContext(other.context);
+    }
+
 }

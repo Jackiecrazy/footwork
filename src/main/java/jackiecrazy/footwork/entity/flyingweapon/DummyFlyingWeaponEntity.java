@@ -6,6 +6,7 @@ import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -76,7 +77,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
                 alreadyHit.clear();
             LivingEntity e = getOwner();
             if (e != null)
-                effects.runEffects(e, e);
+                effects.runEffects(e, this, InteractionHand.MAIN_HAND, getHeldItem());
             if(effects.getDisplayItems()!=null)
                 setCosmeticItem(effects.getDisplayItems().resolve(new ArgumentContext(getOwner(), getOwner())));
             if(effects.getColor()!=null)

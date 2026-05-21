@@ -1,16 +1,19 @@
 package jackiecrazy.footwork.capability.action;
 
 import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.CallbackActionWrapper;
 import net.minecraft.world.entity.Entity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AttachAction implements IAttachAction {
 //    private static final MovesetManager literallyNothing = new MovesetManager(null);
     private final Entity tiedTo;
     private final HashMap<Entity, List<ActionSetWrapper>> marks = new HashMap<>();
+    private final HashMap<Entity, List<CallbackActionWrapper>> temp = new HashMap<>();
 //    private MovesetManager manager = literallyNothing;
 //
     public AttachAction(Entity linked) {
@@ -32,6 +35,18 @@ public class AttachAction implements IAttachAction {
         marks.putIfAbsent(en, new ArrayList<>());
         marks.get(en).add(d);
         d.start(en, tiedTo);
+    }
+
+    @Override
+    public void triggerCallback(String s) {
+        temp.clear();
+        marks.forEach((en, actionSetWrappers) -> actionSetWrappers.forEach(a->{
+            if(a instanceof CallbackActionWrapper b){
+                temp.putIfAbsent(en, new ArrayList<>());
+                temp.get(en).add(b);
+            }
+        }));
+        temp.forEach((entity, actionSetWrappers) -> actionSetWrappers.forEach(a->a.triggerCallback(entity, tiedTo, s)));
     }
 
     @Override

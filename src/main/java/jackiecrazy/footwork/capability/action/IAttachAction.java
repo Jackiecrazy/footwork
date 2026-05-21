@@ -8,5 +8,7 @@ public interface IAttachAction {
 //    MovesetManager getMovesetManager();
     void mark(Entity from, ActionSetWrapper d);
 
+    void triggerCallback(String s);
+
     void update();
 }

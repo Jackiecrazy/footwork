@@ -13,7 +13,7 @@ public class WetMixin {
 
 
     @SuppressWarnings("all")
-    @Inject(method = "isInWater", at=@At("RETURN"), cancellable = true)
+    @Inject(method = "isInWaterRainOrBubble", at=@At("RETURN"), cancellable = true)
     private void aaa(CallbackInfoReturnable<Boolean> cir){
         if((Object)this instanceof LivingEntity e && e.hasEffect(FootworkEffects.WET.get())){
             cir.setReturnValue(true);

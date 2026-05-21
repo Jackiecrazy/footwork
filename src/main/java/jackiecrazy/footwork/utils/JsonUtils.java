@@ -149,6 +149,7 @@ public class JsonUtils {
             // Still check if other FrameEffects fields exist
             ret.setHit(ActionJsonAdapters.gson.fromJson(obj, HitInfo.class));
         }
+
         if (ret.getEffects() == null) {
             ret.setEffects(FlyingWeaponEffect.WEAPON, FlyingWeaponEffect.TRAIL);
         }

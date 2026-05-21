@@ -33,10 +33,16 @@ public class FrameEffects extends HitEffects {
     };
     private HitInfo attack_info = null;
     private List<FlyingWeaponEffect> effects = null;
-    private RenderItemArgument display_items = null;
+    private RenderItemArgument display_stack = null;
     private double range = -1;
     private boolean reset_hit = false;
     private boolean unDrag = false;
+    private HitEffects on_terrain_impact=null;
+
+    public HitEffects getTerrainEffects() {
+        return on_terrain_impact;
+    }
+
     private Color color=new Color(0.6f, 0.8f, 1.0f);
 
     public FrameEffects() {
@@ -44,7 +50,7 @@ public class FrameEffects extends HitEffects {
     }
 
     public RenderItemArgument getDisplayItems() {
-        return display_items;
+        return display_stack;
     }
 
     public FrameEffects resetHit(boolean reset_hit) {
@@ -67,8 +73,8 @@ public class FrameEffects extends HitEffects {
         if (effects != null)
             he.setEffects(effects.toArray(new FlyingWeaponEffect[0]));
         he.setRange(range);
-        if (display_items != null)
-            he.display_items = display_items;
+        if (display_stack != null)
+            he.display_stack = display_stack;
         return he;
     }
 

@@ -45,7 +45,7 @@ public class PlayParticleAction extends Action {
         }
         if (actionContext.target().level() instanceof ServerLevel sl) {
             for (ServerPlayer sp : sl.players()) {
-                ActionContext ac= new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), sp);
+                ActionContext ac= new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), sp).copyContextFrom(actionContext);
                 if (seen_by_player.resolve(ac)) {
                     sl.sendParticles(sp, p, force.resolve(actionContext), pos.x, pos.y, pos.z, (int) quantity.resolve(actionContext).intValue(), dir.x, dir.y, dir.z, dir.length());
                 }

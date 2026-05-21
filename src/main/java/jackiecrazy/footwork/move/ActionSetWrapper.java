@@ -5,6 +5,7 @@ import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +16,9 @@ public class ActionSetWrapper {
     public final Stack<DataWrapper<?>> stack = new Stack<>();
     private final List<Tuple<TimerAction, Integer>> activeTimers = new ArrayList<>();
     private final HashMap<Action, Object> extraData = new HashMap<>();
-    private final List<Action> graveyard = new ArrayList<>();
-    private final List<Action> actions;
+    public final HashMap<String, Object> context = new HashMap<>();
+    protected final List<Action> graveyard = new ArrayList<>();
+    protected final List<Action> actions;
     private TimerAction currentMove;
     private int index = 0;
 
@@ -30,6 +32,20 @@ public class ActionSetWrapper {
 
     public List<Tuple<TimerAction, Integer>> getActiveTimers() {
         return activeTimers;
+    }
+
+    public <T> T getContext(String a) {
+        return (T) (context.get(a));
+    }
+
+    public ActionSetWrapper addContext(String a, Object b) {
+        context.put(a, b);
+        return this;
+    }
+
+    public ActionSetWrapper withContext(HashMap<String, Object> ctx){
+        context.putAll(ctx);
+        return this;
     }
 
     public List<Action> getGraveyard() {
@@ -75,7 +91,7 @@ public class ActionSetWrapper {
         activeTimers.removeIf((entry) -> {
             if (entry.getA().isFinished(this, performer, target)) {
                 graveyard.add(entry.getA());
-                entry.getA().stop(new ActionContext(this, entry.getA(), performer, target), false);
+                entry.getA().stop(generateContext(performer, target, entry.getA()), false);
                 return true;
             }
             return false;
@@ -83,6 +99,14 @@ public class ActionSetWrapper {
         if (jumpCode > 0) {
             jumpTo(jumpCode, performer, target);
         }
+    }
+
+    private @NotNull ActionContext generateContext(Entity performer,
+                                                    Entity target,
+                                                    Action parent) {
+        ActionContext ret= new ActionContext(this, parent, performer, target);
+        ret.addContext(context);
+        return ret;
     }
 
     public void jumpTo(int jumpCode, Entity performer, Entity target) {
@@ -96,8 +120,7 @@ public class ActionSetWrapper {
         Action act;
         for (; index < actions.size(); index++) {
             act = actions.get(index % actions.size());
-            if (act.canRun(new ActionContext(this, null, performer, target)))
-                trigger(act, null, performer, target);
+            if (act.canRun(generateContext(performer, target, null))) trigger(act, null, performer, target);
             if (act instanceof TimerAction ta) return ta;
         }
         return null;
@@ -116,9 +139,9 @@ public class ActionSetWrapper {
             }
             return 0;
         }
-        if (!action.repeatable(new ActionContext(this, parent, performer, target)))
-            graveyard.add(action);//continuous tasks are handled by active timers
-        return action.perform(new ActionContext(this, parent, performer, target));
+        final ActionContext ctx = generateContext(performer, target, parent);
+        if (!action.repeatable(ctx)) graveyard.add(action);//continuous tasks are handled by active timers
+        return action.perform(ctx);
     }
 
     public int getTimer(TimerAction action) {

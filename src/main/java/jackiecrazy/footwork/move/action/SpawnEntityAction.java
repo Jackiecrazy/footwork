@@ -69,7 +69,7 @@ public class SpawnEntityAction extends Action {
 
                     serverlevel.tryAddFreshEntityWithPassengers(summon);
                     for (Action a : on_spawn) {
-                        a.perform(new ActionContext(actionContext.wrapper(), actionContext.parent(), summoner, summon));
+                        a.perform(new ActionContext(actionContext.wrapper(), actionContext.parent(), summoner, summon).copyContextFrom(actionContext));
                     }
 
                 }

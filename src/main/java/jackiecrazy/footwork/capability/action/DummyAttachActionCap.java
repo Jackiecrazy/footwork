@@ -22,6 +22,11 @@ public class DummyAttachActionCap implements IAttachAction {
     }
 
     @Override
+    public void triggerCallback(String s) {
+
+    }
+
+    @Override
     public void update() {
 
     }
