@@ -14,6 +14,7 @@ public abstract class MotionManager {
         @Override
         public void write(FriendlyByteBuf buf, MotionManager mm) {
             //write 20 frames in total, spread out over the duration. If duration<20, write as many as needed
+            buf.writeVector3f(mm.angular_velocity);
             buf.writeInt(mm.getDuration());
             final int increments = Math.max(1, mm.getDuration() / 20);
             int numOfFrames = mm.getDuration() / (increments + 1);
@@ -25,25 +26,25 @@ public abstract class MotionManager {
 
         @Override
         public MotionManager read(FriendlyByteBuf buf) {
+            Vector3f ang=buf.readVector3f();
             int dur = buf.readInt();
             List<MotionFrame> mf = new ArrayList<>();
             int max = buf.readInt();
             for (int x = 0; x < max; x++) {
                 mf.add(MotionFrame.SERIALIZER.read(buf));
             }
-            return new MotionManagers.DefinitionMM(new MotionGroup(mf, EasingFunctionEnum.LINEAR, dur));
+            return new MotionManagers.DefinitionMM(new MotionGroup(mf, EasingFunctionEnum.LINEAR, dur)).setAngularVelocity(ang);
         }
 
         @Override
         public MotionManager copy(MotionManager mm) {
-            return new MotionManagers.FixedMM(new MotionFrame(mm.getStartFrame().direction(), mm.getStartFrame().offset(), mm.getStartFrame().renderOrientation()), mm.getDuration());
+            return new MotionManagers.FixedMM(new MotionFrame(mm.getStartFrame().direction(), mm.getStartFrame().offset(), mm.getStartFrame().renderOrientation()), mm.getDuration()).setAngularVelocity(mm.angular_velocity);
         }
     };
-    private Vector3f angular_velocity = new Vector3f();       // radians per tick, axis * speed
+    private Vector3f angular_velocity = new Vector3f();       // degrees per tick, axis * speed
 
     public MotionManager setAngularVelocity(Vector3f angularVelocity) {
         this.angular_velocity = angularVelocity;
-        //fixme you're setting it on a singleton instance causing thrown weapons to lose their spin after hitting a wall
         return this;
     }
 

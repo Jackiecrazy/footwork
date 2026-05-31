@@ -6,6 +6,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4d;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MotionGroup {
@@ -35,7 +36,9 @@ public class MotionGroup {
                     .distanceTo(topPos);
             totalLength += lengths[i];
         }
-        for (int i = 0; i < lengths.length; i++) {
+        if (totalLength == 0)//no movement, therefore equally distribute frame time
+            Arrays.fill(lengths, 1d / lengths.length);
+        else for (int i = 0; i < lengths.length; i++) {
             lengths[i] /= totalLength;
         }
     }
@@ -86,7 +89,7 @@ public class MotionGroup {
         int frameCount = frames.size();
         if (frameCount < 2) return frames.get(0);
 
-        double progress = Mth.clamp(time / duration(),0d,1d);
+        double progress = Mth.clamp(time / duration(), 0d, 1d);
         double easedProgress = easing().ease(progress); // Output in [0, 1]
 
 //        // Total number of segments is one less than the number of frames
@@ -118,9 +121,10 @@ public class MotionGroup {
         final MotionFrame lerp = start.lerp(end, localT);
         return lerp;
     }
-    public MotionGroup invert(){
-        List<MotionFrame> flipped=new ArrayList<>();
-        frames.forEach(a->flipped.add(a.flip()));
+
+    public MotionGroup invert() {
+        List<MotionFrame> flipped = new ArrayList<>();
+        frames.forEach(a -> flipped.add(a.flip()));
         return new MotionGroup(flipped, easing, duration);
     }
 }

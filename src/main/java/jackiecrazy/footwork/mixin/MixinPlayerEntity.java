@@ -6,6 +6,7 @@ import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.event.MeleeKnockbackEvent;
 import jackiecrazy.footwork.event.MeleeDamageSourceEvent;
 import jackiecrazy.footwork.utils.GeneralUtils;
+import jackiecrazy.footwork.utils.MovementUtils;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -13,8 +14,10 @@ import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import org.spongepowered.asm.mixin.Mixin;
@@ -76,7 +79,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
             ds = GeneralUtils.player_ds_override;
             GeneralUtils.player_ds_override = null;
         } else {
-            ds = new CombatDamageSource(player).setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).flagBreach(false).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
+            ds = new CombatDamageSource(player).setKnockbackVector(new Vec3(0,2,0)).setKnockbackPercentage(3).setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).flagBreach(false).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
         }
         if(ds instanceof CombatDamageSource cds)
             cds.setCrit(tempCrit).setCritDamage(tempCdmg);//everyone needs these tags
@@ -119,10 +122,24 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     @Redirect(method = "attack",
             at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/world/entity/LivingEntity;knockback(DDD)V"))
     private void mark(LivingEntity livingEntity, double strength, double ratioX, double ratioZ) {
-        //fixme this only happens if the item has knockback enchant
-        MeleeKnockbackEvent mke = new MeleeKnockbackEvent(this, ds, livingEntity, strength, ratioX, ratioZ);
-        MinecraftForge.EVENT_BUS.post(mke);
-        livingEntity.knockback(mke.getStrength(), mke.getRatioX(), mke.getRatioZ());
+        MeleeKnockbackEvent event = new MeleeKnockbackEvent(this, ds, livingEntity, strength, ratioX, ratioZ);
+        MinecraftForge.EVENT_BUS.post(event);
+        //fixme this overwrites the resolution from mixinAttackSpeed
+        if(ds instanceof CombatDamageSource cds && cds.getKnockbackVector()!=null){
+            strength = event.getStrength();
+            ratioX = event.getRatioX();
+            ratioZ = event.getRatioZ();
+            strength *= 1.0D - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+            if (strength != 0) {
+                livingEntity.hasImpulse = true;
+                Vec3 currentMovement = livingEntity.getDeltaMovement();
+                Vec3 originalVector = new Vec3(ratioX, 0, ratioZ);
+                final Vec3 knockbackVector = cds.getKnockbackVector();
+                Vec3 addedMovement = MovementUtils.resolveVelocity(originalVector, knockbackVector).normalize().scale(strength);
+                livingEntity.setDeltaMovement(currentMovement.x / 2.0D + addedMovement.x, currentMovement.y / 2.0D + addedMovement.y, currentMovement.z / 2.0D + addedMovement.z);
+            }
+        }
+        else livingEntity.knockback(event.getStrength(), event.getRatioX(), event.getRatioZ());
         GeneralUtils.kbHandled = true;
     }
 

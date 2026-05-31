@@ -1,4 +1,4 @@
-package jackiecrazy.footwork.move.motionframe;
+package jackiecrazy.footwork.move.motionframe.render;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;

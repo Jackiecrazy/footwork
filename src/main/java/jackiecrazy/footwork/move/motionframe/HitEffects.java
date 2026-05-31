@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.move.motionframe;
 
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.capability.action.ActionData;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
@@ -8,15 +9,20 @@ import jackiecrazy.footwork.move.CallbackActionWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.utils.MovementUtils;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +37,13 @@ public class HitEffects {
     protected int dodge_frames = 0;
     protected int parry_frames = 0;
     protected int invulnerable_frames = 0;
+    protected ResourceLocation sound = null;
+    //todo per-weapon render adjustment
     protected HitEffects on_guard;
     protected HitEffects on_parry;
     protected HitEffects on_dodge;
     protected HitEffects on_iframe;
+    private transient SoundEvent resolve = null;
 
     public HitEffects() {
     }
@@ -104,6 +113,15 @@ public class HitEffects {
     public boolean runEffects(LivingEntity hitter, Entity target, InteractionHand hand, ItemStack stack) {
         Level level = target.level();
         if (!level.isClientSide) {
+            if (sound != null) {
+                if (resolve == null)
+                    resolve = ForgeRegistries.SOUND_EVENTS.getValue(sound);
+                if (resolve != null) {
+                    ServerLevel sl = (ServerLevel)target.level();
+                    Vec3 pos = target.position();
+                    sl.playSound(null, pos.x, pos.y, pos.z, resolve, SoundSource.PLAYERS, 0.8f + Footwork.rand.nextFloat() * 0.4f, 0.8f + Footwork.rand.nextFloat() * 0.4f);
+                }
+            }
             if (target instanceof LivingEntity le) {
                 final ICombatCapability cap = CombatData.getCap(le);
                 if (!cap.alreadyProc(this.toString())) {

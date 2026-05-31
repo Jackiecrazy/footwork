@@ -52,7 +52,7 @@ public class MoveToAction extends TimerAction {
         if(performer instanceof Mob m){
             m.getNavigation().tick();
         }
-        int childRet = runActions(new ActionContext(wrapper, this, performer, target).copyContextFrom(wrapper), tick);
+        int childRet = runActions(wrapper.generateContext(performer, target, this), tick);
         if (childRet != 0) return childRet;
         return super.tick(wrapper, performer, target);
     }

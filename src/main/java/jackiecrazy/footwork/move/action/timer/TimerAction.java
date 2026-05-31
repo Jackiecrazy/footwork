@@ -37,7 +37,7 @@ public abstract class TimerAction extends Action {
      * @return false if the action is still running
      */
     public boolean isFinished(ActionSetWrapper wrapper, Entity performer, Entity target) {
-        return wrapper.getTimer(this) > max_time.resolve(new ActionContext(wrapper, this, performer, target)) || wrapper.getTimer(this) < 0;
+        return wrapper.getTimer(this) > max_time.resolve(wrapper.generateContext(performer, target, this)) || wrapper.getTimer(this) < 0;
     }
 
     public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
@@ -45,7 +45,7 @@ public abstract class TimerAction extends Action {
     }
 
     public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
-        runActions(new ActionContext(wrapper, this, performer, target), on_start);
+        runActions(wrapper.generateContext(performer, target, this), on_start);
     }
 
     public int perform(ActionContext actionContext) {

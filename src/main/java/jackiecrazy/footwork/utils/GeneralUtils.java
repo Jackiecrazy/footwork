@@ -134,7 +134,7 @@ public class GeneralUtils {
                                              boolean doEntities,
                                              ClipContext.Block block,
                                              ClipContext.Fluid fluid) {
-        return raytraceAnything(world, start, direction, distance, doEntities, block, fluid, EntitySelector.ENTITY_STILL_ALIVE);
+        return raytraceAnything(world, start, direction, distance, doEntities, block, fluid, EntitySelector.LIVING_ENTITY_STILL_ALIVE);
     }
 
     @Nonnull
@@ -145,7 +145,7 @@ public class GeneralUtils {
                                              boolean doEntities,
                                              ClipContext.Block block,
                                              ClipContext.Fluid fluid, Predicate<Entity> predicate) {
-        Vec3 end = start.add(direction);
+        Vec3 end = start.add(direction.normalize().scale(distance*1.2));
         if (doEntities) {
             Entity entity = null;
             List<Entity> list = world.getEntities((Entity) null, new AABB(start, end).inflate(1.0D), predicate);

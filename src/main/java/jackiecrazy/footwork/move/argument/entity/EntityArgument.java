@@ -12,7 +12,7 @@ public abstract class EntityArgument implements Argument<Entity> {
     public abstract Entity resolve(ArgumentContext argumentContext);
 
     public Vec3 _resolve(ActionSetWrapper wrapper, Action parent, Entity caster, Entity target) {
-        return resolve(new ActionContext(wrapper, parent, caster, target)).position();
+        return resolve(wrapper.generateContext(caster, target, parent)).position();
     }
 
     public static class Store extends Action {

@@ -20,7 +20,7 @@ public class AddVelocityAction extends TimerAction {
 
     @Override
     public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
-        final ActionContext ctx = new ActionContext(wrapper, this, performer, target).copyContextFrom(wrapper);
+        final ActionContext ctx = wrapper.generateContext(performer, target, this);
         runActions(ctx, on_launch);
         Vec3 dir = direction.resolve(ctx);
         performer.addDeltaMovement(dir);
@@ -34,7 +34,7 @@ public class AddVelocityAction extends TimerAction {
 
     @Override
     public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
-        final ActionContext ctx = new ActionContext(wrapper, this, performer, target).copyContextFrom(wrapper);
+        final ActionContext ctx = wrapper.generateContext(performer, target, this);
         int childRet = runActions(ctx, tick);
         if (childRet != 0) return childRet;
         if (!performer.onGround()) {

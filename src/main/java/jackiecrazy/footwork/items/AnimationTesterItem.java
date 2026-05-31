@@ -1,13 +1,12 @@
 package jackiecrazy.footwork.items;
 
-import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.client.screen.dashboard.AnimationTesterScreen;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.entity.flyingweapon.DummyFlyingWeaponEntity;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
 import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
-import jackiecrazy.footwork.move.motionframe.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
 import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;

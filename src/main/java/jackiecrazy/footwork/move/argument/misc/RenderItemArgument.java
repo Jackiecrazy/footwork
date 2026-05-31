@@ -1,14 +1,13 @@
 package jackiecrazy.footwork.move.argument.misc;
 
 import jackiecrazy.footwork.move.argument.Argument;
-import jackiecrazy.footwork.move.motionframe.ItemNode;
-import jackiecrazy.footwork.move.motionframe.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.ItemNode;
+import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class RenderItemArgument implements Argument<RenderItemGroup> {
     private List<ItemNodeArgument> nodes = new ArrayList<>();

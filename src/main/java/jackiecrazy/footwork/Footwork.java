@@ -23,6 +23,8 @@ import jackiecrazy.footwork.move.argument.ArgumentRegistry;
 import jackiecrazy.footwork.move.condition.ConditionRegistry;
 import jackiecrazy.footwork.move.filter.FilterRegistry;
 import jackiecrazy.footwork.move.motionframe.*;
+import jackiecrazy.footwork.move.motionframe.render.ItemNode;
+import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
 import jackiecrazy.footwork.networking.AnimationTesterSavePacket;
 import jackiecrazy.footwork.networking.FootworkChannel;
 import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;

@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.move.utils;
 
-import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.ActionSetWrapper;
 import net.minecraft.world.entity.Entity;
 
 import java.util.HashMap;
@@ -8,12 +8,12 @@ import java.util.HashMap;
 public class ArgumentContext {
     protected final Entity performer;
     protected final Entity target;
-    final HashMap<String, Object> context = new HashMap<>();
+    public final HashMap<String, Object> context = new HashMap<>();
 
     public ArgumentContext(Entity performer, Entity target) {
         this.performer = performer;
         this.target = target;
-        addContext("position", performer.position());
+        addContext("position", target.position());//using target position makes the most sense here for targeting effects
     }
 
     public Entity performer() {
@@ -37,4 +37,13 @@ public class ArgumentContext {
         context.put(a, b);
         return this;
     }
+
+    public ArgumentContext copyContextFrom(ArgumentContext other){
+        return addContext(other.context);
+    }
+
+    public ArgumentContext copyContextFrom(ActionSetWrapper other){
+        return addContext(other.context);
+    }
+
 }

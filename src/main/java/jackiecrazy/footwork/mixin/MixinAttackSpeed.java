@@ -57,11 +57,12 @@ public abstract class MixinAttackSpeed extends Entity {
                 ratioZ = event.getRatioZ();
                 strength *= 1.0D - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
                 if (strength != 0) {
+                    cds.setKnockbackVector(mke.getDirection());
                     livingEntity.hasImpulse = true;
                     Vec3 currentMovement = livingEntity.getDeltaMovement();
                     Vec3 originalVector = new Vec3(ratioX, 0, ratioZ);
                     Vec3 addedMovement = MovementUtils.resolveVelocity(originalVector, mke.getDirection()).normalize().scale(strength);
-                    livingEntity.setDeltaMovement(currentMovement.x / 2.0D - addedMovement.x, currentMovement.y / 2.0D - addedMovement.y, currentMovement.z / 2.0D - addedMovement.z);
+                    livingEntity.setDeltaMovement(currentMovement.x / 2.0D + addedMovement.x, currentMovement.y / 2.0D + addedMovement.y, currentMovement.z / 2.0D + addedMovement.z);
                 }
                 tempDS = null;
                 return;

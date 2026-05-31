@@ -39,7 +39,7 @@ public class FootworkEffects {
     //increases posture damage by 20% per level
     public static final RegistryObject<MobEffect> ENFEEBLE = EFFECTS.register("enfeeble", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x5c452f));
     //increases posture damage by 15% per level, removed on hit
-    public static final RegistryObject<MobEffect> COUNTERSTRIKE = EFFECTS.register("counterstrike", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x5c452f));
+    public static final RegistryObject<MobEffect> COUNTERSTRIKE = EFFECTS.register("counterstrike", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0xdddddd));
     //nullifies invisibility
     public static final RegistryObject<MobEffect> EXPOSED = EFFECTS.register("exposed", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x000000));
     //reduces stealth by 2 per level
@@ -47,7 +47,7 @@ public class FootworkEffects {
     //increases stealth by 2 per level
     public static final RegistryObject<MobEffect> CONCEAL = EFFECTS.register("conceal", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x949494).addAttributeModifier(FootworkAttributes.STEALTH.get(), "55FCED67-E92A-486E-9800-B47F202C4386", 2, AttributeModifier.Operation.ADDITION));
     //increases reach by 1 per level
-    public static final RegistryObject<MobEffect> REACH = EFFECTS.register("reach", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x949494).addAttributeModifier(ForgeMod.ENTITY_REACH.get(), "55FCED67-E92A-486E-9800-B47F202C4386", 1, AttributeModifier.Operation.ADDITION));
+    public static final RegistryObject<MobEffect> REACH = EFFECTS.register("reach", () -> new FootworkEffect(MobEffectCategory.BENEFICIAL, 0x00ffff).addAttributeModifier(ForgeMod.ENTITY_REACH.get(), "55FCED67-E92A-486E-9800-B47F202C4386", 1, AttributeModifier.Operation.ADDITION));
     //stuns are upgraded to knockdowns when unsteady
     public static final RegistryObject<MobEffect> UNSTEADY = EFFECTS.register("unsteady", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x949494));
     //always considered to be wet

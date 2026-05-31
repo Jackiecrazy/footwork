@@ -5,8 +5,8 @@ import com.mojang.math.Axis;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEffect;
 import jackiecrazy.footwork.entity.flyingweapon.SwingHistory;
-import jackiecrazy.footwork.move.motionframe.RenderItemGroup;
-import jackiecrazy.footwork.move.motionframe.ItemNode;
+import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.ItemNode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -38,7 +38,6 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.Deque;
@@ -309,9 +308,9 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             poseStack.mulPose(Axis.ZP.rotationDegrees((float) n.rotation().z));
             ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
             //GL11.glFrontFace(GL11.GL_CW);
-            if (left) {
-                poseStack.scale(-1, 1, 1);
-            }
+//            if (left) {
+//                poseStack.scale(-1, 1, 1);
+//            }
             poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
             itemRenderer.render(stack, ctx, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
             );

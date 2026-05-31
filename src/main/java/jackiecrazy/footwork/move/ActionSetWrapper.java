@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.move;
 
 import jackiecrazy.footwork.move.action.Action;
+import jackiecrazy.footwork.move.action.timer.ProjectHitboxAction;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import net.minecraft.util.Tuple;
@@ -45,6 +46,11 @@ public class ActionSetWrapper {
 
     public ActionSetWrapper withContext(HashMap<String, Object> ctx){
         context.putAll(ctx);
+        return this;
+    }
+
+    public ActionSetWrapper withContext(ActionContext ctx){
+        context.putAll(ctx.context);
         return this;
     }
 
@@ -101,7 +107,7 @@ public class ActionSetWrapper {
         }
     }
 
-    private @NotNull ActionContext generateContext(Entity performer,
+    public @NotNull ActionContext generateContext(Entity performer,
                                                     Entity target,
                                                     Action parent) {
         ActionContext ret= new ActionContext(this, parent, performer, target);
@@ -140,7 +146,7 @@ public class ActionSetWrapper {
             return 0;
         }
         final ActionContext ctx = generateContext(performer, target, parent);
-        if (!action.repeatable(ctx)) graveyard.add(action);//continuous tasks are handled by active timers
+        if (!action.repeatable(ctx)&&!ProjectHitboxAction.multihit_override) graveyard.add(action);//continuous tasks are handled by active timers
         return action.perform(ctx);
     }
 

@@ -60,6 +60,15 @@ public class EntityHandler {
             //accompanied by nausea
             e.getEntity().addEffect(new MobEffectInstance(MobEffects.CONFUSION, e.getEffectInstance().getDuration(), e.getEffectInstance().getAmplifier()));
         }
+        if (e.getEffectInstance().getEffect().isBeneficial()) {
+            ActionData.getCap(e.getEntity()).triggerCallback("buffed");
+            if (e.getEffectSource() != null)
+                ActionData.getCap(e.getEffectSource()).triggerCallback("buff");
+        } else {
+            ActionData.getCap(e.getEntity()).triggerCallback("debuffed");
+            if (e.getEffectSource() != null)
+                ActionData.getCap(e.getEffectSource()).triggerCallback("debuff");
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

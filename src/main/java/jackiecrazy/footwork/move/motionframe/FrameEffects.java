@@ -43,7 +43,13 @@ public class FrameEffects extends HitEffects {
         return on_terrain_impact;
     }
 
-    private Color color=new Color(0.6f, 0.8f, 1.0f);
+    private Color trail_color =new Color(0.6f, 0.8f, 1.0f);
+
+    public Vec3 modify_initial_rotation() {
+        return modify_initial_rotation;
+    }
+
+    private Vec3 modify_initial_rotation=new Vec3(1, 1, 1);
 
     public FrameEffects() {
 
@@ -134,6 +140,6 @@ public class FrameEffects extends HitEffects {
     }
 
     public Color getColor() {
-        return color;
+        return trail_color;
     }
 }

@@ -5,9 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.vector.ContextualVectorArgument;
 import jackiecrazy.footwork.move.utils.ActionContext;
-import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
-import jackiecrazy.footwork.move.argument.vector.PositionVectorArgument;
 import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
 import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.condition.FalseCondition;
@@ -26,7 +24,7 @@ public class PlayParticleAction extends Action {
     private String particle_parameters = "";
     private Condition seen_by_player = TrueCondition.INSTANCE;
     private Condition force = FalseCondition.INSTANCE;
-    private Argument<Vec3> position = ContextualVectorArgument.INSTANCE, direction = RawVectorArgument.ZERO;
+    private Argument<Vec3> position = ContextualVectorArgument.INSTANCE, delta = RawVectorArgument.ZERO;
     private Argument<Double> quantity = FixedNumberArgument.ZERO;
 
     @Override
@@ -37,7 +35,7 @@ public class PlayParticleAction extends Action {
         //type/data, force, pos xyz, quantity, vel xyz, max speed
         ParticleOptions p;
         Vec3 pos = position.resolve(actionContext);
-        Vec3 dir = direction.resolve(actionContext);
+        Vec3 dir = delta.resolve(actionContext);
         try {
             p = play.getDeserializer().fromCommand(play, new StringReader(" " + particle_parameters));
         } catch (CommandSyntaxException cse) {
@@ -45,7 +43,7 @@ public class PlayParticleAction extends Action {
         }
         if (actionContext.target().level() instanceof ServerLevel sl) {
             for (ServerPlayer sp : sl.players()) {
-                ActionContext ac= new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), sp).copyContextFrom(actionContext);
+                ActionContext ac= actionContext.wrapper().generateContext(actionContext.performer(), sp, actionContext.parent());
                 if (seen_by_player.resolve(ac)) {
                     sl.sendParticles(sp, p, force.resolve(actionContext), pos.x, pos.y, pos.z, (int) quantity.resolve(actionContext).intValue(), dir.x, dir.y, dir.z, dir.length());
                 }

@@ -13,7 +13,7 @@ public class WaitAction extends TimerAction {
 
     @Override
     public int tick(ActionSetWrapper wrapper, Entity performer, Entity target) {
-        int childRet=runActions(new ActionContext(wrapper, this, performer, target), waiting);
+        int childRet=runActions(wrapper.generateContext(performer, target, this), waiting);
         if(childRet!=0)return childRet;
         return super.tick(wrapper, performer, target);
     }

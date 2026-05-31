@@ -42,7 +42,7 @@ public class MoveAlongPathAction extends TimerAction {
 //        if (update.effects() != currentEffects) {
 //            updateFrameEffects(update.effects());
 //        }
-        final ActionContext ctx = new ActionContext(wrapper, this, performer, target).copyContextFrom(wrapper);
+        final ActionContext ctx = wrapper.generateContext(performer, target, this);
         final Tuple<Vec3, Vec3> bundle = new Tuple<>(position.resolve(ctx), orientation.resolve(ctx));
         Vec3 transformedDirection = update.resolveTargetOffset(bundle, Vec3.ZERO, 1);
 

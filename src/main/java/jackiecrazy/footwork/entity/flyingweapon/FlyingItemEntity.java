@@ -2,6 +2,8 @@ package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.api.ITetherAnchor;
 import jackiecrazy.footwork.move.motionframe.*;
+import jackiecrazy.footwork.move.motionframe.render.ItemNode;
+import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
 import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.core.BlockPos;
@@ -19,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -39,6 +42,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public static final EntityDataSerializer<STATE> STATESERIALIZER = EntityDataSerializer.simpleEnum(STATE.class);
     public static final int MAX_TRAIL_LENGTH = 6;
     public static final int CLIENT_SMOOTHING_SUBTICKS = 1;
+    public static final Color DEFAULT_TRAIL_COLOR = new Color(0.6f, 0.8f, 1.0f);
     protected static final List<MotionFrame> STAB = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, -1)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1.4)));
     protected static final List<MotionFrame> CIRCLE = List.of(new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)), new MotionFrame(new Vec3(-1, 0, 0), new Vec3(0, 0, 1), new Vector4d(-1, 0, 0, 90)), new MotionFrame(new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 90)), new MotionFrame(new Vec3(1, 0, 0), new Vec3(0, 0, 1), new Vector4d(1, 0, 0, 90)), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1), new Vector4d(0, 0, 1, 90)));
     protected static final List<MotionFrame> SLASH = List.of(new MotionFrame(new Vec3(1, 0.6, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, -0.4, 0), new Vec3(0, 0, 1), new Vector4d(-1, -1, 1, 45)));
@@ -46,10 +50,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final List<MotionFrame> CHOP = List.of(new MotionFrame(new Vec3(0, 1, -1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, 1, 0.2), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(0, -0.5, 1), new Vec3(0, 0, 1)));
     protected static final List<MotionFrame> LOOP = List.of(
             //new MotionFrame(new Vec3(0, -1, 0), new Vec3(0, 0, 1)),
-            new MotionFrame(new Vec3(1, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 180)),
-            new MotionFrame(new Vec3(0, 1, 0.1), new Vec3(0, 0, 1), 0),
-            new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)),
-            new MotionFrame(new Vec3(-1, -2, 1), new Vec3(0, 0, 1)));
+            new MotionFrame(new Vec3(1, 0, -1), new Vec3(0, 0, 1), new Vector4d(0, 0, -1, 180)), new MotionFrame(new Vec3(0, 1, 0.1), new Vec3(0, 0, 1), 0), new MotionFrame(new Vec3(0, 0, 1), new Vec3(0, 0, 1)), new MotionFrame(new Vec3(-1, -2, 1), new Vec3(0, 0, 1)));
     protected static final List<MotionManager> EVERYONE = List.of(new MotionManagers.DefinitionMM(new MotionGroup(CIRCLE, EasingFunctionEnum.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(STAB, EasingFunctionEnum.IN_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(SLASH, EasingFunctionEnum.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(BACKSLASH, EasingFunctionEnum.IN_OUT_CUBIC, 30)), new MotionManagers.DefinitionMM(new MotionGroup(CHOP, EasingFunctionEnum.IN_CUBIC, 30)));
     protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     protected static final EntityDataAccessor<Quaternionf> ROLL = SynchedEntityData.defineId(FlyingItemEntity.class, EntityDataSerializers.QUATERNION);
@@ -77,18 +78,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected static final EntityDataAccessor<Color> TRAIL_COLOR = SynchedEntityData.defineId(FlyingItemEntity.class, FrameEffects.COLOR);
     private static final Quaternionf nothing = new Quaternionf(0, 0, 0, 1);
     private static final Vector3f BOGUS = new Vector3f(0, 100000, 0);
-    public static final Color DEFAULT_TRAIL_COLOR = new Color(0.6f, 0.8f, 1.0f);
     //first one goes up to attack range, second does not scale
     protected final Deque<Tuple<SwingHistory, SwingHistory>> trailHistory = new ArrayDeque<>();
-    private final Color[] RAINBOW = {
-            Color.RED,
-            Color.ORANGE,
-            Color.YELLOW,
-            Color.GREEN,
-            Color.CYAN,
-            Color.blue,
-            Color.MAGENTA
-    };
     public Quaternionf rollO = new Quaternionf();
     public float displacementO, sizeO;
     public int renderLag = 0, renderLagO = 0;
@@ -121,8 +112,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     public void setIdlePose(MotionManager idlePose) {
         entityData.set(IDLE_POSE, idlePose);
-        if (isIdle())
-            updateFrameEffects(idlePose.getStartFrame().effects());
+        if (isIdle()) updateFrameEffects(idlePose.getStartFrame().effects());
     }
 
     public Vec3 getUniversalOffset() {
@@ -219,8 +209,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     public Entity getMotionTarget() {
         final int id = entityData.get(TARGET_ID);
-        if (target == null || target.getId() != id)
-            target = level().getEntity(id);
+        if (target == null || target.getId() != id) target = level().getEntity(id);
         if (target == null) return getOwner();
         return target;
     }
@@ -233,8 +222,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void clearPath() {
-        while (!isIdle())
-            updateMotionTargets(true);
+        while (!isIdle()) updateMotionTargets(true);
     }
 
     protected boolean updateMotionTargets(boolean forceskip) {
@@ -242,12 +230,10 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (owner == null) return false;
         MotionManager motion = moveQueue.peek();
         if (motion == null || motion.hasEnded(animTicker, animProgress) || forceskip) {
-            if (motion != null)
-                updateFrameEffects(motion.getEndFrame().effects());
+            if (motion != null) updateFrameEffects(motion.getEndFrame().effects());
             moveQueue.poll();
             motion = moveQueue.peek();
-            if (motion != null)
-                this.updateFrameEffects(motion.getStartFrame().effects());
+            if (motion != null) this.updateFrameEffects(motion.getStartFrame().effects());
             //setTransitioning(motion == null || motion instanceof MotionManagers.TransitionMM);
             animProgress = animTicker = 0;
             flushTrailHistory();
@@ -378,11 +364,11 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         int finalMask = 0;
         for (FlyingWeaponEffect f : ff) {
             if (f == null) continue;
-            if (f == FlyingWeaponEffect.UNLOCK_ORIENTATION) {
-                setEffect(FlyingWeaponEffect.LOCK_ORIENTATION, false);
-            }
-            if (f == FlyingWeaponEffect.UNLOCK_POSITION) {
-                setEffect(FlyingWeaponEffect.LOCK_ORIENTATION, false);
+            switch (f) {
+                case UNLOCK_POSITION -> setEffect(FlyingWeaponEffect.LOCK_POSITION, false);
+                case UNLOCK_ORIENTATION -> setEffect(FlyingWeaponEffect.LOCK_ORIENTATION, false);
+                case LOCK_POSITION -> setEffect(FlyingWeaponEffect.LOCK_POSITION, true);
+                case LOCK_ORIENTATION -> setEffect(FlyingWeaponEffect.LOCK_ORIENTATION, true);
             }
             int mask = 1 << f.ordinal();
             finalMask |= mask;
@@ -422,8 +408,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 naturallyFly();
             } else if (isIdle()) {
                 //idle state
-                if (!wasIdle)
-                    updateFrameEffects(getIdlePose().getStartFrame().effects());
+                if (!wasIdle) updateFrameEffects(getIdlePose().getStartFrame().effects());
                 wasIdle = true;
                 entityData.set(IDLE_TICK, getIdlePose().getDuration());
                 returnToIdle(getIdlePose().getDuration());
@@ -458,15 +443,13 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
         if (speed < 0.01) {
             // emergency recovery
-            Vec3 dir = getMotionTarget().getEyePosition()
-                    .subtract(position()).normalize();
+            Vec3 dir = getMotionTarget().getEyePosition().subtract(position()).normalize();
             setDeltaMovement(dir.scale(getMinimumSpeed()));
             return;
         }
         updateSpin(getIdlePose());
 
-        Vec3 toTargetDir = getMotionTarget().getEyePosition()
-                .subtract(position()).normalize();
+        Vec3 toTargetDir = getMotionTarget().getEyePosition().subtract(position()).normalize();
 
         // Project toTarget onto the plane perpendicular to current velocity
         Vec3 forward = velocity.normalize();
@@ -481,9 +464,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         // Optional: very gentle speed recovery when turning hard
         double targetSpeed = getMinimumSpeed();                    // or Math.max(speed, getBaseSpeed())
         double speedRecovery = 0.04;                            // 0 = perfect conservation
-        newVelocity = newVelocity.normalize().scale(
-                speed + (targetSpeed - speed) * speedRecovery
-        );
+        newVelocity = newVelocity.normalize().scale(speed + (targetSpeed - speed) * speedRecovery);
 
         setDeltaMovement(newVelocity);
 
@@ -572,6 +553,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
                 Direction hitFace = blockHit.getDirection();
                 onHitBlock(blockPos, hitFace, blockHit.getLocation());
             }
+            tryCheckInsideBlocks();
         }
     }
 
@@ -655,7 +637,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     }
 
-    private Tuple<Vec3, Vec3> stateDependentPositionLook() {
+    protected Tuple<Vec3, Vec3> stateDependentPositionLook() {
         switch (getState()) {
             case THROW_TRACK -> {
                 return new Tuple<>(getMotionTarget().position(), getDeltaMovement());
@@ -722,6 +704,13 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         }
     }
 
+
+    @Override
+    protected void onInsideBlock(BlockState bs) {
+        super.onInsideBlock(bs);
+        if (bs.blocksMotion()) onHitBlock(getOnPos(), Direction.DOWN, position());
+    }
+
     protected abstract void onHitBlock(BlockPos blockPos, Direction hitFace, Vec3 location);
 
     public Vec3 stateDependentOrientation() {
@@ -762,7 +751,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         // Total angle = ω × time
         float angle = speed;// * (ticks + partialTick);
 
-        return out.fromAxisAngleRad(axis, angle);
+        return out.fromAxisAngleDeg(axis, angle);
     }
 
 
@@ -819,8 +808,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             setOwnerUUID(tag.getUUID("ownerUUID"));
             owner = getOwner();
         }
-        if (tag.contains("cosmetic"))
-            setCosmeticItem(RenderItemGroup.fromTag(tag.getCompound("cosmetic")));
+        if (tag.contains("cosmetic")) setCosmeticItem(RenderItemGroup.fromTag(tag.getCompound("cosmetic")));
         setState(STATE.values()[tag.getInt("state")]);
         entityData.set(VISUAL_TAG, tag.getInt("visuals"));
         setInteractionRange(tag.getFloat("range"));
@@ -833,8 +821,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         tag.putInt("state", getState().ordinal());
         tag.putInt("visuals", getRawVisualTag());
         tag.putFloat("range", getInteractionRange());
-        if (getCosmeticItem() != null)
-            tag.put("cosmetic", getCosmeticItem().toTag());
+        if (getCosmeticItem() != null) tag.put("cosmetic", getCosmeticItem().toTag());
     }
 
     @Override
@@ -877,8 +864,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     @Override
     public Entity getTetheringEntity() {
         final int id = entityData.get(TETHER_ID);
-        if (tether == null || tether.getId() != id)
-            tether = level().getEntity(id);
+        if (tether == null || tether.getId() != id) tether = level().getEntity(id);
         return tether;
     }
 
@@ -915,9 +901,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public enum STATE {
-        FOLLOW,
-        //FIXED_POINT,
-        THROW_NATURAL,
-        THROW_TRACK
+        FOLLOW, //FIXED_POINT,
+        THROW_NATURAL, THROW_TRACK
     }
 }

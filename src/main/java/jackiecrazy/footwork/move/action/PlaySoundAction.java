@@ -25,7 +25,6 @@ public class PlaySoundAction extends Action {
         if (play == null)
             play = ForgeRegistries.SOUND_EVENTS.getValue(sound.resolve(actionContext));
         if (play == null) return 0;
-        //type/data, force, pos xyz, quantity, vel xyz, max speed
         Vec3 pos = position.resolve(actionContext);
         actionContext.performer().level().playSound(null, pos.x, pos.y, pos.z, play, source, volume.resolve(actionContext).floatValue(), pitch.resolve(actionContext).floatValue());
         return 0;

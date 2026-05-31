@@ -20,9 +20,10 @@ public class TeleportAction extends Action {
     public int perform(ActionContext actionContext) {
         Vec3 vec=position.resolve(actionContext);
         Entity teleporter = subject.resolve(actionContext);
-        runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), teleporter).copyContextFrom(actionContext), on_start);
+        final ActionContext ctx = actionContext.wrapper().generateContext(actionContext.performer(), teleporter, actionContext.parent());
+        runActions(ctx, on_start);
         teleporter.teleportTo(vec.x,vec.y, vec.z);
-        runActions(new ActionContext(actionContext.wrapper(), actionContext.parent(), actionContext.performer(), teleporter).copyContextFrom(actionContext), on_land);
+        runActions(ctx, on_land);
         return 0;
     }
 }

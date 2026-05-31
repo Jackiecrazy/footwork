@@ -10,6 +10,6 @@ public class ConditionFilter<T> extends Filter<T> {
     private Condition condition;
     @Override
     public List<T> filter(ArgumentContext argumentContext, List<T> targets) {
-        return targets.stream().filter(a-> condition.resolve(new ArgumentContext(argumentContext.performer(), a instanceof Entity e ? e : null))).toList();
+        return targets.stream().filter(a-> condition.resolve(new ArgumentContext(argumentContext.performer(), a instanceof Entity e ? e : null).copyContextFrom(argumentContext))).toList();
     }
 }

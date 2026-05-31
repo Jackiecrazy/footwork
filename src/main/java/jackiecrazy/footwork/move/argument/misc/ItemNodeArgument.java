@@ -1,9 +1,7 @@
 package jackiecrazy.footwork.move.argument.misc;
 
 import jackiecrazy.footwork.move.argument.Argument;
-import jackiecrazy.footwork.move.argument.stack.EquippedItemArgument;
-import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
-import jackiecrazy.footwork.move.motionframe.ItemNode;
+import jackiecrazy.footwork.move.motionframe.render.ItemNode;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
