@@ -1,8 +1,8 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.move.motionframe.*;
-import jackiecrazy.footwork.move.motionframe.render.ItemNode;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,9 +38,9 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
         setIdlePose(pose);
         this.setUniversalOffset(new Vec3(-1.3, 0, 0));
         setCosmeticItem(new RenderItemGroup(
-                new ItemNode(stack, Vec3.ZERO, Vec3.ZERO),
-                new ItemNode(ItemStack.EMPTY, new Vec3(0, 45, 0), new Vec3(0, 1, 0)),
-                new ItemNode(new ItemStack(Items.IRON_AXE), new Vec3(0, 90, 0), new Vec3(0, 2, 0))
+                new RenderNode.ItemNode(stack, Vec3.ZERO, Vec3.ZERO),
+                new RenderNode.ItemNode(ItemStack.EMPTY, new Vec3(0, 45, 0), new Vec3(0, 1, 0)),
+                new RenderNode.ItemNode(new ItemStack(Items.IRON_AXE), new Vec3(0, 90, 0), new Vec3(0, 2, 0))
         ));
     }
 

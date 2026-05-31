@@ -2,8 +2,8 @@ package jackiecrazy.footwork.entity.flyingweapon;
 
 import jackiecrazy.footwork.api.ITetherAnchor;
 import jackiecrazy.footwork.move.motionframe.*;
-import jackiecrazy.footwork.move.motionframe.render.ItemNode;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import jackiecrazy.footwork.utils.EasingFunctionEnum;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import net.minecraft.core.BlockPos;
@@ -268,7 +268,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setCosmeticItem(ItemStack stack) {
-        setCosmeticItem(new RenderItemGroup(new ItemNode(stack, Vec3.ZERO, Vec3.ZERO)));
+        setCosmeticItem(new RenderItemGroup(new RenderNode.ItemNode(stack, Vec3.ZERO, Vec3.ZERO)));
     }
 
     public void setCosmeticItem(RenderItemGroup stack) {
@@ -291,7 +291,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         this.entityData.define(LAST_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(CURRENT_FRAME, new MotionFrame(Vec3.ZERO, Vec3.ZERO));
         this.entityData.define(HELD, ItemStack.EMPTY);
-        this.entityData.define(COSMETIC, new RenderItemGroup(new ItemNode(ItemStack.EMPTY, Vec3.ZERO, Vec3.ZERO)));
+        this.entityData.define(COSMETIC, new RenderItemGroup(new RenderNode.ItemNode(ItemStack.EMPTY, Vec3.ZERO, Vec3.ZERO)));
         this.entityData.define(DATA_OWNERUUID_ID, Optional.empty());
         this.entityData.define(MOB_OWNER, 0);
         this.entityData.define(TARGET_ID, 0);

@@ -1,8 +1,8 @@
 package jackiecrazy.footwork.move.argument.misc;
 
 import jackiecrazy.footwork.move.argument.Argument;
-import jackiecrazy.footwork.move.motionframe.render.ItemNode;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +24,7 @@ public class RenderItemArgument implements Argument<RenderItemGroup> {
     @Override
     public @Nullable RenderItemGroup resolve(ArgumentContext argumentContext) {
 
-        final ItemNode[] ret = nodes.stream().map(a -> a.resolve(argumentContext)).toList().toArray(new ItemNode[0]);
+        final RenderNode.ItemNode[] ret = nodes.stream().map(a -> a.resolve(argumentContext)).toList().toArray(new RenderNode.ItemNode[0]);
         return new RenderItemGroup(ret);
     }
 }

@@ -6,7 +6,7 @@ import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEffect;
 import jackiecrazy.footwork.entity.flyingweapon.SwingHistory;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
-import jackiecrazy.footwork.move.motionframe.render.ItemNode;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -81,7 +81,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                       PoseStack poseStack,
                                       RenderItemGroup group) {
         poseStack.pushPose();
-        for(ItemNode n:group.nodes()) {
+        for(RenderNode.ItemNode n:group.nodes()) {
             ItemStack stack = n.stack();
             poseStack.pushPose();
 //        if (!entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
@@ -201,7 +201,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
     protected void renderShadowWeapon(RenderItemGroup group, PoseStack poseStack, MultiBufferSource bufferSource, int alpha,
                                       boolean left) {
         poseStack.pushPose();
-        for(ItemNode n:group.nodes()) {
+        for(RenderNode.ItemNode n:group.nodes()) {
             ItemStack stack=n.stack();
             poseStack.pushPose();
             BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
@@ -237,7 +237,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         }
         poseStack.popPose();
     }
-    private void renderStackProperly(ItemNode n,
+    private void renderStackProperly(RenderNode.ItemNode n,
                                      PoseStack poseStack,
                                      MultiBufferSource bf,
                                      int packedlight,
@@ -329,7 +329,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                     SwingHistory to,
                                     float alpha) {
         poseStack.pushPose();
-        for(ItemNode n:group.nodes()) {
+        for(RenderNode.ItemNode n:group.nodes()) {
             ItemStack stack = n.stack();
             poseStack.pushPose();
 

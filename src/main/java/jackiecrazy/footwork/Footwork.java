@@ -23,8 +23,8 @@ import jackiecrazy.footwork.move.argument.ArgumentRegistry;
 import jackiecrazy.footwork.move.condition.ConditionRegistry;
 import jackiecrazy.footwork.move.filter.FilterRegistry;
 import jackiecrazy.footwork.move.motionframe.*;
-import jackiecrazy.footwork.move.motionframe.render.ItemNode;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import jackiecrazy.footwork.networking.AnimationTesterSavePacket;
 import jackiecrazy.footwork.networking.FootworkChannel;
 import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
@@ -102,7 +102,7 @@ public class Footwork {
         EntityDataSerializers.registerSerializer(MotionFrame.SERIALIZER);
         EntityDataSerializers.registerSerializer(MotionManager.SERIALIZER);
         EntityDataSerializers.registerSerializer(FlyingItemEntity.STATESERIALIZER);
-        EntityDataSerializers.registerSerializer(ItemNode.SERIALIZER);
+        EntityDataSerializers.registerSerializer(RenderNode.ItemNode.SERIALIZER);
         EntityDataSerializers.registerSerializer(RenderItemGroup.SERIALIZER);
         EntityDataSerializers.registerSerializer(FrameEffects.COLOR);
     }

@@ -2,8 +2,8 @@ package jackiecrazy.footwork.networking;
 
 import jackiecrazy.footwork.items.AnimationTesterItem;
 import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
-import jackiecrazy.footwork.move.motionframe.render.ItemNode;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.utils.ActionJsonAdapters;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -66,7 +66,7 @@ public class AnimationTesterSavePacket {
                     try{
                         ItemStack itemStack = new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(msg.renderData)));
                         // Wrap as single-node group
-                        RenderItemGroup group = new RenderItemGroup(new ItemNode(itemStack, Vec3.ZERO, Vec3.ZERO));
+                        RenderItemGroup group = new RenderItemGroup(new RenderNode.ItemNode(itemStack, Vec3.ZERO, Vec3.ZERO));
                         tag.put(NBT_RENDER_GROUP, group.toTag());
                     }catch (Exception e){
                         // List of objects -> your deserializer
