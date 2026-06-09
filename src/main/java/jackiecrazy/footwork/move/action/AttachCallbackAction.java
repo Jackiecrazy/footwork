@@ -26,10 +26,10 @@ public class AttachCallbackAction extends Action {
 
     @Override
     public int perform(ActionContext actionContext) {
-        if (effect_list == null)
+        if (effect_list == null && effect != null)
             effect_list = new ArrayList<>(List.of(ActionJsonAdapters.gson.fromJson(ActionSets.moves.get(effect.resolve(actionContext)), Action[].class)));
-        if (effect_list == null){
-            Footwork.LOGGER.warn("attempted to attach an invalid list of callbacks, skipping.");
+        if (effect_list == null) {
+            Footwork.LOGGER.error("attempted to attach an invalid list of callbacks, skipping.");
             return 0;
         }
         ActionData.getCap(recipient.resolve(actionContext))

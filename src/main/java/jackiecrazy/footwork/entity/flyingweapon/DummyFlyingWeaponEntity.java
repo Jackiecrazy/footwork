@@ -72,11 +72,12 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
             setIntangible(false);
             if (effects.getRange() >= 0) setInteractionRange((float) effects.getRange());
             //special handling for vector adjustments on initial orientation lock
-            if (effects.getEffects().contains(FlyingWeaponEffect.LOCK_ORIENTATION)) {
-                lockLook(stateDependentPositionLook().getB().multiply(effects.modify_initial_rotation().x, effects.modify_initial_rotation().y, effects.modify_initial_rotation().z));
-            }
-            if (effects.getEffects() != null)
+            if (effects.getEffects() != null) {
+                if (effects.getEffects().contains(FlyingWeaponEffect.LOCK_ORIENTATION)) {
+                    lockLook(stateDependentPositionLook().getB().multiply(effects.modify_initial_rotation().x, effects.modify_initial_rotation().y, effects.modify_initial_rotation().z));
+                }
                 setEffect(effects.getEffects().toArray(new FlyingWeaponEffect[0]));
+            }
             if (effects.reset_hit())
                 alreadyHit.clear();
             LivingEntity e = getOwner();

@@ -47,17 +47,6 @@
 "footwork:breach_rally": "Breach Rally",
   "footwork:breach_rally.desc": "Upon successfully breaching an enemy you will immediately recover this percentage of your locked \"gray\" posture as rallyable \"red\" posture.",
 
-  "footwork.combat.on": "Combat Mode Activated",
-  "footwork.combat.off": "Combat Mode Deactivated",
-  "footwork.combat": "Toggle Combat Mode",
-  "footwork.selectSkill": "Open Skill Selection GUI",
-  "footwork.skill": "Casting Menu (Combat Mode only)",
-  "footwork.bindCast": "Cast Bound Skill (Combat Mode only)",
-  "footwork.shout": "Shout (Combat Mode only)",
-  "footwork.parry": "Manual Parry (Requires Config Option)",
-  "footwork.toggleparry.on": "Parrying Toggled On",
-  "footwork.toggleparry.off": "Parrying Toggled Off",
-
   "effect.footwork.exhaustion": "Exhaustion",
   "effect.footwork.distraction": "Distraction",
   "effect.footwork.sleep": "Sleep",

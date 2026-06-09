@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.mixin;
 
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.CombatDamageSource;
 import jackiecrazy.footwork.api.FootworkDamageArchetype;
 import jackiecrazy.footwork.capability.resources.CombatData;
@@ -7,6 +8,7 @@ import jackiecrazy.footwork.event.MeleeKnockbackEvent;
 import jackiecrazy.footwork.event.MeleeDamageSourceEvent;
 import jackiecrazy.footwork.utils.GeneralUtils;
 import jackiecrazy.footwork.utils.MovementUtils;
+import net.minecraft.client.animation.definitions.WardenAnimation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -79,13 +81,19 @@ public abstract class MixinPlayerEntity extends LivingEntity {
             ds = GeneralUtils.player_ds_override;
             GeneralUtils.player_ds_override = null;
         } else {
-            ds = new CombatDamageSource(player).setKnockbackVector(new Vec3(0,2,0)).setKnockbackPercentage(3).setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).flagBreach(false).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
+            ds = new CombatDamageSource(player).setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).flagBreach(false).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
         }
         if(ds instanceof CombatDamageSource cds)
             cds.setCrit(tempCrit).setCritDamage(tempCdmg);//everyone needs these tags
         MeleeDamageSourceEvent event= new MeleeDamageSourceEvent(player, hitting, ds);
         MinecraftForge.EVENT_BUS.post(event);
-        return event.getDamageSource();
+        DamageSource ret = event.getDamageSource();
+        if(ret==null) {
+            Footwork.LOGGER.fatal("damage source is null! Aborting all custom changes!");
+            ds=new CombatDamageSource(player).setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).flagBreach(false).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
+            return ds;
+        }
+        return ret;
     }
 
 //    @ModifyArg(

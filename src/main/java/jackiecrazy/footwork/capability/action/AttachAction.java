@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AttachAction implements IAttachAction {
 //    private static final MovesetManager literallyNothing = new MovesetManager(null);
     private final Entity tiedTo;
-    private final HashMap<Entity, List<ActionSetWrapper>> marks = new HashMap<>();
-    private final HashMap<Entity, List<CallbackActionWrapper>> temp = new HashMap<>();
+    private final ConcurrentHashMap<Entity, ConcurrentLinkedDeque<ActionSetWrapper>> marks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Entity, ConcurrentLinkedDeque<CallbackActionWrapper>> temp = new ConcurrentHashMap<>();
 //    private MovesetManager manager = literallyNothing;
 //
     public AttachAction(Entity linked) {
@@ -32,7 +34,7 @@ public class AttachAction implements IAttachAction {
 
     @Override
     public void mark(Entity en, ActionSetWrapper d) {
-        marks.putIfAbsent(en, new ArrayList<>());
+        marks.putIfAbsent(en, new ConcurrentLinkedDeque<>());
         marks.get(en).add(d);
         d.start(en, tiedTo);
     }
@@ -42,7 +44,7 @@ public class AttachAction implements IAttachAction {
         temp.clear();
         marks.forEach((en, actionSetWrappers) -> actionSetWrappers.forEach(a->{
             if(a instanceof CallbackActionWrapper b){
-                temp.putIfAbsent(en, new ArrayList<>());
+                temp.putIfAbsent(en, new ConcurrentLinkedDeque<>());
                 temp.get(en).add(b);
             }
         }));

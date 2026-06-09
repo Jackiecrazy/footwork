@@ -31,7 +31,7 @@ public class ProjectHitboxAction extends TimerAction {
         multihit_override=true;
         for (Entity e : selector.resolve(wrapper.generateContext(performer, target, this))) {
             if (hit_cooldown == 0 && lastHit.containsKey(e)) continue;
-            if (lastHit.containsKey(e) && lastHit.get(e) + hit_cooldown < e.level().getGameTime()) continue;
+            if (lastHit.containsKey(e) && lastHit.get(e) + hit_cooldown > e.level().getGameTime()) continue;
             int childRet = runActions(wrapper.generateContext(performer, e, this), actions);
             if (childRet != 0) return childRet;
             lastHit.put(e, e.level().getGameTime());

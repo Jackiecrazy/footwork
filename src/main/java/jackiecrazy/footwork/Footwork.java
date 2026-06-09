@@ -23,11 +23,10 @@ import jackiecrazy.footwork.move.argument.ArgumentRegistry;
 import jackiecrazy.footwork.move.condition.ConditionRegistry;
 import jackiecrazy.footwork.move.filter.FilterRegistry;
 import jackiecrazy.footwork.move.motionframe.*;
+import jackiecrazy.footwork.move.motionframe.render.ItemPreTransforms;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
 import jackiecrazy.footwork.move.motionframe.render.RenderNode;
-import jackiecrazy.footwork.networking.AnimationTesterSavePacket;
-import jackiecrazy.footwork.networking.FootworkChannel;
-import jackiecrazy.footwork.networking.UpdateTimeSlowPacket;
+import jackiecrazy.footwork.networking.*;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -94,11 +93,11 @@ public class Footwork {
     }
 
     private void packets(FMLCommonSetupEvent e) {
-        FootworkChannel.INSTANCE.registerMessage(1, UpdateTimeSlowPacket.class, new UpdateTimeSlowPacket.UpdateClientEncoder(), new UpdateTimeSlowPacket.UpdateClientDecoder(), new UpdateTimeSlowPacket.UpdateClientHandler());
-        FootworkChannel.INSTANCE.registerMessage(0, AnimationTesterSavePacket.class,
-                                                 AnimationTesterSavePacket::encode,
-                                                 AnimationTesterSavePacket::decode,
-                                                 AnimationTesterSavePacket::handle);
+        int index = 0;
+        FootworkChannel.INSTANCE.registerMessage(index++, UpdateTimeSlowPacket.class, new UpdateTimeSlowPacket.UpdateClientEncoder(), new UpdateTimeSlowPacket.UpdateClientDecoder(), new UpdateTimeSlowPacket.UpdateClientHandler());
+        FootworkChannel.INSTANCE.registerMessage(index++, AnimationTesterSavePacket.class, AnimationTesterSavePacket::encode, AnimationTesterSavePacket::decode, AnimationTesterSavePacket::handle);
+        FootworkChannel.INSTANCE.registerMessage(index++, SyncItemDataPacket.class, SyncItemDataPacket::encode, SyncItemDataPacket::decode, SyncItemDataPacket::handle);
+        FootworkChannel.INSTANCE.registerMessage(index++, SyncTagDataPacket.class, SyncTagDataPacket::encode, SyncTagDataPacket::decode, SyncTagDataPacket::handle);
         EntityDataSerializers.registerSerializer(MotionFrame.SERIALIZER);
         EntityDataSerializers.registerSerializer(MotionManager.SERIALIZER);
         EntityDataSerializers.registerSerializer(FlyingItemEntity.STATESERIALIZER);
@@ -118,12 +117,9 @@ public class Footwork {
 
     private void attribute(EntityAttributeModificationEvent e) {
         for (EntityType<? extends LivingEntity> type : e.getTypes()) {
-            if (!e.has(type, Attributes.FOLLOW_RANGE))
-                e.add(type, Attributes.FOLLOW_RANGE, 32);
-            if (!e.has(type, Attributes.ATTACK_SPEED))
-                e.add(type, Attributes.ATTACK_SPEED);
-            if (!e.has(type, Attributes.LUCK))
-                e.add(type, Attributes.LUCK);
+            if (!e.has(type, Attributes.FOLLOW_RANGE)) e.add(type, Attributes.FOLLOW_RANGE, 32);
+            if (!e.has(type, Attributes.ATTACK_SPEED)) e.add(type, Attributes.ATTACK_SPEED);
+            if (!e.has(type, Attributes.LUCK)) e.add(type, Attributes.LUCK);
             for (RegistryObject<Attribute> a : FootworkAttributes.ATTRIBUTES.getEntries())
                 e.add(type, a.get());
         }
@@ -134,6 +130,7 @@ public class Footwork {
     public void onJsonListener(AddReloadListenerEvent event) {
         Macros.register(event);
         ActionSets.register(event, "action_sets");
+        ItemPreTransforms.register(event);
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {

@@ -4,10 +4,24 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.JsonOps;
+import jackiecrazy.footwork.Footwork;
+import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
+import jackiecrazy.footwork.move.argument.misc.RenderNodeArgument;
+import jackiecrazy.footwork.move.argument.stack.RawItemStackArgument;
 import jackiecrazy.footwork.move.motionframe.*;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
+import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
 
@@ -24,6 +38,8 @@ public class JsonAdapters {
             .registerTypeAdapter(Vec3.class, new Vec3TypeAdapter())
             .registerTypeAdapter(RenderItemArgument.class, new ActionJsonAdapters.RenderItemAdapter())
             .registerTypeAdapter(Color.class, new ColorAdapter())
+            .registerTypeAdapter(BlockState.class, BlockStateAdapter.INSTANCE)
+            .registerTypeAdapter(RenderNode.class, new JsonAdapters.RenderNodeAdapter())
             .registerTypeAdapterFactory(new HitInfoAdapterFactory())
             .setPrettyPrinting()
             .create();
@@ -364,5 +380,77 @@ public class JsonAdapters {
             targetFrame.setAngularVelocity(spinVector);
         }
 
+    }
+
+    public static class BlockStateAdapter implements JsonSerializer<BlockState>, JsonDeserializer<BlockState> {
+
+        public static final BlockStateAdapter INSTANCE = new BlockStateAdapter();
+
+        @Override
+        public JsonElement serialize(BlockState state, Type typeOfSrc, JsonSerializationContext context) {
+            if (state == null) {
+                return JsonNull.INSTANCE;
+            }
+            // This produces the exact string format used by /setblock and /fill
+            return new JsonPrimitive(BlockStateParser.serialize(state));
+        }
+
+        @Override
+        public BlockState deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+
+            if (json == null || json.isJsonNull()) {
+                return null;
+            }
+
+            String blockString = json.getAsString().trim();
+
+            try {
+                // This is exactly how Minecraft parses /setblock arguments
+                StringReader reader = new StringReader(blockString);
+                BlockStateParser.BlockResult result = BlockStateParser.parseForBlock(
+                        // Use the server or level's registry lookup if available, otherwise:
+                        net.minecraft.core.registries.BuiltInRegistries.BLOCK.asLookup(),
+                        reader,
+                        false   // allow incomplete = false for strict parsing
+                );
+                return result.blockState();
+            } catch (CommandSyntaxException e) {
+                throw new JsonParseException("Failed to parse BlockState: " + blockString, e);
+            }
+        }
+    }
+
+    public static class RenderNodeAdapter implements JsonDeserializer<RenderNode> {
+
+        @Override
+        public RenderNode deserialize(JsonElement json, Type type, JsonDeserializationContext ctx) {
+            Vec3 rotation = Vec3.ZERO;
+            Vec3 translation = Vec3.ZERO;
+            if (json.isJsonPrimitive()) {
+                //the name of an item.
+                String name = json.getAsString();
+                if(ForgeRegistries.ITEMS.getValue(new ResourceLocation(name)) instanceof BlockItem bc){
+                    return new RenderNode.BlockNode(bc.getBlock().defaultBlockState(), rotation, translation);
+                }
+                ItemStack risa = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(name)));
+                return new RenderNode.ItemNode(risa, rotation, translation);
+            }
+            if (json.isJsonObject()) {
+                JsonObject obj=json.getAsJsonObject();
+                rotation=ctx.deserialize(obj.get("rotation"), Vec3.class);
+                translation=ctx.deserialize(obj.get("translation"), Vec3.class);
+                //single item node, deserialize that
+                if(!obj.has("stack"))
+                    return new RenderNode.BaseItemNode(rotation, translation);
+                String name = obj.get("stack").getAsString();
+                if(ForgeRegistries.ITEMS.getValue(new ResourceLocation(name)) instanceof BlockItem bc){
+                    return new RenderNode.BlockNode(bc.getBlock().defaultBlockState(), rotation, translation);
+                }
+                ItemStack risa = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(name)));
+                return new RenderNode.ItemNode(risa, rotation, translation);
+            }
+            throw new JsonParseException("item render argument is unreadable: " + json);
+        }
     }
 }

@@ -7,32 +7,32 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import org.jetbrains.annotations.NotNull;
 
-public record RenderItemGroup(RenderNode.ItemNode... nodes) {
+public record RenderItemGroup(RenderNode... nodes) {
     public static EntityDataSerializer<RenderItemGroup> SERIALIZER = new EntityDataSerializer<>() {
 
         @Override
         public void write(FriendlyByteBuf buf, RenderItemGroup mm) {
             buf.writeInt(mm.nodes.length);
-            for (RenderNode.ItemNode i : mm.nodes) {
-                RenderNode.ItemNode.SERIALIZER.write(buf, i);
+            for (RenderNode i : mm.nodes) {
+                RenderNode.SERIALIZER.write(buf, i);
             }
         }
 
         @Override
         public @NotNull RenderItemGroup read(FriendlyByteBuf buf) {
             int length = buf.readInt();
-            RenderNode.ItemNode[] mf = new RenderNode.ItemNode[length];
+            RenderNode[] mf = new RenderNode[length];
             for (int x = 0; x < length; x++) {
-                mf[x] = RenderNode.ItemNode.SERIALIZER.read(buf);
+                mf[x] = RenderNode.SERIALIZER.read(buf);
             }
             return new RenderItemGroup(mf);
         }
 
         @Override
         public @NotNull RenderItemGroup copy(RenderItemGroup mm) {
-            RenderNode.ItemNode[] ret = new RenderNode.ItemNode[mm.nodes.length];
+            RenderNode[] ret = new RenderNode[mm.nodes.length];
             for (int x = 0; x < ret.length; x++) {
-                ret[x] = RenderNode.ItemNode.SERIALIZER.copy(mm.nodes[x]);
+                ret[x] = RenderNode.SERIALIZER.copy(mm.nodes[x]);
             }
             return new RenderItemGroup(ret);
         }
@@ -42,7 +42,7 @@ public record RenderItemGroup(RenderNode.ItemNode... nodes) {
         CompoundTag tag = new CompoundTag();
         ListTag list = new ListTag();
 
-        for (RenderNode.ItemNode node : nodes()) {
+        for (RenderNode node : nodes()) {
             if (node != null) {
                 list.add(node.toTag());
             }
@@ -58,10 +58,10 @@ public record RenderItemGroup(RenderNode.ItemNode... nodes) {
         }
 
         ListTag list = tag.getList("nodes", Tag.TAG_COMPOUND);
-        RenderNode.ItemNode[] nodes = new RenderNode.ItemNode[list.size()];
+        RenderNode[] nodes = new RenderNode[list.size()];
 
         for (int i = 0; i < list.size(); i++) {
-            nodes[i] = RenderNode.ItemNode.fromTag(list.getCompound(i));
+            nodes[i] = RenderNode.fromTag(list.getCompound(i));
         }
 
         return new RenderItemGroup(nodes);

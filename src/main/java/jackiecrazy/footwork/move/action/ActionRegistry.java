@@ -26,6 +26,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> MOVE_TO = ACTIONS.register("move_to", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MoveToAction.class));
     public static final RegistryObject<ActionType> PROJECT_HITBOX = ACTIONS.register("project_hitbox", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ProjectHitboxAction.class));
     public static final RegistryObject<ActionType> FOLLOW_PATH = ACTIONS.register("move_along_path", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MoveAlongPathAction.class));
+    public static final RegistryObject<ActionType> ADD_CALLBACK = ACTIONS.register("attach_callback", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AttachCallbackAction.class));
 
     //Triggers//
     public static final RegistryObject<ActionType> ACTION_ON_HIT = ACTIONS.register("trigger_on_hit", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, Trigger.class));
@@ -46,6 +47,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> ALTER_RESOURCE = ACTIONS.register("change_resource", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AlterResourceAction.class));
 
     public static final RegistryObject<ActionType> DEBUG = ACTIONS.register("debug", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, DebugAction.class));
+    public static final RegistryObject<ActionType> ATTACH_ACTION = ACTIONS.register("attach_action", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AttachActionAction.class));
     public static final RegistryObject<ActionType> DEAL_DAMAGE = ACTIONS.register("deal_damage", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, DealDamageAction.class));
     public static final RegistryObject<ActionType> ADD_EFFECT = ACTIONS.register("add_effect", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AddEffectAction.class));
     public static final RegistryObject<ActionType> EXPLODE = ACTIONS.register("explode", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ExplodeAction.class));
@@ -53,7 +55,6 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> IGNITE = ACTIONS.register("ignite", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, IgniteAction.class));
     public static final RegistryObject<ActionType> LOOK_AT = ACTIONS.register("look_at", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, LookAtAction.class));
     public static final RegistryObject<ActionType> SET_AGGRESSIVE = ACTIONS.register("set_aggressive", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, SetAggressiveAction.class));
-    public static final RegistryObject<ActionType> ATTACH_ACTION = ACTIONS.register("attach_action", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AttachActionAction.class));
     public static final RegistryObject<ActionType> SPAWN_ENTITY = ACTIONS.register("spawn_entity", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, SpawnEntityAction.class));
     public static final RegistryObject<ActionType> ADD_ATTRIBUTE = ACTIONS.register("add_attribute", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AddAttributeModifierAction.class));
     public static final RegistryObject<ActionType> PLAY_PARTICLE = ACTIONS.register("play_particle", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, PlayParticleAction.class));

@@ -68,7 +68,9 @@ public class AnimationTesterSavePacket {
                         // Wrap as single-node group
                         RenderItemGroup group = new RenderItemGroup(new RenderNode.ItemNode(itemStack, Vec3.ZERO, Vec3.ZERO));
                         tag.put(NBT_RENDER_GROUP, group.toTag());
+                        tag.put("stack", itemStack.save(new CompoundTag()));
                     }catch (Exception e){
+                        tag.remove("stack");
                         // List of objects -> your deserializer
                         RenderItemArgument group = ActionJsonAdapters.gson.fromJson(msg.renderData, RenderItemArgument.class);
                         tag.put(NBT_RENDER_GROUP, group.resolve(new ArgumentContext(player, player)).toTag()); // implement toNbt()

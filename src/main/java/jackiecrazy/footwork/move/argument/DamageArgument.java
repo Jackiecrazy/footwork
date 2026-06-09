@@ -9,13 +9,17 @@ import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.condition.FalseCondition;
 import jackiecrazy.footwork.move.condition.TrueCondition;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +27,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DamageArgument implements Argument<DamageSource> {
+    transient Set<TagKey<DamageType>> dtags;
+    transient Holder<DamageType> dt;
+    transient ResourceKey<DamageType> rk;
     private Argument<Entity> source = new CasterEntityArgument();
     private Argument<Entity> proxy = new CasterEntityArgument();
     private FootworkDamageArchetype typing = FootworkDamageArchetype.PHYSICAL;
@@ -38,14 +45,22 @@ public class DamageArgument implements Argument<DamageSource> {
     private Condition proc_attack = new TrueCondition();
     private Condition proc_skill = new FalseCondition();
     private List<ResourceLocation> tags = new ArrayList<>();
-    transient Set<TagKey<DamageType>> dtags;
+    private Argument<ResourceLocation> type_override = null;
 
     public DamageSource resolve(ArgumentContext context) {
         if (dtags == null) {
             dtags = tags.stream().map(a -> TagKey.create(Registries.DAMAGE_TYPE, a)).collect(Collectors.toSet());
         }
         Entity entity = source.resolve(context);
-        CombatDamageSource ret = new CombatDamageSource(entity);//DamageSource(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK));
+        CombatDamageSource ret;
+        if (type_override != null) {
+            if (rk == null)
+                rk = ResourceKey.create(Registries.DAMAGE_TYPE, type_override.resolve(context));
+            if (dt == null)
+                dt = entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(rk);
+            ret=new CombatDamageSource(dt, entity, null, null);
+        }
+        else ret = new CombatDamageSource(entity);//DamageSource(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK));
         ret
                 .setDamageDealer(equip.resolve(context))
                 .setProxy(proxy.resolve(context))

@@ -1,5 +1,6 @@
 package jackiecrazy.footwork.entity.flyingweapon;
 
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.api.ITetherAnchor;
 import jackiecrazy.footwork.move.motionframe.*;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
@@ -111,7 +112,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setIdlePose(MotionManager idlePose) {
-        entityData.set(IDLE_POSE, idlePose);
+        if(idlePose.getEndFrame().renderOrientation().isFinite()) {
+            entityData.set(IDLE_POSE, idlePose);
+        }else Footwork.LOGGER.warn("received a MotionManager with invalid rotation, discarding.");
         if (isIdle()) updateFrameEffects(idlePose.getStartFrame().effects());
     }
 

@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.api;
 
 import jackiecrazy.footwork.move.Move;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
@@ -27,6 +28,7 @@ public class CombatDamageSource extends DamageSource {
     private static final List<TagKey<DamageType>> PHYSICAL = List.of(DamageTypeTags.BYPASSES_COOLDOWN);
     private static final List<TagKey<DamageType>> MAGICAL = List.of(DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS);
     private static final List<TagKey<DamageType>> TRUE = List.of(DamageTypeTags.BYPASSES_RESISTANCE, DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_EFFECTS, DamageTypeTags.BYPASSES_ENCHANTMENTS, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.BYPASSES_SHIELD, DamageTypeTags.AVOIDS_GUARDIAN_THORNS, DamageTypeTags.NO_IMPACT, DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS);
+    private DamageType typeOverride;
     private final Collection<TagKey<DamageType>> flags = new HashSet<>();
     float absorption;
     private float original = -1;
@@ -40,6 +42,12 @@ public class CombatDamageSource extends DamageSource {
     private float postureDamage = -1;
     private float armorPierce = 0f, knockback = 1f, multiplier = 1f;
     private Vec3 knockbackVector = null;
+
+    @Override
+    public @NotNull DamageType type() {
+        return super.type();
+    }
+
     private FootworkDamageArchetype damageTyping = FootworkDamageArchetype.PHYSICAL;
     private boolean canBreach = true;
     public CombatDamageSource(@Nonnull Entity entity) {
@@ -55,6 +63,10 @@ public class CombatDamageSource extends DamageSource {
 
     public CombatDamageSource(@Nonnull Entity entity, @Nullable Entity proxy, @Nullable Vec3 pos) {
         super(entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(entity instanceof Player ? DamageTypes.PLAYER_ATTACK : DamageTypes.MOB_ATTACK), proxy, entity, pos);
+        this.proxy = proxy;
+    }
+    public CombatDamageSource(Holder<DamageType> masquerade, @Nonnull Entity entity, @Nullable Entity proxy, @Nullable Vec3 pos) {
+        super(masquerade, proxy, entity, pos);
         this.proxy = proxy;
     }
 

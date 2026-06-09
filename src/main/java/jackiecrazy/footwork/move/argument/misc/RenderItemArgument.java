@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RenderItemArgument implements Argument<RenderItemGroup> {
-    private List<ItemNodeArgument> nodes = new ArrayList<>();
+    private List<RenderNodeArgument> nodes = new ArrayList<>();
 
-    public List<ItemNodeArgument> getNodes() {
+    public List<RenderNodeArgument> getNodes() {
         return nodes;
     }
 
-    public RenderItemArgument withNodes(ItemNodeArgument... nodes) {
+    public RenderItemArgument withNodes(RenderNodeArgument... nodes) {
         this.nodes = List.of(nodes);
         return this;
     }
@@ -24,7 +24,7 @@ public class RenderItemArgument implements Argument<RenderItemGroup> {
     @Override
     public @Nullable RenderItemGroup resolve(ArgumentContext argumentContext) {
 
-        final RenderNode.ItemNode[] ret = nodes.stream().map(a -> a.resolve(argumentContext)).toList().toArray(new RenderNode.ItemNode[0]);
+        final RenderNode[] ret = nodes.stream().map(a -> a.resolve(argumentContext)).toList().toArray(new RenderNode[0]);
         return new RenderItemGroup(ret);
     }
 }

@@ -60,6 +60,8 @@ public class AnimationTesterItem extends Item {
         CompoundTag tag = stack.getOrCreateTag();
         // ...
         DummyFlyingWeaponEntity entity = new DummyFlyingWeaponEntity(FootworkEntities.WEAPON.get(), level);
+        if(tag.contains("stack"))
+            entity.setHeldItem(ItemStack.of(tag.getCompound("stack")));
         entity.setCosmeticItem(RenderItemGroup.fromTag(tag.getCompound(NBT_RENDER_GROUP)));
         entity.setPosRaw(player.getX(), player.getY(), player.getZ());
         entity.setOwner(player);

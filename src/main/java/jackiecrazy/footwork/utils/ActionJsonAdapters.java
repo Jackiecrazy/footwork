@@ -12,7 +12,7 @@ import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.argument.ArgumentRegistry;
 import jackiecrazy.footwork.move.argument.SingletonArgumentType;
-import jackiecrazy.footwork.move.argument.misc.ItemNodeArgument;
+import jackiecrazy.footwork.move.argument.misc.RenderNodeArgument;
 import jackiecrazy.footwork.move.argument.misc.RenderItemArgument;
 import jackiecrazy.footwork.move.argument.number.FixedNumberArgument;
 import jackiecrazy.footwork.move.argument.number.NumberArgument;
@@ -25,11 +25,15 @@ import jackiecrazy.footwork.move.filter.Filter;
 import jackiecrazy.footwork.move.filter.FilterRegistry;
 import jackiecrazy.footwork.move.filter.SingletonFilterType;
 import jackiecrazy.footwork.move.motionframe.*;
+import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import net.minecraft.commands.arguments.CompoundTagArgument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -64,7 +68,9 @@ public class ActionJsonAdapters {
             .registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
             .registerTypeAdapter(CompoundTag.class, new NBTAdapter())
             .registerTypeAdapter(Vec3.class, new JsonAdapters.Vec3TypeAdapter())
+            .registerTypeAdapter(BlockState.class, JsonAdapters.BlockStateAdapter.INSTANCE)
             .registerTypeAdapter(MotionManager.class, new JsonAdapters.MotionManagerDeserializer())
+            .registerTypeAdapter(RenderNode.class, new JsonAdapters.RenderNodeAdapter())
             .registerTypeAdapter(Color.class, new JsonAdapters.ColorAdapter())
             .registerTypeAdapterFactory(new JsonAdapters.MotionFrameAdapterFactory())
             .registerTypeAdapterFactory(new JsonAdapters.HitInfoAdapterFactory())
@@ -191,7 +197,7 @@ public class ActionJsonAdapters {
                             return (Argument<T>) new ResourceLocationArgument.Raw(enforceNamespace(id, Footwork.MODID));
                     }
                 } catch (Exception e) {
-                    throw new JsonParseException("unreadable argument: "+json);
+                    throw new JsonParseException("unreadable argument: " + json);
                 }
                 throw new JsonParseException("argument is not a singleton: " + json);
             }
@@ -279,29 +285,33 @@ public class ActionJsonAdapters {
         }
     }
 
-
     public static class RenderItemAdapter implements JsonDeserializer<RenderItemArgument> {
 
         @Override
         public RenderItemArgument deserialize(JsonElement json,
-                                                     Type typeOfT,
-                                                     JsonDeserializationContext context) throws JsonParseException {
+                                              Type typeOfT,
+                                              JsonDeserializationContext context) throws JsonParseException {
             if (json.isJsonPrimitive()) {
                 //the name of an item.
+                String name = json.getAsString();
+                if (ForgeRegistries.ITEMS.getValue(new ResourceLocation(name)) instanceof BlockItem bc) {
+                    return new RenderItemArgument().withNodes(new RenderNodeArgument().setBlockstate(bc.getBlock().defaultBlockState()));
+                }
                 RawItemStackArgument risa = new RawItemStackArgument().setItem(json.getAsString());
-                return new RenderItemArgument().withNodes(new ItemNodeArgument().setStack(risa));
+                return new RenderItemArgument().withNodes(new RenderNodeArgument().setStack(risa));
             }
             if (json.isJsonObject()) {
                 //single item node, deserialize that
-                ItemNodeArgument deserialize = gson.fromJson(json, ItemNodeArgument.class);
-                if (deserialize.getStack() == null)
-                    deserialize = new ItemNodeArgument().setStack(gson.fromJson(json, Argument.class));
-                return new RenderItemArgument().withNodes(new ItemNodeArgument[]{deserialize});
+                JsonObject obj = json.getAsJsonObject();
+                RenderNodeArgument deserialize = gson.fromJson(json, RenderNodeArgument.class);
+                if (deserialize.getStack() == null && deserialize.getBlockstate() == null && obj.has("ID"))
+                    deserialize.setStack(gson.fromJson(json, Argument.class));
+                return new RenderItemArgument().withNodes(deserialize);
             }
             if (json.isJsonArray()) {
-                List<ItemNodeArgument> nodes = gson.fromJson(json.getAsJsonArray(), new TypeToken<ArrayList<ItemNodeArgument>>() {
+                List<RenderNodeArgument> nodes = gson.fromJson(json.getAsJsonArray(), new TypeToken<ArrayList<RenderNodeArgument>>() {
                 }.getType());
-                return new RenderItemArgument().withNodes(nodes.toArray(new ItemNodeArgument[0]));
+                return new RenderItemArgument().withNodes(nodes.toArray(new RenderNodeArgument[0]));
             }
             throw new JsonParseException("item render argument is unreadable: " + json);
         }

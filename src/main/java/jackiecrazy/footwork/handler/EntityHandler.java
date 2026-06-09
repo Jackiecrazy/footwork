@@ -15,8 +15,10 @@ import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
 import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
+import jackiecrazy.footwork.move.motionframe.render.ItemPreTransforms;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -30,6 +32,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -142,6 +145,13 @@ public class EntityHandler {
     }
 
     @SubscribeEvent
+    public static void reload(OnDatapackSyncEvent e) {
+        for (ServerPlayer sp : e.getPlayerList().getPlayers()) {
+            ItemPreTransforms.sendItemData(sp);
+        }
+    }
+
+    @SubscribeEvent
     public static void takeThis(EntityJoinLevelEvent e) {
         if (e.getEntity() instanceof Mob mob) {
             mob.goalSelector.addGoal(-1, new NoGoal(mob));
@@ -151,6 +161,8 @@ public class EntityHandler {
                 mob.targetSelector.addGoal(0, new CompelledVengeanceGoal(creature));
                 mob.targetSelector.addGoal(0, new FearGoal(creature));
             }
+        }else if (!e.getLevel().isClientSide && e.getEntity() instanceof ServerPlayer sp) {
+            ItemPreTransforms.sendItemData(sp);
         }
     }
 

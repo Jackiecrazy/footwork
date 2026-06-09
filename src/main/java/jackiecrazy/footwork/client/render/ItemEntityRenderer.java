@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingWeaponEffect;
 import jackiecrazy.footwork.entity.flyingweapon.SwingHistory;
+import jackiecrazy.footwork.move.motionframe.render.ItemPreTransforms;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
 import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import net.minecraft.client.Minecraft;
@@ -23,11 +24,8 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -81,9 +79,9 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                       PoseStack poseStack,
                                       RenderItemGroup group) {
         poseStack.pushPose();
-        for(RenderNode.ItemNode n:group.nodes()) {
-            ItemStack stack = n.stack();
+        for (RenderNode n : group.nodes()) {
             poseStack.pushPose();
+            //legacy code to move the weapon to the end of the shadow.
 //        if (!entity.shouldRender(FlyingWeaponEffect.BIG_SHADOW)) {
 //
 //            Vec3 interpolated = entity.getPosition(partialTicks); // same as what's applied by default
@@ -113,7 +111,8 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             //actual weapon
             MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
             final int packedlight = 0xf000f0;
-            renderStackProperly(n, poseStack, bufferSource, packedlight, itemRenderer.getModel(stack, entity.level(), null, 0), entity.flipClientRender());
+            final BakedModel model = n instanceof RenderNode.ItemNode a?itemRenderer.getModel(a.stack(), entity.level(), null, 0):null;
+            renderStackProperly(n, entity.getHeldItem(), poseStack, bufferSource, packedlight, model, entity.flipClientRender());
             poseStack.popPose();
         }
         poseStack.popPose();
@@ -160,7 +159,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
 //                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
 //                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
 
-                renderShadowWeapon(stack, poseStack, buffer, lerpAlpha, entity.flipClientRender());
+                renderShadowWeapon(stack, entity.getHeldItem(), poseStack, buffer, lerpAlpha, entity.flipClientRender());
 
                 poseStack.popPose();
                 break;
@@ -198,24 +197,21 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         poseStack.popPose();
     }
 
-    protected void renderShadowWeapon(RenderItemGroup group, PoseStack poseStack, MultiBufferSource bufferSource, int alpha,
+    protected void renderShadowWeapon(RenderItemGroup group, ItemStack mess,
+                                      PoseStack poseStack,
+                                      MultiBufferSource bufferSource,
+                                      int alpha,
                                       boolean left) {
         poseStack.pushPose();
-        for(RenderNode.ItemNode n:group.nodes()) {
-            ItemStack stack=n.stack();
+        for (RenderNode n : group.nodes()) {
             poseStack.pushPose();
-            BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
-            ResourceLocation a = model.isCustomRenderer() ? FootworkRenderTypes.white : model.getParticleIcon(ModelData.EMPTY).atlasLocation();
-//        itemRenderer.render(
-//                stack,
-//                ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
-//                false,
-//                poseStack,
-//                type -> new CustomVertexConsumer(bufferSource.getBuffer(RenderType.entityTranslucentCull(a)),0,0,0, alpha),
-//                0xf00f0,
-//                OverlayTexture.NO_OVERLAY,
-//                model  // or null
-//        );
+            BakedModel model;
+            if (n instanceof RenderNode.ItemNode a)
+                model = Minecraft.getInstance().getItemRenderer().getModel(a.stack(), null, null, 0);
+            else {
+                model = null;
+            }
+            ResourceLocation a = (model==null||model.isCustomRenderer()) ? FootworkRenderTypes.white : model.getParticleIcon(ModelData.EMPTY).atlasLocation();
             final int packedlight = 0xf00f0;
 
             //create the shadow MBS
@@ -225,42 +221,33 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                     return bufferSource.getBuffer(type);
                 }
                 RenderType rt = type;
-                if (model.isCustomRenderer() || stack.getItem() instanceof BlockItem)
+                if ((model!=null&&model.isCustomRenderer()) || n.getType() == RenderNode.NodeType.BLOCK)
                     rt = RenderType.entityTranslucentCull(a);
                 // Otherwise use the requested RenderType but wrap it to tint/alpha it
                 return new CustomVertexConsumer(bufferSource.getBuffer(rt), 0, 0, 0, alpha / 256f);
             };
 
-            renderStackProperly(n, poseStack, TEMP_OVERRIDE, packedlight, model, left);
+            renderStackProperly(n, mess, poseStack, TEMP_OVERRIDE, packedlight, model, left);
             TEMP_OVERRIDE = null;
             poseStack.popPose();
         }
         poseStack.popPose();
     }
-    private void renderStackProperly(RenderNode.ItemNode n,
+
+    private static int testing=0;
+    private static double x, y, z;
+
+    private void renderStackProperly(RenderNode n, ItemStack original,
                                      PoseStack poseStack,
                                      MultiBufferSource bf,
                                      int packedlight,
                                      BakedModel model, boolean left) {
-        ItemStack stack =n.stack();
-        if (stack.isEmpty()) {
-            poseStack.pushPose();
-            int flip = left ? -1 : 1;
-            //poseStack.mulPose(Axis.ZN.rotationDegrees(180));
-            poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
-            poseStack.translate(flip * 0.37, 0.3, -0.05);
-            PlayerRenderer playerrenderer = (PlayerRenderer) this.entityRenderDispatcher.<AbstractClientPlayer>getRenderer(Minecraft.getInstance().player);
-            if (left)
-                playerrenderer.renderLeftHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
-            else playerrenderer.renderRightHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
-            poseStack.popPose();
-        } else if (stack.getItem() instanceof BlockItem blockItem && !(stack.getItem() instanceof ItemNameBlockItem)) {
-            Block block = blockItem.getBlock();
-            BlockState base = block.defaultBlockState();
+        if (n.getType() == RenderNode.NodeType.BLOCK) {
+            BlockState base = ((RenderNode.BlockNode) n).state();
             BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
 
             // Push transform for positioning
-            if (block instanceof DoorBlock) {
+            if (base.getBlock() instanceof DoorBlock) {
                 poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees((float) n.rotation().x));
                 poseStack.mulPose(Axis.YP.rotationDegrees((float) n.rotation().y));
@@ -302,20 +289,40 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 poseStack.popPose();
             }
         } else {
-            poseStack.pushPose();
-            poseStack.mulPose(Axis.XP.rotationDegrees((float) n.rotation().x));
-            poseStack.mulPose(Axis.YP.rotationDegrees((float) n.rotation().y));
-            poseStack.mulPose(Axis.ZP.rotationDegrees((float) n.rotation().z));
-            ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
-            //GL11.glFrontFace(GL11.GL_CW);
-//            if (left) {
-//                poseStack.scale(-1, 1, 1);
-//            }
-            poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
-            itemRenderer.render(stack, ctx, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
-            );
-            //GL11.glFrontFace(GL11.GL_CCW);
-            poseStack.popPose();
+            ItemStack stack = n.getType() == RenderNode.NodeType.BASE ? original : ((RenderNode.ItemNode) n).stack();
+            if (stack.isEmpty()) {
+                poseStack.pushPose();
+                int flip = left ? -1 : 1;
+                //poseStack.mulPose(Axis.ZN.rotationDegrees(180));
+                poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
+                poseStack.translate(flip * 0.37, 0.3, -0.05);
+                PlayerRenderer playerrenderer = (PlayerRenderer) this.entityRenderDispatcher.<AbstractClientPlayer>getRenderer(Minecraft.getInstance().player);
+                if (left)
+                    playerrenderer.renderLeftHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
+                else playerrenderer.renderRightHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
+                poseStack.popPose();
+            } else {
+                RenderNode nd = ItemPreTransforms.getCustomRender(stack);
+                poseStack.pushPose();
+                if(!Minecraft.getInstance().isPaused())
+                //testing++;
+                //testing=0;
+                //is this the right place?
+                if(nd!=null) {
+                    poseStack.mulPose(Axis.XP.rotationDegrees((float) nd.rotation().x));
+                    poseStack.mulPose(Axis.YP.rotationDegrees((float) nd.rotation().y));
+                    poseStack.mulPose(Axis.ZP.rotationDegrees((float) nd.rotation().z));
+                    poseStack.translate(nd.translation().x,nd.translation().y,nd.translation().z);
+                }
+                poseStack.mulPose(Axis.XP.rotationDegrees((float) n.rotation().x));
+                poseStack.mulPose(Axis.YP.rotationDegrees((float) n.rotation().y));
+                poseStack.mulPose(Axis.ZP.rotationDegrees((float) n.rotation().z));
+                ItemDisplayContext ctx = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+                poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
+                itemRenderer.render(stack, ctx, false, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, model  // or null
+                );
+                poseStack.popPose();
+            }
         }
     }
 
@@ -329,8 +336,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                     SwingHistory to,
                                     float alpha) {
         poseStack.pushPose();
-        for(RenderNode.ItemNode n:group.nodes()) {
-            ItemStack stack = n.stack();
+        for (RenderNode n : group.nodes()) {
             poseStack.pushPose();
 
             Vec3 interpolate = from.position().lerp(to.position(), partialTicks);
@@ -346,8 +352,11 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             float scale = (float) 1;//Math.max(Mth.lerp(partialTicks, entity.sizeO, entity.getInteractionRange()) / 3, 0.4);
             poseStack.scale(scale, scale, scale);
 
-            BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
-            ResourceLocation a = model.isCustomRenderer() ? FootworkRenderTypes.white : model.getParticleIcon(ModelData.EMPTY).atlasLocation();
+            BakedModel model;
+            if (n instanceof RenderNode.ItemNode in)
+                model = Minecraft.getInstance().getItemRenderer().getModel(in.stack(), null, null, 0);
+            else model = null;
+            ResourceLocation a = (model==null||model.isCustomRenderer()) ? FootworkRenderTypes.white : model.getParticleIcon(ModelData.EMPTY).atlasLocation();
             //afterimages
             TEMP_OVERRIDE = type -> {
                 // Let the vanilla glint passes use their normal consumer (so glint still shows)
@@ -355,13 +364,12 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                     return buffer.getBuffer(type);
                 }
                 RenderType rt = type;
-                if (model.isCustomRenderer() || stack.getItem() instanceof BlockItem)
+                if ((model!=null&&model.isCustomRenderer()) || n.getType() == RenderNode.NodeType.BLOCK)
                     rt = RenderType.entityTranslucentCull(a);
                 // Otherwise use the requested RenderType but wrap it to tint/alpha it
                 return new CustomVertexConsumer(buffer.getBuffer(rt), alpha);
             };
-            //fixme enchanting causes afterimages to not show up
-            renderStackProperly(n, poseStack, TEMP_OVERRIDE, packedLight, model, entity.flipClientRender());
+            renderStackProperly(n, entity.getHeldItem(), poseStack, TEMP_OVERRIDE, packedLight, model, entity.flipClientRender());
             TEMP_OVERRIDE = null;
             //itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, model);
             poseStack.popPose();
@@ -373,7 +381,6 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                PoseStack poseStack,
                                float partialticks,
                                MultiBufferSource buffer) {
-        //fixme it's coming out as a step pattern...?
         poseStack.pushPose();
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(FootworkRenderTypes.white));
         Vec3 interpolated = entity.getPosition(partialticks); // same as what's applied by default
@@ -416,7 +423,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         Matrix3f normalMatrix = pose.normal();
         Vector3f p1 = from1.toVector3f(), p2 = from2.toVector3f(), p3 = to1.toVector3f(), p4 = to2.toVector3f();
 
-        float r = c.getRed()/255f, g = c.getGreen()/255f, b = c.getBlue()/255f;
+        float r = c.getRed() / 255f, g = c.getGreen() / 255f, b = c.getBlue() / 255f;
         //float r = 0.6f, g = 0.8f, b = 1.0f;
         int light = 15728880;
 
