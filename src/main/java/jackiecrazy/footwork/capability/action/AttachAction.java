@@ -2,14 +2,13 @@ package jackiecrazy.footwork.capability.action;
 
 import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.CallbackActionWrapper;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.entity.Entity;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AttachAction implements IAttachAction {
 //    private static final MovesetManager literallyNothing = new MovesetManager(null);
@@ -39,8 +38,12 @@ public class AttachAction implements IAttachAction {
         d.start(en, tiedTo);
     }
 
+    private void flushMarks(){
+
+    }
+
     @Override
-    public void triggerCallback(String s) {
+    public void triggerCallback(String s, ArgumentContext additionalContext) {
         temp.clear();
         marks.forEach((en, actionSetWrappers) -> actionSetWrappers.forEach(a->{
             if(a instanceof CallbackActionWrapper b){
@@ -48,12 +51,15 @@ public class AttachAction implements IAttachAction {
                 temp.get(en).add(b);
             }
         }));
-        temp.forEach((entity, actionSetWrappers) -> actionSetWrappers.forEach(a->a.triggerCallback(entity, tiedTo, s)));
+        Entity actOn = tiedTo;
+        if(additionalContext!=null) actOn=additionalContext.target();
+        temp.forEach((entity, actionSetWrappers) -> actionSetWrappers.forEach(a->a.triggerCallback(entity, tiedTo, s, additionalContext)));
     }
 
     @Override
     public void update() {
         if(marks.isEmpty())return;
+        //fixme can CME ASW
         marks.forEach((entity, lists) -> lists.forEach(ms -> ms.tick(entity, tiedTo)));
         marks.values().forEach(wrappers -> wrappers.removeIf(wrapper -> !wrapper.executing()));
         marks.entrySet().removeIf(entry -> entry.getValue().isEmpty());

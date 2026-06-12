@@ -8,7 +8,6 @@ public class ParentDataArgument<T> implements Argument<T> {
 
     @Override
     public T resolve(ArgumentContext argumentContext) {
-        //TODO how cast?
         if (argumentContext instanceof ActionContext ac)
             return ac.wrapper().getData(ac.parent());
         return null;

@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.capability.action;
 
 import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.entity.Entity;
 
 public class DummyAttachActionCap implements IAttachAction {
@@ -22,7 +23,7 @@ public class DummyAttachActionCap implements IAttachAction {
     }
 
     @Override
-    public void triggerCallback(String s) {
+    public void triggerCallback(String s, ArgumentContext additionalContext) {
 
     }
 

@@ -2,31 +2,34 @@ package jackiecrazy.footwork.move;
 
 import jackiecrazy.footwork.capability.action.ActionData;
 import jackiecrazy.footwork.move.action.Action;
+import jackiecrazy.footwork.move.argument.Argument;
 import jackiecrazy.footwork.move.motionframe.HitEffects;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Overwrite;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * a cut down version of ActionSetWrapper that only holds the context and a list of actions until it is triggered, at which point it will spawn an actually executable copy into your marks
  */
 public class CallbackActionWrapper extends ActionSetWrapper {
     protected String key;
-    protected boolean multifire = false;
+    protected int multifire = 1;
     protected int duration;
+
     public CallbackActionWrapper(String triggerOn, int duration, List<Action> actions) {
         super(actions);
         this.duration = duration;
         key = triggerOn;
     }
 
-    public void setMultiFire(boolean multifire) {
+    public CallbackActionWrapper setMaxProcs(int multifire) {
         this.multifire = multifire;
+        return this;
     }
 
     @Override
@@ -56,10 +59,10 @@ public class CallbackActionWrapper extends ActionSetWrapper {
         return 0;
     }
 
-    public boolean triggerCallback(Entity performer, Entity target, String s) {
+    public boolean triggerCallback(Entity performer, Entity target, String s, ArgumentContext ctx) {
         if (s.equals(key)) {
-            ActionData.getCap(target).mark(performer, new ActionSetWrapper(this.actions).withContext(context));
-            if (!multifire)
+            ActionData.getCap(target).mark(performer, new ActionSetWrapper(this.actions).appendContext(context).appendContext(ctx));
+            if (--multifire <= 0)
                 duration = -100;
             return true;
         }
@@ -75,11 +78,11 @@ public class CallbackActionWrapper extends ActionSetWrapper {
         }
 
         @Override
-        public boolean triggerCallback(Entity performer, Entity target, String s) {
+        public boolean triggerCallback(Entity performer, Entity target, String s, ArgumentContext ctx) {
             if (s.equals(key)) {
-                if(he!=null && performer instanceof LivingEntity le)
+                if (he != null && performer instanceof LivingEntity le)
                     he.runEffects(le, target, (InteractionHand) context.get("hand"), (ItemStack) context.get("itemstack"));
-                if (!multifire)
+                if (--multifire <= 0)
                     duration = -100;
                 return true;
             }

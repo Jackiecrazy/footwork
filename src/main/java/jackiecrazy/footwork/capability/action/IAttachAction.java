@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.capability.action;
 
 import jackiecrazy.footwork.move.ActionSetWrapper;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.entity.Entity;
 
 public interface IAttachAction {
@@ -8,7 +9,7 @@ public interface IAttachAction {
 //    MovesetManager getMovesetManager();
     void mark(Entity from, ActionSetWrapper d);
 
-    void triggerCallback(String s);
+    void triggerCallback(String s, ArgumentContext additionalContext);
 
     void update();
 }

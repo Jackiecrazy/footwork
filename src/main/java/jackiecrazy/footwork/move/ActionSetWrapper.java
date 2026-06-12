@@ -1,9 +1,11 @@
 package jackiecrazy.footwork.move;
 
+import jackiecrazy.footwork.Footwork;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.action.timer.ProjectHitboxAction;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -15,18 +17,14 @@ import java.util.Stack;
 
 public class ActionSetWrapper {
     public final Stack<DataWrapper<?>> stack = new Stack<>();
-    private final List<Tuple<TimerAction, Integer>> activeTimers = new ArrayList<>();
-    private final HashMap<Action, Object> extraData = new HashMap<>();
     public final HashMap<String, Object> context = new HashMap<>();
     protected final List<Action> graveyard = new ArrayList<>();
     protected final List<Action> actions;
+    private final List<Tuple<TimerAction, Integer>> activeTimers = new ArrayList<>();
+    private final HashMap<Action, Object> extraData = new HashMap<>();
     private TimerAction currentMove;
     private int index = 0;
 
-    //TODO block actions (get/set/blockstate compare/velocity block collision),
-    // global cooldown, commonly used action components (how parameter?),
-    // put moveset execution responsibility into capability?
-    // terrain sensitivity for wolf pack, encircle/attack multiple targets with merge/split group mechanics?
     public ActionSetWrapper(List<Action> actions) {
         this.actions = actions;
     }
@@ -44,13 +42,14 @@ public class ActionSetWrapper {
         return this;
     }
 
-    public ActionSetWrapper withContext(HashMap<String, Object> ctx){
+    public ActionSetWrapper appendContext(HashMap<String, Object> ctx) {
         context.putAll(ctx);
         return this;
     }
 
-    public ActionSetWrapper withContext(ActionContext ctx){
-        context.putAll(ctx.context);
+    public ActionSetWrapper appendContext(ArgumentContext ctx) {
+        if (ctx != null)
+            context.putAll(ctx.context);
         return this;
     }
 
@@ -81,6 +80,7 @@ public class ActionSetWrapper {
     public void tick(Entity performer, Entity target) {
         int jumpCode = 0;
         for (Tuple<TimerAction, Integer> tuple : activeTimers) {
+            //fixme CME
             tuple.setB(tuple.getB() + 1);
             int tickResult = tuple.getA().tick(this, performer, target);
             if (tickResult > 0) {
@@ -108,9 +108,9 @@ public class ActionSetWrapper {
     }
 
     public @NotNull ActionContext generateContext(Entity performer,
-                                                    Entity target,
-                                                    Action parent) {
-        ActionContext ret= new ActionContext(this, parent, performer, target);
+                                                  Entity target,
+                                                  Action parent) {
+        ActionContext ret = new ActionContext(this, parent, performer, target);
         ret.addContext(context);
         return ret;
     }
@@ -137,17 +137,25 @@ public class ActionSetWrapper {
         //if action and not in graveyard, execute. If not repeatable, put in graveyard.
         //if timer action and not in graveyard, if not active, place and start, then if not repeatable, put in graveyard.
         if (graveyard.contains(action)) return 0;
-        if (action instanceof TimerAction ta) {
-            if (activeTimers.stream().noneMatch(a -> a.getA() == ta)) {
-                activeTimers.add(new Tuple<>(ta, 0));
-                ta.start(this, performer, target);
-                ta.tick(this, performer, target);
-            }
-            return 0;
-        }
         final ActionContext ctx = generateContext(performer, target, parent);
-        if (!action.repeatable(ctx)&&!ProjectHitboxAction.multihit_override) graveyard.add(action);//continuous tasks are handled by active timers
-        return action.perform(ctx);
+        try {
+            if (action instanceof TimerAction ta) {
+                if (activeTimers.stream().noneMatch(a -> a.getA() == ta)) {
+                    activeTimers.add(new Tuple<>(ta, 0));
+                    ta.start(this, performer, target);
+                    ta.tick(this, performer, target);
+                }
+                return 0;
+            }
+            return action.perform(ctx);
+        }catch (Exception e){
+            if(action.logsErrors())
+                Footwork.LOGGER.error("failed to execute action block "+action.serializeToJson(), e.fillInStackTrace());
+        }finally {
+            if (!action.repeatable(ctx) && !ProjectHitboxAction.multihit_override)
+                graveyard.add(action);//continuous tasks are handled by active timers
+        }
+        return 0;
     }
 
     public int getTimer(TimerAction action) {

@@ -10,6 +10,7 @@ public class SelectorEntityArgument extends EntityArgument{
     private Argument<List<Entity>> select;
     @Override
     public Entity resolve(ArgumentContext argumentContext) {
-        return select.resolve(argumentContext).get(0);
+        final List<Entity> list = select.resolve(argumentContext);
+        return list.isEmpty()?null:list.get(0);
     }
 }

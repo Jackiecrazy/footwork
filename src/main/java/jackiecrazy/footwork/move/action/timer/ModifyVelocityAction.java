@@ -3,8 +3,9 @@ package jackiecrazy.footwork.move.action.timer;
 import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.condition.Condition;
+import jackiecrazy.footwork.move.condition.FalseCondition;
 import jackiecrazy.footwork.move.utils.ActionContext;
-import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.argument.vector.RawVectorArgument;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -12,18 +13,22 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddVelocityAction extends TimerAction {
-    private List<Action> on_launch=new ArrayList<>();
-    private List<Action> tick=new ArrayList<>();
-    private List<Action> on_land=new ArrayList<>();
-    private Argument<Vec3> direction= RawVectorArgument.ZERO;
+public class ModifyVelocityAction extends TimerAction {
+    private List<Action> on_launch = new ArrayList<>();
+    private List<Action> tick = new ArrayList<>();
+    private List<Action> on_land = new ArrayList<>();
+    private Argument<Vec3> direction = RawVectorArgument.ZERO;
+    private Condition set = FalseCondition.INSTANCE;
 
     @Override
     public void start(ActionSetWrapper wrapper, Entity performer, Entity target) {
         final ActionContext ctx = wrapper.generateContext(performer, target, this);
         runActions(ctx, on_launch);
         Vec3 dir = direction.resolve(ctx);
-        performer.addDeltaMovement(dir);
+        if(dir==null)return;
+        if (Boolean.TRUE.equals(set.resolve(ctx)))
+            performer.setDeltaMovement(dir);
+        else performer.addDeltaMovement(dir);
         wrapper.setData(this, false);
         if (dir.y > 0) {
             performer.setOnGround(false);
@@ -48,10 +53,10 @@ public class AddVelocityAction extends TimerAction {
     }
 
     public void stop(ActionContext actionContext, boolean recursive) {
-        if(recursive){
-            on_launch.forEach(a->a.stop(actionContext, true));
-            tick.forEach(a->a.stop(actionContext, true));
-            on_land.forEach(a->a.stop(actionContext, true));
+        if (recursive) {
+            on_launch.forEach(a -> a.stop(actionContext, true));
+            tick.forEach(a -> a.stop(actionContext, true));
+            on_land.forEach(a -> a.stop(actionContext, true));
         }
         super.stop(actionContext, recursive);
     }

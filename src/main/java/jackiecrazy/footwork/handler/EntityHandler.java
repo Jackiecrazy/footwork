@@ -8,7 +8,6 @@ import jackiecrazy.footwork.capability.action.AttachAction;
 import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
-import jackiecrazy.footwork.capability.timeslow.TimeCapability;
 import jackiecrazy.footwork.capability.timeslow.TimeSlowData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
@@ -16,6 +15,8 @@ import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.move.motionframe.render.ItemPreTransforms;
+import jackiecrazy.footwork.move.utils.ActionContext;
+import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,7 +30,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
@@ -41,6 +41,8 @@ import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.UUID;
 
@@ -62,15 +64,6 @@ public class EntityHandler {
         if (e.getEffectInstance().getEffect() == FootworkEffects.CONFUSION.get()) {
             //accompanied by nausea
             e.getEntity().addEffect(new MobEffectInstance(MobEffects.CONFUSION, e.getEffectInstance().getDuration(), e.getEffectInstance().getAmplifier()));
-        }
-        if (e.getEffectInstance().getEffect().isBeneficial()) {
-            ActionData.getCap(e.getEntity()).triggerCallback("buffed");
-            if (e.getEffectSource() != null)
-                ActionData.getCap(e.getEffectSource()).triggerCallback("buff");
-        } else {
-            ActionData.getCap(e.getEntity()).triggerCallback("debuffed");
-            if (e.getEffectSource() != null)
-                ActionData.getCap(e.getEffectSource()).triggerCallback("debuff");
         }
     }
 

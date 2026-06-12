@@ -14,6 +14,12 @@ import java.util.List;
 public abstract class Action extends Move {
     protected Condition condition = TrueCondition.INSTANCE;
     protected Condition repeatable = FalseCondition.INSTANCE;
+    protected boolean logErrors=false;
+
+    public boolean logsErrors() {
+        return logErrors;
+    }
+
     protected String ID = "(default)";
 
     /**

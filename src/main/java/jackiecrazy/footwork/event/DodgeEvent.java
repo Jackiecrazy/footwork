@@ -19,7 +19,7 @@ public class DodgeEvent extends LivingEvent {
         return force;
     }
 
-    public void setForce(float force) {
+    public void setForce(double force) {
         this.force = force;
     }
 

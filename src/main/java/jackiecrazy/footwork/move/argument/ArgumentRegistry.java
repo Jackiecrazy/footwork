@@ -45,10 +45,10 @@ public class ArgumentRegistry {
     public static final RegistryObject<ArgumentType<Double>> GET_NUMBER = ARGUMENTS.register("get_number", ()  -> new ArgumentType<>(NumberArgument.Get.class));
     public static final RegistryObject<ArgumentType<Double>> RANDOM = ARGUMENTS.register("random", ()  -> new ArgumentType<>(RandomNumberArgument.class));
     public static final RegistryObject<ArgumentType<Double>> PARENT_TIMER = ARGUMENTS.register("parent_timer", () -> new SingletonArgumentType<>(ParentTimerArgument.class, ParentTimerArgument.INSTANCE));
+    public static final RegistryObject<ArgumentType<Double>> VECTOR_LENGTH = ARGUMENTS.register("vector_length", () -> new ArgumentType<>(VectorLengthArgument.class));
 
     //vectors//
     public static final RegistryObject<ArgumentType<Vec3>> RAW_VEC = ARGUMENTS.register("vector", ()  -> new ArgumentType<>(RawVectorArgument.class));
-    public static final RegistryObject<ArgumentType<Vec3>> CONTEXT = ARGUMENTS.register("contextual_position", () -> new SingletonArgumentType<>(ContextualVectorArgument.class, ContextualVectorArgument.INSTANCE));
     public static final RegistryObject<ArgumentType<Vec3>> SUM = ARGUMENTS.register("sum_vector", ()  -> new ArgumentType<>(SumVectorArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> ZERO = ARGUMENTS.register("zero_vector", ()  -> new SingletonArgumentType<>(RawVectorArgument.class, RawVectorArgument.ZERO));
     public static final RegistryObject<ArgumentType<Vec3>> EYE_HEIGHT = ARGUMENTS.register("eye_height", ()  -> new ArgumentType<>(EyeHeightVectorArgument.class));
@@ -60,6 +60,7 @@ public class ArgumentRegistry {
     public static final RegistryObject<ArgumentType<Vec3>> GET_VECTOR = ARGUMENTS.register("get_vector", ()  -> new ArgumentType<>(VectorArgument.Get.class));
     public static final RegistryObject<ArgumentType<Vec3>> RAY_TRACE = ARGUMENTS.register("ray_trace", ()  -> new ArgumentType<>(RayTraceVectorArgument.class));
     public static final RegistryObject<ArgumentType<Vec3>> CLAMP = ARGUMENTS.register("clamp_vector", ()  -> new ArgumentType<>(ClampedVectorArgument.class));
+    public static final RegistryObject<ArgumentType<Vec3>> VELOCITY = ARGUMENTS.register("velocity", ()  -> new ArgumentType<>(VelocityVectorArgument.class));
 
     //resource location//
     public static final RegistryObject<ArgumentType<ResourceLocation>> RAW_RLOC = ARGUMENTS.register("resource_location", ()  -> new ArgumentType<>(ResourceLocationArgument.Raw.class));
@@ -75,4 +76,5 @@ public class ArgumentRegistry {
     public static final RegistryObject<ArgumentType<DamageSource>> DAMAGE = ARGUMENTS.register("damage", ()  -> new ArgumentType<>(DamageArgument.class));
     public static final RegistryObject<ArgumentType<List<Entity>>> SELECTOR = ARGUMENTS.register("selector", ()  -> new ArgumentType<>(SelectorArgument.class));
     public static final RegistryObject<ArgumentType<?>> PARENT = ARGUMENTS.register("parent_data", ()  -> new SingletonArgumentType<>(ParentDataArgument.class, ParentDataArgument.INSTANCE));
+    public static final RegistryObject<ArgumentType<?>> CONTEXTUAL = ARGUMENTS.register("get_context", ()  -> new ArgumentType<>(ContextParameterArgument.class));
 }

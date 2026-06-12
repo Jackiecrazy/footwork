@@ -29,7 +29,7 @@ public class AttachActionAction extends Action {
             Footwork.LOGGER.warn("attempted to attach an invalid list of actions, skipping.");
             return 0;
         }
-        ActionData.getCap(recipient.resolve(actionContext)).mark(performer.resolve(actionContext), new ActionSetWrapper(effect_list).withContext(actionContext));
+        ActionData.getCap(recipient.resolve(actionContext)).mark(performer.resolve(actionContext), new ActionSetWrapper(effect_list).appendContext(actionContext));
         return 0;
     }
 }

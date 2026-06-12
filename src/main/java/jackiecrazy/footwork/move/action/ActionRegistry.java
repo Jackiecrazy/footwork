@@ -22,7 +22,7 @@ public class ActionRegistry {
 
     //Timer Actions//
     public static final RegistryObject<ActionType> WAIT = ACTIONS.register("wait", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, WaitAction.class));
-    public static final RegistryObject<ActionType> ADD_VELOCITY = ACTIONS.register("add_velocity", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AddVelocityAction.class));
+    public static final RegistryObject<ActionType> ADD_VELOCITY = ACTIONS.register("modify_velocity", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ModifyVelocityAction.class));
     public static final RegistryObject<ActionType> MOVE_TO = ACTIONS.register("move_to", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MoveToAction.class));
     public static final RegistryObject<ActionType> PROJECT_HITBOX = ACTIONS.register("project_hitbox", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ProjectHitboxAction.class));
     public static final RegistryObject<ActionType> FOLLOW_PATH = ACTIONS.register("move_along_path", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MoveAlongPathAction.class));
