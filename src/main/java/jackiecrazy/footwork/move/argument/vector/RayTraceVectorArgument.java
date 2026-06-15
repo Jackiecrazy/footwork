@@ -20,7 +20,8 @@ public class RayTraceVectorArgument extends VectorArgument {
     public Vec3 _resolve(ArgumentContext argumentContext) {
         Vec3 start = position.resolve(argumentContext);
         Vec3 look = direction.resolve(argumentContext);
-        double range = distance.resolve(argumentContext);
+        Double range = distance.resolve(argumentContext);
+        if(start==null||look==null||range==null)return null;
         return GeneralUtils.raytraceAnything(argumentContext.performer().level(), start, look, range, scans_entities.resolve(argumentContext), block_clip, fluid_clip).getLocation();
     }
 }

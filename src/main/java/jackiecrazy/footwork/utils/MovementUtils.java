@@ -86,20 +86,23 @@ public class MovementUtils {
         return lookAdjusted;
     }
 
-    public static void knockBack(LivingEntity to,
+    //fixme this is flipped because vanilla raaaaagh
+    public static void knockBack(Entity to,
                                  float strength,
                                  double xRatio,
                                  double yRatio,
                                  double zRatio,
                                  boolean bypassEventCheck) {
-        if (!bypassEventCheck) {
-            net.minecraftforge.event.entity.living.LivingKnockBackEvent event = net.minecraftforge.common.ForgeHooks.onLivingKnockBack(to, strength, xRatio, zRatio);
-            if (event.isCanceled()) return;
-            strength = event.getStrength();
-            xRatio = event.getRatioX();
-            zRatio = event.getRatioZ();
+        if (to instanceof LivingEntity le) {
+            if(!bypassEventCheck) {
+                net.minecraftforge.event.entity.living.LivingKnockBackEvent event = net.minecraftforge.common.ForgeHooks.onLivingKnockBack(le, strength, xRatio, zRatio);
+                if (event.isCanceled()) return;
+                strength = event.getStrength();
+                xRatio = event.getRatioX();
+                zRatio = event.getRatioZ();
+            }
+            strength *= (float) Math.max(0, 1 - GeneralUtils.getAttributeValueSafe(le, Attributes.KNOCKBACK_RESISTANCE));
         }
-        strength *= (float) Math.max(0, 1 - GeneralUtils.getAttributeValueSafe(to, Attributes.KNOCKBACK_RESISTANCE));
         if (strength != 0f) {
             Vec3 vec = to.getDeltaMovement();
             double motionX = vec.x, motionY = vec.y, motionZ = vec.z;

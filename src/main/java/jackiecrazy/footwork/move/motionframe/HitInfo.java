@@ -7,6 +7,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HitInfo {
     public static final HitInfo THROWN = new HitInfo(0, 1, 1, true, false, 1).setSpirit_multiplier(0);
     public static final HitInfo BREACH = new HitInfo(0, 1, 1, true, true, 2).setSpirit_multiplier(0);
@@ -19,6 +22,7 @@ public class HitInfo {
     public double spirit_multiplier = 1;
     public double armor_pierce = 0;
     protected Vec3 knockback_direction = null;
+    public List<String> damage_tags = new ArrayList<>();
     protected HitEffects hit_self = new HitEffects();
     protected HitEffects damage_self = new HitEffects();
     protected HitEffects hit_other = new HitEffects();

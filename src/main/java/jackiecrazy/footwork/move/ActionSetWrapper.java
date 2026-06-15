@@ -79,8 +79,10 @@ public class ActionSetWrapper {
 
     public void tick(Entity performer, Entity target) {
         int jumpCode = 0;
-        for (Tuple<TimerAction, Integer> tuple : activeTimers) {
+        int index = 0;
+        while (index < activeTimers.size()) {
             //fixme CME
+            Tuple<TimerAction, Integer> tuple = activeTimers.get(index++);
             tuple.setB(tuple.getB() + 1);
             int tickResult = tuple.getA().tick(this, performer, target);
             if (tickResult > 0) {
@@ -96,8 +98,10 @@ public class ActionSetWrapper {
         //clearing happens after natural progression to prevent clears breaking timers
         activeTimers.removeIf((entry) -> {
             if (entry.getA().isFinished(this, performer, target)) {
-                graveyard.add(entry.getA());
-                entry.getA().stop(generateContext(performer, target, entry.getA()), false);
+                final ActionContext ctx = generateContext(performer, target, entry.getA());
+                if (!entry.getA().repeatable(ctx))
+                    graveyard.add(entry.getA());
+                entry.getA().stop(ctx, false);
                 return true;
             }
             return false;
@@ -105,6 +109,13 @@ public class ActionSetWrapper {
         if (jumpCode > 0) {
             jumpTo(jumpCode, performer, target);
         }
+    }
+
+    public void stop(Entity performer, Entity target){
+        activeTimers.forEach(a-> {
+            final ActionContext ctx = generateContext(performer, target, a.getA());
+            a.getA().stop(ctx, true);
+        });
     }
 
     public @NotNull ActionContext generateContext(Entity performer,
@@ -148,10 +159,10 @@ public class ActionSetWrapper {
                 return 0;
             }
             return action.perform(ctx);
-        }catch (Exception e){
-            if(action.logsErrors())
-                Footwork.LOGGER.error("failed to execute action block "+action.serializeToJson(), e.fillInStackTrace());
-        }finally {
+        } catch (Exception e) {
+            if (action.logsErrors())
+                Footwork.LOGGER.error("failed to execute action block " + action.serializeToJson(), e.fillInStackTrace());
+        } finally {
             if (!action.repeatable(ctx) && !ProjectHitboxAction.multihit_override)
                 graveyard.add(action);//continuous tasks are handled by active timers
         }

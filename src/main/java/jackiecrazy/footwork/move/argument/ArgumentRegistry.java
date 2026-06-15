@@ -1,10 +1,7 @@
 package jackiecrazy.footwork.move.argument;
 
 import jackiecrazy.footwork.Footwork;
-import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
-import jackiecrazy.footwork.move.argument.entity.EntityArgument;
-import jackiecrazy.footwork.move.argument.entity.SelectorEntityArgument;
-import jackiecrazy.footwork.move.argument.entity.TargetEntityArgument;
+import jackiecrazy.footwork.move.argument.entity.*;
 import jackiecrazy.footwork.move.argument.number.*;
 import jackiecrazy.footwork.move.argument.resourcelocation.RegistryNameArgument;
 import jackiecrazy.footwork.move.argument.resourcelocation.ResourceLocationArgument;
@@ -34,6 +31,7 @@ public class ArgumentRegistry {
     public static final RegistryObject<ArgumentType<Entity>> TARGET = ARGUMENTS.register("target", () -> new SingletonArgumentType<>(TargetEntityArgument.class, TargetEntityArgument.INSTANCE));
     public static final RegistryObject<ArgumentType<Entity>> ENTITY = ARGUMENTS.register("random_entity", () -> new ArgumentType<>(SelectorEntityArgument.class));
     public static final RegistryObject<ArgumentType<Entity>> GET_ENTITY = ARGUMENTS.register("get_entity", () -> new ArgumentType<>(EntityArgument.Get.class));
+    public static final RegistryObject<ArgumentType<Entity>> RAY_TRACE_ENTITY = ARGUMENTS.register("ray_trace_entity", () -> new ArgumentType<>(RayTraceEntityArgument.class));
 
     //numbers//
     public static final RegistryObject<ArgumentType<Double>> NUMBER = ARGUMENTS.register("number", () -> new ArgumentType<>(FixedNumberArgument.class));

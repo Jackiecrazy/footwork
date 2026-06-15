@@ -30,6 +30,7 @@ import net.minecraft.commands.arguments.CompoundTagArgument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -339,13 +340,20 @@ public class ActionJsonAdapters {
             if (sub.has("ID")) {
                 boolean flip = false;
                 String id = sub.get("ID").getAsString();
+                JsonObject tempOperation = id.startsWith("!")? sub.deepCopy():sub;
                 while (id.startsWith("!")) {
                     flip = !flip;
                     id = id.substring(1);
+                    tempOperation.addProperty("ID", id);
                 }
                 ResourceLocation rl = new ResourceLocation(enforceNamespace(id, Footwork.MODID));
                 if (ConditionRegistry.SUPPLIER.get().containsKey(rl)) {
-                    final Condition bake = (Condition) ConditionRegistry.SUPPLIER.get().getValue(rl).bake(sub);
+                    final Condition bake = (Condition) ConditionRegistry.SUPPLIER.get().getValue(rl).bake(tempOperation);
+                    return flip ? NotCondition.of(bake) : bake;
+                }
+                Argument<?> a=ctx.deserialize(tempOperation, Argument.class);
+                if (a != null) {
+                    Condition bake = ExistsCondition.create(a);
                     return flip ? NotCondition.of(bake) : bake;
                 }
                 throw new JsonParseException("invalid ID " + rl + " defined for condition object: " + json);

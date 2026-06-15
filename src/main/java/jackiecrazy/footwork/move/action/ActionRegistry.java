@@ -68,6 +68,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> STEVETIME = ACTIONS.register("steve_time", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, SteveTimeAction.class));
     public static final RegistryObject<ActionType> PIN = ACTIONS.register("pin", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, PinAction.class));
     public static final RegistryObject<ActionType> BIND = ACTIONS.register("bind", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, BindAction.class));
+    public static final RegistryObject<ActionType> KNOCKBACK = ACTIONS.register("knockback", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, KnockbackAction.class));
 
     //Meta Actions//
     public static final RegistryObject<ActionType> GOTO = ACTIONS.register("goto", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, GotoAction.class));

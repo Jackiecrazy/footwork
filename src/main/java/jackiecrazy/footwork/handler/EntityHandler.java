@@ -33,6 +33,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -219,4 +220,6 @@ public class EntityHandler {
     public static void updateDamage(LivingDamageEvent e) {
         if (e.getSource() instanceof CombatDamageSource cds) cds.setFinalDamage(e.getAmount());
     }
+
+    //todo run actions on unload/end
 }

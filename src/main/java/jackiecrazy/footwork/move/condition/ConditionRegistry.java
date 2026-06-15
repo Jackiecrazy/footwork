@@ -21,6 +21,7 @@ public class ConditionRegistry {
     public static final RegistryObject<ConditionType> OR = CONDITIONS.register("or", () -> new ConditionType(OrCondition.class));
     public static final RegistryObject<ConditionType> NOT = CONDITIONS.register("not", () -> new ConditionType(NotCondition.class));
     public static final RegistryObject<ConditionType> COMPARISON = CONDITIONS.register("compare_number", () -> new ConditionType(ComparisonCondition.Number.class));
+    public static final RegistryObject<ConditionType> EXISTS = CONDITIONS.register("exists", () -> new ConditionType(ExistsCondition.class));
 
     //entity//
     public static final RegistryObject<ConditionType> TIME_WINDOW = CONDITIONS.register("time_window", () -> new ConditionType(TimeWindowCondition.class));

@@ -12,4 +12,6 @@ public interface IAttachAction {
     void triggerCallback(String s, ArgumentContext additionalContext);
 
     void update();
+
+    default void stopEverything(){}
 }

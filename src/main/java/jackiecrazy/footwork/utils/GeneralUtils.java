@@ -6,35 +6,34 @@
 package jackiecrazy.footwork.utils;
 
 import jackiecrazy.footwork.capability.resources.CombatData;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.monster.piglin.Piglin;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.WitherSkeleton;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.core.Direction;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.*;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
@@ -45,16 +44,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-
 public class GeneralUtils {
     public static boolean kbHandled = false;
+    public static DamageSource player_ds_override = null;
 
     public static double getSpeedSq(Entity e) {
         if (e.getVehicle() != null) if (e.getRootVehicle() instanceof LivingEntity)
@@ -95,7 +87,7 @@ public class GeneralUtils {
     @Nonnull
     public static HitResult raytraceAnything(Level world, LivingEntity attacker, double range,
                                              Predicate<Entity> predicate) {
-        Vec3 start = attacker.getEyePosition(0.5f);
+        Vec3 start = attacker.getEyePosition();
         Vec3 look = attacker.getLookAngle().scale(range + 2);
         Vec3 end = start.add(look);
         Entity entity = null;
@@ -145,7 +137,7 @@ public class GeneralUtils {
                                              boolean doEntities,
                                              ClipContext.Block block,
                                              ClipContext.Fluid fluid, Predicate<Entity> predicate) {
-        Vec3 end = start.add(direction.normalize().scale(distance*1.2));
+        Vec3 end = start.add(direction.normalize().scale(distance * 1.2));
         if (doEntities) {
             Entity entity = null;
             List<Entity> list = world.getEntities((Entity) null, new AABB(start, end).inflate(1.0D), predicate);
@@ -247,8 +239,8 @@ public class GeneralUtils {
         return hit.orElse(start);
     }
 
-    public static Entity raytraceEntity(Level world, LivingEntity attacker, double range) {
-        Vec3 start = attacker.getEyePosition(0.5f);
+    public static Entity raytraceEntity(Level world, Entity attacker, double range) {
+        Vec3 start = attacker.getEyePosition();
         Vec3 look = attacker.getLookAngle().scale(range + 2);
         Vec3 end = start.add(look);
         Entity entity = null;
@@ -277,7 +269,7 @@ public class GeneralUtils {
     }
 
     public static LivingEntity raytraceLiving(Level world, LivingEntity attacker, double range) {
-        Vec3 start = attacker.getEyePosition(0.5f);
+        Vec3 start = attacker.getEyePosition();
         Vec3 look = attacker.getLookAngle().scale(range + 2);
         Vec3 end = start.add(look);
         LivingEntity entity = null;
@@ -326,8 +318,6 @@ public class GeneralUtils {
     public static List<Entity> raytraceEntities(Level world, LivingEntity attacker, double range) {
         return raytraceEntities(world, (Entity) attacker, range);
     }
-    
-    public static DamageSource player_ds_override=null;
 
     public static void attack(LivingEntity e, Entity target) {
         attack(e, target, null);
@@ -335,15 +325,18 @@ public class GeneralUtils {
 
     public static void attack(LivingEntity e, Entity target, DamageSource dsOverride) {
         if (e instanceof Player p) {
-            player_ds_override=dsOverride;
+            player_ds_override = dsOverride;
             p.setOnGround(false);
             p.attack(target);
         } else e.doHurtTarget(target);
     }
 
     public static List<Entity> raytraceEntities(Level world, Entity attacker, double range) {
-        Vec3 start = attacker.getEyePosition(0.5f);
-        Vec3 look = attacker.getLookAngle().scale(range + 2);
+        return raytraceEntities(world, attacker, attacker.getEyePosition(), attacker.getLookAngle(), range);
+    }
+
+    public static List<Entity> raytraceEntities(Level world, Entity attacker, Vec3 start, Vec3 look, double range) {
+        look = look.normalize().scale(range);
         Vec3 end = start.add(look);
         ArrayList<Entity> ret = new ArrayList<>();
         List<Entity> list = world.getEntities(attacker, attacker.getBoundingBox().expandTowards(look.x, look.y, look.z).inflate(1.0D), EntitySelector.ENTITY_STILL_ALIVE);

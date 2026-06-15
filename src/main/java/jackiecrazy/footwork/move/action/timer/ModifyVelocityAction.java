@@ -3,6 +3,7 @@ package jackiecrazy.footwork.move.action.timer;
 import jackiecrazy.footwork.move.ActionSetWrapper;
 import jackiecrazy.footwork.move.action.Action;
 import jackiecrazy.footwork.move.argument.Argument;
+import jackiecrazy.footwork.move.argument.entity.CasterEntityArgument;
 import jackiecrazy.footwork.move.condition.Condition;
 import jackiecrazy.footwork.move.condition.FalseCondition;
 import jackiecrazy.footwork.move.utils.ActionContext;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ModifyVelocityAction extends TimerAction {
+    private Argument<Entity> recipient = CasterEntityArgument.INSTANCE;
     private List<Action> on_launch = new ArrayList<>();
     private List<Action> tick = new ArrayList<>();
     private List<Action> on_land = new ArrayList<>();
@@ -25,13 +27,16 @@ public class ModifyVelocityAction extends TimerAction {
         final ActionContext ctx = wrapper.generateContext(performer, target, this);
         runActions(ctx, on_launch);
         Vec3 dir = direction.resolve(ctx);
-        if(dir==null)return;
+        Entity a = recipient.resolve(ctx);
+        if (a == null) return;
+        if (dir == null) return;
         if (Boolean.TRUE.equals(set.resolve(ctx)))
-            performer.setDeltaMovement(dir);
-        else performer.addDeltaMovement(dir);
+            a.setDeltaMovement(dir);
+        else a.addDeltaMovement(dir);
+        a.hurtMarked = true;
         wrapper.setData(this, false);
         if (dir.y > 0) {
-            performer.setOnGround(false);
+            a.setOnGround(false);
             wrapper.setData(this, true);
         }
         super.start(wrapper, performer, target);
@@ -42,12 +47,15 @@ public class ModifyVelocityAction extends TimerAction {
         final ActionContext ctx = wrapper.generateContext(performer, target, this);
         int childRet = runActions(ctx, tick);
         if (childRet != 0) return childRet;
-        if (!performer.onGround()) {
-            wrapper.setData(this, true);
-        } else if (wrapper.getData(this)) {
-            wrapper.setData(this, false);
-            childRet = runActions(ctx, on_land);
-            if (childRet != 0) return childRet;
+        Entity a = recipient.resolve(ctx);
+        if(a != null) {
+            if (!a.onGround()) {
+                wrapper.setData(this, true);
+            } else if (wrapper.getData(this)) {
+                wrapper.setData(this, false);
+                childRet = runActions(ctx, on_land);
+                if (childRet != 0) return childRet;
+            }
         }
         return super.tick(wrapper, performer, target);
     }

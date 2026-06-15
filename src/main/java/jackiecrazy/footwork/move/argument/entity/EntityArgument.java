@@ -16,23 +16,30 @@ public abstract class EntityArgument implements Argument<Entity> {
     }
 
     public static class Store extends Action {
+        private Argument<Entity> storage = CasterEntityArgument.INSTANCE;
         private Argument<Entity> value;
         private String into;
 
         @Override
         public int perform(ActionContext actionContext) {
             final Entity vec = value.resolve(actionContext);
-            actionContext.performer().getPersistentData().putInt(into, vec.getId());
+            final Entity resolve = storage.resolve(actionContext);
+            if (resolve != null && vec != null)
+                resolve.getPersistentData().putInt(into, vec.getId());
             return 0;
         }
     }
 
     public static class Get implements Argument<Entity> {
+        private Argument<Entity> storage = CasterEntityArgument.INSTANCE;
         private String from;
 
         @Override
         public Entity resolve(ArgumentContext argumentContext) {
-            return argumentContext.performer().level().getEntity(argumentContext.performer().getPersistentData().getInt(from));
+            final Entity resolve = storage.resolve(argumentContext);
+            if (resolve != null)
+                return resolve.level().getEntity(resolve.getPersistentData().getInt(from));
+            return null;
         }
     }
 }
