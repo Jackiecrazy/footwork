@@ -71,9 +71,16 @@ public class MovementUtils {
     }
 
     public static Vec3 resolveVelocity(Vec3 forward, Vec3 direction) {
+        return resolveVelocity(forward, direction, true);
+    }
+
+    public static Vec3 resolveVelocity(Vec3 forward, Vec3 direction, boolean controlY) {
         // Create right and up basis vectors
-        double Y = direction.y;
-        direction = direction.multiply(1, 0, 1);
+        double Y = 0;
+        if (controlY) {
+            Y = direction.y;
+            direction = direction.multiply(1, 0, 1);
+        }
         Vec3 globalUp = new Vec3(0, 1, 0);
         Vec3 right = forward.cross(globalUp).normalize();
         Vec3 up = right.cross(forward).normalize();  // Ensure orthogonal
@@ -94,7 +101,7 @@ public class MovementUtils {
                                  double zRatio,
                                  boolean bypassEventCheck) {
         if (to instanceof LivingEntity le) {
-            if(!bypassEventCheck) {
+            if (!bypassEventCheck) {
                 net.minecraftforge.event.entity.living.LivingKnockBackEvent event = net.minecraftforge.common.ForgeHooks.onLivingKnockBack(le, strength, xRatio, zRatio);
                 if (event.isCanceled()) return;
                 strength = event.getStrength();
