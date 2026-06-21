@@ -18,6 +18,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
@@ -271,7 +272,10 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setCosmeticItem(ItemStack stack) {
-        setCosmeticItem(new RenderItemGroup(new RenderNode.ItemNode(stack, Vec3.ZERO, Vec3.ZERO)));
+        if(stack.getItem() instanceof BlockItem bi){
+            this.setCosmeticItem(new RenderItemGroup(new RenderNode.BlockNode(bi.getBlock().defaultBlockState(), Vec3.ZERO, Vec3.ZERO)));
+        }
+        else this.setCosmeticItem(new RenderItemGroup(new RenderNode.ItemNode(stack, Vec3.ZERO, Vec3.ZERO)));
     }
 
     public void setCosmeticItem(RenderItemGroup stack) {
@@ -392,6 +396,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             updateClientData();
             //how can the client get ahold of moveset data for smoothing?
             // answer: don't. It's painful. Just sync whether it's idle
+            handleBlockCollisions();
             return;
         }
         if (getMotionTarget() == null || !getMotionTarget().isAlive()) setMotionTarget(getOwner());
@@ -422,10 +427,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             updateTetheringVelocity();
 
             // Collision and attack logic
-            if (!level().isClientSide()) {
                 handleEntityCollisions();
-                handleBlockCollisions();
-            }
+            handleBlockCollisions();
 
             // update client for trail rendering, done after block collision checks
             if (update != null) {

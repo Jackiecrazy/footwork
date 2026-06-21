@@ -280,7 +280,8 @@ public class JsonAdapters {
                     for (int x = frames.size() - 1; x >= 1; x--) {
                         //If they have no render orientation, set their orientation to their direction, and their angling to the angle of the frame change
                         final MotionFrame mf = frames.get(x);
-                        if (mf.renderOrientation() != null) continue;
+                        if (mf.renderOrientation() != null)
+                            continue;
                         Vec3 endFrame = mf.direction();
                         Vec3 startFrame = frames.get(x - 1).direction();
                         final Vec3 down = new Vec3(0, -1, 0);

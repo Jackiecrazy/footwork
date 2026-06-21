@@ -92,7 +92,7 @@ public class DummyFlyingWeaponEntity extends FlyingItemEntity {
 
     @Override
     protected double getWeight() {
-        return 0.5;
+        return 1;
     }
 
     public void setTesting(MotionManager testing) {
