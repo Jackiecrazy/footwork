@@ -5,6 +5,8 @@
 
 package jackiecrazy.footwork.utils;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,9 +44,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class GeneralUtils {
+    private static final Cache<Integer, Double> cache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.SECONDS).build();
     public static boolean kbHandled = false;
     public static DamageSource player_ds_override = null;
 
@@ -471,7 +475,6 @@ public class GeneralUtils {
         return start.add(seg.scale(t));
     }
 
-
     public static Vec3 getPointInFrontOf(Entity target, Entity from, double distance) {
         Vec3 end = target.position().add(from.position().subtract(target.position()).normalize().scale(distance));
         return getClosestAirSpot(from.position(), end, from);
@@ -534,7 +537,11 @@ public class GeneralUtils {
      * @author Suff/Swirtzly
      */
     public static boolean viewBlocked(Entity viewer, Entity viewed, boolean flimsy) {
+
         if (viewer.distanceToSqr(viewed) > 1000) return true;//what
+        if (viewer == viewed || !viewer.isAlive() || !viewed.isAlive()) return true;//no brainers
+        if(viewer.level().clip(new ClipContext(viewer.getEyePosition(), viewed.getEyePosition(), flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS)
+            return false;//fast eye-eye check, hopefully
         AABB viewerBoundBox = viewer.getBoundingBox();
         AABB angelBoundingBox = viewed.getBoundingBox();
         Vec3[] viewerPoints = {
@@ -727,7 +734,6 @@ public class GeneralUtils {
     public static BlockPos posFromAABB(AABB aabb) {
         return new BlockPos((int) ((aabb.maxX + aabb.minX) / 2), (int) ((aabb.maxY + aabb.minY) / 2), (int) ((aabb.maxZ + aabb.minZ) / 2));
     }
-
 
     /**
      * returns true if entity2 is within a (angle) degree sector in front of entity1
@@ -942,9 +948,12 @@ public class GeneralUtils {
     }
 
     public static double getAttributeValueHandSensitive(LivingEntity e, Attribute a, InteractionHand h) {
-        final AttributeInstance instance = e.getAttribute(a);
-        if (instance == null) return 4;
         if (h == InteractionHand.MAIN_HAND) return getAttributeValueSafe(e, a);
+        final AttributeInstance instance = e.getAttribute(a);
+        if (instance == null) return a.getDefaultValue();
+        int hash = (int) (e.hashCode() * instance.getValue() * e.getItemInHand(h).hashCode());
+        Double lookup = cache.getIfPresent(hash);
+        if (lookup != null) return lookup;
         AttributeInstance mai = new AttributeInstance(a, (n) -> {
         });
         mai.setBaseValue(instance.getBaseValue());
@@ -956,6 +965,7 @@ public class GeneralUtils {
             mai.removeModifier(f.getId());
             mai.addTransientModifier(f);
         }
+        cache.put(hash, mai.getValue());
         return mai.getValue();
     }
 

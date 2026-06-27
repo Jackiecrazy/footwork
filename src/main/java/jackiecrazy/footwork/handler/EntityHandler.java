@@ -8,6 +8,7 @@ import jackiecrazy.footwork.capability.action.AttachAction;
 import jackiecrazy.footwork.capability.goal.GoalCapabilityProvider;
 import jackiecrazy.footwork.capability.resources.CombatData;
 import jackiecrazy.footwork.capability.resources.ICombatCapability;
+import jackiecrazy.footwork.capability.stylish.StylishData;
 import jackiecrazy.footwork.capability.timeslow.TimeSlowData;
 import jackiecrazy.footwork.capability.weaponry.CombatManipulator;
 import jackiecrazy.footwork.capability.weaponry.ICombatItemCapability;
@@ -15,8 +16,6 @@ import jackiecrazy.footwork.entity.ai.CompelledVengeanceGoal;
 import jackiecrazy.footwork.entity.ai.FearGoal;
 import jackiecrazy.footwork.entity.ai.NoGoal;
 import jackiecrazy.footwork.move.motionframe.render.ItemPreTransforms;
-import jackiecrazy.footwork.move.utils.ActionContext;
-import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,8 +32,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -42,8 +42,6 @@ import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.UUID;
 
@@ -52,6 +50,26 @@ public class EntityHandler {
 
     private static final UUID uuid = UUID.fromString("98c361c7-de32-4f40-b129-d7752bac3712");
     private static final UUID uuid2 = UUID.fromString("98c361c8-de32-4f40-b129-d7752bac3722");
+
+    @SubscribeEvent
+    public static void clear(TickEvent.LevelTickEvent e) {
+        if (e.level.getGameTime() % 600 == 0) {
+            //every 30 seconds flush the caches fully
+            ActionData.flushCache();
+            TimeSlowData.flushCache();
+            CombatData.flushCache();
+            StylishData.flushCache();
+        }
+    }
+
+    @SubscribeEvent
+    public static void removed(EntityLeaveLevelEvent e) {
+        Entity en = e.getEntity();
+        ActionData.flushCache(en);
+        TimeSlowData.flushCache(en);
+        CombatData.flushCache(en);
+        StylishData.flushCache(en);
+    }
 
     @SubscribeEvent
     public static void caps(AttachCapabilitiesEvent<Entity> e) {
@@ -155,7 +173,7 @@ public class EntityHandler {
                 mob.targetSelector.addGoal(0, new CompelledVengeanceGoal(creature));
                 mob.targetSelector.addGoal(0, new FearGoal(creature));
             }
-        }else if (!e.getLevel().isClientSide && e.getEntity() instanceof ServerPlayer sp) {
+        } else if (!e.getLevel().isClientSide && e.getEntity() instanceof ServerPlayer sp) {
             ItemPreTransforms.sendItemData(sp);
         }
     }
@@ -189,16 +207,6 @@ public class EntityHandler {
     }
 
     @SubscribeEvent
-    public static void tickActions(LivingEvent.LivingTickEvent e) {
-        LivingEntity elb = e.getEntity();
-        if (CombatData.getCap(elb).isKnockdown() || CombatData.getCap(elb).isPinned() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
-            elb.setXRot(elb.xRotO);
-            elb.setYRot(elb.yRotO);
-            elb.yHeadRot = elb.yHeadRotO;
-        }
-    }
-
-    @SubscribeEvent
     public static void tickMobs(LivingEvent.LivingTickEvent e) {
         LivingEntity elb = e.getEntity();
         if (CombatData.getCap(elb).isKnockdown() || CombatData.getCap(elb).isPinned() || elb.hasEffect(FootworkEffects.PETRIFY.get()) || elb.hasEffect(FootworkEffects.SLEEP.get()) || elb.hasEffect(FootworkEffects.PARALYSIS.get())) {
@@ -206,6 +214,7 @@ public class EntityHandler {
             elb.setYRot(elb.yRotO);
             elb.yHeadRot = elb.yHeadRotO;
         }
+        //if(elb instanceof Player)System.out.println(GeneralUtils.getAttributeValueHandSensitive(elb, Attributes.ATTACK_DAMAGE, InteractionHand.OFF_HAND));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

@@ -5,8 +5,6 @@ import jackiecrazy.footwork.move.CallbackActionWrapper;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.entity.Entity;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -35,6 +33,7 @@ public class AttachAction implements IAttachAction {
     @Override
     public void mark(Entity en, ActionSetWrapper d) {
         marks.putIfAbsent(en, new ConcurrentLinkedDeque<>());
+        if (marks.get(en).stream().anyMatch(a -> a.getNamespace()!=null&&a.getNamespace().equals(d.getNamespace()))) return;
         marks.get(en).add(d);
         d.start(en, tiedTo);
     }
@@ -68,7 +67,7 @@ public class AttachAction implements IAttachAction {
     }
 
     @Override
-    public void stopEverything(){
+    public void stopEverything() {
         marks.forEach((entity, lists) -> lists.forEach(ms -> ms.stop(entity, tiedTo)));
     }
 }

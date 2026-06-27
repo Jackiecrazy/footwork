@@ -113,9 +113,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setIdlePose(MotionManager idlePose) {
-        if(idlePose.getEndFrame().renderOrientation().isFinite()) {
+        if (idlePose.getEndFrame().renderOrientation().isFinite()) {
             entityData.set(IDLE_POSE, idlePose);
-        }else Footwork.LOGGER.warn("received a MotionManager with invalid rotation, discarding.");
+        } else Footwork.LOGGER.warn("received a MotionManager with invalid rotation, discarding.");
         if (isIdle()) updateFrameEffects(idlePose.getStartFrame().effects());
     }
 
@@ -234,9 +234,11 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (owner == null) return false;
         MotionManager motion = moveQueue.peek();
         if (motion == null || motion.hasEnded(animTicker, animProgress) || forceskip) {
-            if (motion != null) updateFrameEffects(motion.getEndFrame().effects());
+            MotionManager prevMotion = motion;
             moveQueue.poll();
             motion = moveQueue.peek();
+            if (prevMotion != null && (prevMotion.hasEnded(animTicker+1, animProgress+1) != forceskip))
+                updateFrameEffects(prevMotion.getEndFrame().effects());//moved here to prevent infinite loops when someone puts a clearing motion on the last frame
             if (motion != null) this.updateFrameEffects(motion.getStartFrame().effects());
             //setTransitioning(motion == null || motion instanceof MotionManagers.TransitionMM);
             animProgress = animTicker = 0;
@@ -272,10 +274,9 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     public void setCosmeticItem(ItemStack stack) {
-        if(stack.getItem() instanceof BlockItem bi){
+        if (stack.getItem() instanceof BlockItem bi) {
             this.setCosmeticItem(new RenderItemGroup(new RenderNode.BlockNode(bi.getBlock().defaultBlockState(), Vec3.ZERO, Vec3.ZERO)));
-        }
-        else this.setCosmeticItem(new RenderItemGroup(new RenderNode.ItemNode(stack, Vec3.ZERO, Vec3.ZERO)));
+        } else this.setCosmeticItem(new RenderItemGroup(new RenderNode.ItemNode(stack, Vec3.ZERO, Vec3.ZERO)));
     }
 
     public void setCosmeticItem(RenderItemGroup stack) {
@@ -427,7 +428,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             updateTetheringVelocity();
 
             // Collision and attack logic
-                handleEntityCollisions();
+            handleEntityCollisions();
             handleBlockCollisions();
 
             // update client for trail rendering, done after block collision checks

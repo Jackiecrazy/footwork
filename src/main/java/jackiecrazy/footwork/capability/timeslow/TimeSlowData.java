@@ -1,5 +1,9 @@
 package jackiecrazy.footwork.capability.timeslow;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import jackiecrazy.footwork.capability.action.IAttachAction;
+import jackiecrazy.footwork.capability.resources.ICombatCapability;
 import jackiecrazy.footwork.capability.stylish.IStyleCapability;
 import jackiecrazy.footwork.capability.stylish.NoStyleCap;
 import jackiecrazy.footwork.capability.timeslow.ITimeChange;
@@ -16,6 +20,9 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class TimeSlowData implements ICapabilitySerializable<Tag> {
     public TimeSlowData(Entity bound) {
@@ -30,8 +37,23 @@ public class TimeSlowData implements ICapabilitySerializable<Tag> {
     public static Capability<ITimeChange> CAP = CapabilityManager.get(new CapabilityToken<>() {
     });
 
-    public static ITimeChange getCap(Entity le) {
-        return le.getCapability(CAP).orElse(OHNO);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
+    private static final Map<Entity, ITimeChange> CACHE = new IdentityHashMap<>();
+    public static ITimeChange getCap(Entity entity) {
+//        if (entity == null || !entity.isAlive()) {
+//            CACHE.remove(entity);
+//            return OHNO;
+//        }
+//
+//        return CACHE.computeIfAbsent(entity, e ->
+            return    entity.getCapability(CAP).orElse(OHNO);
+//        );
+    }
+
+    public static void flushCache() {
+        CACHE.keySet().removeIf(e -> !e.isAlive());
+    }
+    public static void flushCache(Entity e) {
+        CACHE.remove(e);
     }
 
 

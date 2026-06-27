@@ -5,11 +5,11 @@ import jackiecrazy.footwork.move.utils.ArgumentContext;
 import net.minecraft.world.phys.Vec3;
 
 public class MultiplyVectorArgument extends VectorArgument {
-    Argument<Vec3> base;
-    Argument<Vec3> multiply;
+    Argument<Vec3> first;
+    Argument<Vec3> second;
 
     @Override
     public Vec3 _resolve(ArgumentContext argumentContext) {
-        return base.resolve(argumentContext).multiply(multiply.resolve(argumentContext));
+        return first.resolve(argumentContext).multiply(second.resolve(argumentContext));
     }
 }

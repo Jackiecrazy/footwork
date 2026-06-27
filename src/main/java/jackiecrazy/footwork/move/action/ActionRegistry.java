@@ -27,6 +27,7 @@ public class ActionRegistry {
     public static final RegistryObject<ActionType> PROJECT_HITBOX = ACTIONS.register("project_hitbox", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, ProjectHitboxAction.class));
     public static final RegistryObject<ActionType> FOLLOW_PATH = ACTIONS.register("move_along_path", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, MoveAlongPathAction.class));
     public static final RegistryObject<ActionType> ADD_CALLBACK = ACTIONS.register("attach_callback", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, AttachCallbackAction.class));
+    public static final RegistryObject<ActionType> TRIGGER_CALLBACK = ACTIONS.register("trigger_callback", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, TriggerCallbackAction.class));
 
     //Triggers//
     public static final RegistryObject<ActionType> ACTION_ON_HIT = ACTIONS.register("trigger_on_hit", () -> (a) -> ActionJsonAdapters.gson.fromJson(a, Trigger.class));

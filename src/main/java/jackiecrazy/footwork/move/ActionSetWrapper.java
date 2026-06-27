@@ -6,6 +6,7 @@ import jackiecrazy.footwork.move.action.timer.ProjectHitboxAction;
 import jackiecrazy.footwork.move.action.timer.TimerAction;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -22,11 +23,21 @@ public class ActionSetWrapper {
     protected final List<Action> actions;
     private final List<Tuple<TimerAction, Integer>> activeTimers = new ArrayList<>();
     private final HashMap<Action, Object> extraData = new HashMap<>();
+    private ResourceLocation namespace;
     private TimerAction currentMove;
     private int index = 0;
 
     public ActionSetWrapper(List<Action> actions) {
         this.actions = actions;
+    }
+
+    public ResourceLocation getNamespace() {
+        return namespace;
+    }
+
+    public ActionSetWrapper setNamespace(ResourceLocation namespace) {
+        this.namespace = namespace;
+        return this;
     }
 
     public List<Tuple<TimerAction, Integer>> getActiveTimers() {
@@ -79,10 +90,10 @@ public class ActionSetWrapper {
 
     public void tick(Entity performer, Entity target) {
         int jumpCode = 0;
-        int index = 0;
-        while (index < activeTimers.size()) {
+        int internalIndex = 0;
+        while (internalIndex < activeTimers.size()) {
             //fixme CME
-            Tuple<TimerAction, Integer> tuple = activeTimers.get(index++);
+            Tuple<TimerAction, Integer> tuple = activeTimers.get(internalIndex++);
             tuple.setB(tuple.getB() + 1);
             int tickResult = tuple.getA().tick(this, performer, target);
             if (tickResult > 0) {
@@ -111,8 +122,8 @@ public class ActionSetWrapper {
         }
     }
 
-    public void stop(Entity performer, Entity target){
-        activeTimers.forEach(a-> {
+    public void stop(Entity performer, Entity target) {
+        activeTimers.forEach(a -> {
             final ActionContext ctx = generateContext(performer, target, a.getA());
             a.getA().stop(ctx, true);
         });

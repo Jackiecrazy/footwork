@@ -17,11 +17,14 @@ import jackiecrazy.footwork.move.motionframe.render.RenderNode;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Matrix3f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
 
@@ -238,6 +241,50 @@ public class JsonAdapters {
 
     public static class MotionManagerDeserializer implements JsonDeserializer<MotionManager> {
 
+        public static double fuck(Vec3 prevTip, Vec3 currTip) {
+            if (currTip.lengthSqr() < 1e-6) {
+                return 0.0; // Degenerate case
+            }
+
+            Vec3 swordDir = currTip.normalize();           // Forward (+Z local) in world
+            Vec3 movement = currTip.subtract(prevTip);
+
+            if (movement.lengthSqr() < 1e-6) {
+                return 0.0;
+            }
+
+            // Desired edge direction: movement projected perpendicular to swordDir
+            Vec3 desiredEdgeWorld = movement.subtract(swordDir.scale(movement.dot(swordDir))).normalize();
+
+            if (desiredEdgeWorld.lengthSqr() < 1e-6) {
+                return 0.0; // Movement parallel to sword (rare)
+            }
+
+            // Local edge vector in model space: (0, -1, 0)
+            // We need to find the signed angle around swordDir between
+            // a "reference" orientation and the desired one.
+
+            // Create a reference "up" perpendicular to swordDir for roll=0.
+            // Common choice: world up projected, or a consistent right vector.
+            Vec3 worldUp = new Vec3(0, -1, 0);
+            Vec3 refRight = swordDir.cross(worldUp).normalize(); // tentative right
+            if (refRight.lengthSqr() < 1e-6) { // sword pointing straight up/down
+                refRight = new Vec3(1, 0, 0); // arbitrary
+            }
+            Vec3 refEdge = refRight.cross(swordDir).normalize(); // should approximate local -Y for roll=0
+
+            // Better: compute the angle directly between current reference edge and desired
+            double dot = refEdge.dot(desiredEdgeWorld);
+            double angleRad = Math.acos(Mth.clamp(dot, -1.0, 1.0));
+
+            // Signed angle using cross product (right-hand rule around swordDir)
+            Vec3 cross = refEdge.cross(desiredEdgeWorld);
+            double sign = cross.dot(swordDir); // positive if CCW looking along swordDir
+
+            double rollRad = (sign >= 0 ? -angleRad : angleRad);
+
+            return Math.toDegrees(rollRad);
+        }
 
         private static double signedAngle(Vec3 a, Vec3 b, Vec3 edgeNormal) {
             Vec3 cross = a.cross(b);
@@ -285,9 +332,10 @@ public class JsonAdapters {
                         Vec3 endFrame = mf.direction();
                         Vec3 startFrame = frames.get(x - 1).direction();
                         final Vec3 down = new Vec3(0, -1, 0);
-                        final Vec3 movement = endFrame.subtract(startFrame);
-                        double angleRadians = signedAngle(down, movement, new Vec3(0, 0, -1));
-                        double angleDegrees = Math.toDegrees(angleRadians);
+                        final Vec3 movement = endFrame.subtract(startFrame).normalize();
+                        //fixme doesn't work on horizontal slashes
+                        double angleRadians = signedAngle(startFrame, endFrame, new Vec3(0, 0, -1));
+                        double angleDegrees = fuck(startFrame, endFrame);
                         mf._setRenderRotationRaw(MotionFrame.buildLocalRotation(new Vector4d(endFrame.x, endFrame.y, endFrame.z, angleDegrees)));
                     }
                     //finally compute the first frame from the second frame
@@ -296,9 +344,9 @@ public class JsonAdapters {
                         Vec3 startFrame = mf.direction();
                         Vec3 endFrame = frames.get(1).direction();
                         final Vec3 down = new Vec3(0, -1, 0);
-                        final Vec3 movement = endFrame.subtract(startFrame);
-                        double angleRadians = signedAngle(down, movement, new Vec3(0, 0, -1));
-                        double angleDegrees = Math.toDegrees(angleRadians);
+                        final Vec3 movement = endFrame.subtract(startFrame).normalize();
+                        double angleRadians = signedAngle(startFrame, endFrame, new Vec3(0, 0, -1));
+                        double angleDegrees = fuck(startFrame, endFrame);
                         mf._setRenderRotationRaw(MotionFrame.buildLocalRotation(new Vector4d(startFrame.x, startFrame.y, startFrame.z, angleDegrees)));
                     }
                 }

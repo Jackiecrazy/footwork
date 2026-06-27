@@ -11,17 +11,13 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 public class ActionData implements ICapabilitySerializable<CompoundTag> {
-    private static IAttachAction OHNO = new DummyAttachActionCap();
-
     public static Capability<IAttachAction> CAP = CapabilityManager.get(new CapabilityToken<>() {
     });
-
-    public static IAttachAction getCap(Entity le) {
-        return le.getCapability(CAP).orElse(OHNO);//.orElseThrow(() -> new IllegalArgumentException("attempted to find a nonexistent capability"));
-    }
-
+    private static IAttachAction OHNO = new DummyAttachActionCap();
     protected final IAttachAction instance;
 
     public ActionData() {
@@ -30,6 +26,25 @@ public class ActionData implements ICapabilitySerializable<CompoundTag> {
 
     public ActionData(IAttachAction cap) {
         instance = cap;
+    }
+
+    private static final Map<Entity, IAttachAction> CACHE = new IdentityHashMap<>();
+    public static IAttachAction getCap(Entity entity) {
+//        if (entity == null || !entity.isAlive()) {
+//            CACHE.remove(entity);
+//            return OHNO;
+//        }
+//
+//        return CACHE.computeIfAbsent(entity, e ->
+            return    entity.getCapability(CAP).orElse(OHNO);
+//        );
+    }
+
+    public static void flushCache() {
+        CACHE.keySet().removeIf(e -> !e.isAlive());
+    }
+    public static void flushCache(Entity e) {
+        CACHE.remove(e);
     }
 
     @Nonnull

@@ -247,8 +247,9 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
 
             // Push transform for positioning
+            poseStack.pushPose();
+            poseStack.mulPose(Axis.XP.rotationDegrees(-9));//this cancels the sword rotation
             if (base.getBlock() instanceof DoorBlock) {
-                poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees((float) n.rotation().x));
                 poseStack.mulPose(Axis.YP.rotationDegrees((float) n.rotation().y));
                 poseStack.mulPose(Axis.ZP.rotationDegrees((float) n.rotation().z));
@@ -273,9 +274,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 poseStack.translate(0.0, 1.0, 0.0);
                 brd.renderSingleBlock(upper, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY,//itemRenderer.getModel(stack, entity.level(), null, packedlight).getModelData(),
                                       null);
-                poseStack.popPose();
             } else {
-                poseStack.pushPose();
                 poseStack.mulPose(Axis.XP.rotationDegrees((float) n.rotation().x));
                 poseStack.mulPose(Axis.YP.rotationDegrees((float) n.rotation().y));
                 poseStack.mulPose(Axis.ZP.rotationDegrees((float) n.rotation().z));
@@ -286,14 +285,14 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 brd.renderSingleBlock(base, poseStack, bf, packedlight, OverlayTexture.NO_OVERLAY, ModelData.EMPTY,//itemRenderer.getModel(stack, entity.level(), null, packedlight).getModelData(),
                                       null);
                 //is this the right order?
-                poseStack.popPose();
             }
+            poseStack.popPose();
         } else {
             ItemStack stack = n.getType() == RenderNode.NodeType.BASE ? original : ((RenderNode.ItemNode) n).stack();
-            if (stack.isEmpty()) {
+            if (stack.isEmpty()) {//render arms
                 poseStack.pushPose();
                 int flip = left ? -1 : 1;
-                //poseStack.mulPose(Axis.ZN.rotationDegrees(180));
+                poseStack.mulPose(Axis.XP.rotationDegrees(-9));//this cancels the sword rotation
                 poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
                 poseStack.translate(flip * 0.37, 0.3, -0.05);
                 PlayerRenderer playerrenderer = (PlayerRenderer) this.entityRenderDispatcher.<AbstractClientPlayer>getRenderer(Minecraft.getInstance().player);

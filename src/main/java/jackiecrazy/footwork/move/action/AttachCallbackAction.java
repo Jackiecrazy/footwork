@@ -20,7 +20,7 @@ import java.util.List;
 public class AttachCallbackAction extends Action {
     private Argument<Entity> performer = CasterEntityArgument.INSTANCE;
     private Argument<Entity> recipient = TargetEntityArgument.INSTANCE;
-    private Argument<ResourceLocation> effect;
+    private Argument<ResourceLocation> effect = (a)->null;
     private ArrayList<Action> effect_list = null;
     private String trigger;
     private Argument<Double> duration;
@@ -28,14 +28,17 @@ public class AttachCallbackAction extends Action {
 
     @Override
     public int perform(ActionContext actionContext) {
-        if (effect_list == null && effect != null)
-            effect_list = new ArrayList<>(List.of(ActionJsonAdapters.gson.fromJson(ActionSets.moves.get(effect.resolve(actionContext)), Action[].class)));
+        ResourceLocation rl = effect.resolve(actionContext);
+        if (effect_list == null) {
+            if (rl != null)
+                effect_list = new ArrayList<>(List.of(ActionJsonAdapters.gson.fromJson(ActionSets.moves.get(rl), Action[].class)));
+        }
         if (effect_list == null) {
             Footwork.LOGGER.error("attempted to attach an invalid list of callbacks, skipping.");
             return 0;
         }
         ActionData.getCap(recipient.resolve(actionContext))
-                .mark(performer.resolve(actionContext), new CallbackActionWrapper(trigger, duration.resolve(actionContext).intValue(), effect_list).setMaxProcs(max_procs.resolve(actionContext).intValue()).appendContext(actionContext));
+                .mark(performer.resolve(actionContext), new CallbackActionWrapper(trigger, duration.resolve(actionContext).intValue(), effect_list).setMaxProcs(max_procs.resolve(actionContext).intValue()).setNamespace(rl).appendContext(actionContext));
         return 0;
     }
 }
