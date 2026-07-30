@@ -1,6 +1,7 @@
 package jackiecrazy.footwork.client;
 
 import jackiecrazy.footwork.Footwork;
+import jackiecrazy.footwork.client.screen.dashboard.AnimationTesterScreen;
 import jackiecrazy.footwork.potion.FootworkEffects;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyboardHandler;
@@ -8,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -41,5 +43,9 @@ public class ClientEvents {
                 minecraft.player.input.tick(false, 0);
             }
         }
+    }
+
+    public static void openGUI(ItemStack stack){
+        Minecraft.getInstance().setScreen(new AnimationTesterScreen(stack));
     }
 }

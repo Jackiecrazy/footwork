@@ -1,6 +1,6 @@
 package jackiecrazy.footwork.items;
 
-import jackiecrazy.footwork.client.screen.dashboard.AnimationTesterScreen;
+import jackiecrazy.footwork.client.ClientEvents;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.entity.flyingweapon.DummyFlyingWeaponEntity;
 import jackiecrazy.footwork.move.motionframe.MotionFrame;
@@ -8,7 +8,6 @@ import jackiecrazy.footwork.move.motionframe.MotionManager;
 import jackiecrazy.footwork.move.motionframe.MotionManagers;
 import jackiecrazy.footwork.move.motionframe.render.RenderItemGroup;
 import jackiecrazy.footwork.utils.ActionJsonAdapters;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -34,7 +33,7 @@ public class AnimationTesterItem extends Item {
 
         if (player.isShiftKeyDown()) {
             if (level.isClientSide) {
-                Minecraft.getInstance().setScreen(new AnimationTesterScreen(stack));
+                ClientEvents.openGUI(stack);
             }
             return InteractionResultHolder.success(stack);
         } else {

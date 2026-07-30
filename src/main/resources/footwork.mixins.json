@@ -3,21 +3,12 @@
   "package": "jackiecrazy.footwork.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "footwork.refmap.json",
-  "mixins": [
-    "EffectStartAccessor",
-    "MixinAttackSpeed",
-    "MixinPlayerEntity", "WetMixin",
-    "MixinTimeSlow",
-    "MixinTimeSlowServer"
-  ],
+  "mixins": ["AttributeInstanceAccessor", "EffectStartAccessor", "MixinAttackSpeed", "MixinPlayerEntity", "MixinTimeSlow", "MixinTimeSlowServer", "NearestAttackableTargetGoalAccessor", "WetMixin"],
   "injectors": {
     "defaultRequire": 1
   },
   "minVersion": "0.8",
   "client": [
-    "MixinParalysis",
-    "MixinTimeSlowClient",
-    "MixinTimeSlowRender",
-    "ShadowHandsMixin"
+    "MixinParalysis", "MixinTimeSlowClient", "MixinTimeSlowRender", "ShadowHandsMixin"
   ]
 }

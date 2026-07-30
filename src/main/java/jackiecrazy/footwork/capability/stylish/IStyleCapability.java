@@ -1,8 +1,11 @@
 package jackiecrazy.footwork.capability.stylish;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 
 import java.awt.*;
+import java.util.Collection;
+import java.util.List;
 
 public interface IStyleCapability {
     //melee trigger timer, ranged trigger timer, trigger bar, orb set
@@ -50,6 +53,7 @@ public interface IStyleCapability {
     boolean isDyingFast();
     void stabilize();
 
+    Collection<String> getFreshness();
     float getFreshness(String source);
 
     CompoundTag write();

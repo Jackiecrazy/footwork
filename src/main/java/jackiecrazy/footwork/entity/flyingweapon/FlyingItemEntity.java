@@ -454,6 +454,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             setDeltaMovement(dir.scale(getMinimumSpeed()));
             return;
         }
+        MotionFrame nextPoint = getIdlePose().getNextPoint(tickCount);
         updateSpin(getIdlePose());
 
         Vec3 toTargetDir = getMotionTarget().getEyePosition().subtract(position()).normalize();
@@ -476,7 +477,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         setDeltaMovement(newVelocity);
 
         if (speed > 0.003) {
-            recalculatedOrientation = recalculateOrientation(nothing, 1);
+            recalculatedOrientation = recalculateOrientation(nextPoint.renderOrientation().normalize(), 1);
+            update = new MotionFrame(getLookAngle(), new Vec3(0, 0, 0), recalculatedOrientation);
         }
     }
 
@@ -490,6 +492,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
         if (getDeltaMovement().lengthSqr() > 0.003) {
             //recalculatedOrientation = recalculateOrientation(nothing, 1);
             recalculatedOrientation = recalculateOrientation(nextPoint.renderOrientation().normalize(), 1);
+            update = new MotionFrame(getLookAngle(), new Vec3(0, 0, 0), recalculatedOrientation);
         }
     }
 
@@ -681,12 +684,15 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
             Vec3 universalOffset = getUniversalOffset();
             MotionFrame from = entityData.get(LAST_FRAME);//position, look, (xrot, yrot, roll)
             MotionFrame to = entityData.get(CURRENT_FRAME);//direction, offset, only recalculated orientation (xrot, yrot, zrot... in theory)
-            double dist = intangible() ? -1 : getInteractionRange() - 1;//the -1 here is necessary to counteract the base
+            float toTrailLen = getState()==STATE.FOLLOW? getInteractionRange():2;
+            double dist = intangible() ? -1 : toTrailLen - 1;//the -1 here is necessary to counteract the base
             Vec3 fromTrailPos = from.direction().add(from.offset().scale(dist));
             //this is NOT accurate!
             Vec3 fromShadowPos = from.direction();
-            Vec3 toTrailPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, getInteractionRange());
-            Vec3 toShadowPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, 1);
+            float toShadLen = getState()==STATE.FOLLOW?1:-2;
+            Vec3 toTrailPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, toTrailLen);
+            Vec3 toShadowPos = to.resolveTargetOffset(stateDependentPositionLook(), universalOffset, toShadLen);
+            //note to myself in the future: setting interaction range to 1 will cause trails to not show up, because they end up having 0 width.
             for (double i = 0; i < CLIENT_SMOOTHING_SUBTICKS; i++) {
                 double partialTick = i / CLIENT_SMOOTHING_SUBTICKS;
 

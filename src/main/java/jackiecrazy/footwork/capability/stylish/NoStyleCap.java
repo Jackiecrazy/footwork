@@ -3,6 +3,8 @@ package jackiecrazy.footwork.capability.stylish;
 import net.minecraft.nbt.CompoundTag;
 
 import java.awt.*;
+import java.util.Collection;
+import java.util.List;
 
 public class NoStyleCap implements IStyleCapability {
 
@@ -120,6 +122,11 @@ public class NoStyleCap implements IStyleCapability {
     @Override
     public void stabilize() {
 
+    }
+
+    @Override
+    public Collection<String> getFreshness() {
+        return List.of();
     }
 
     @Override

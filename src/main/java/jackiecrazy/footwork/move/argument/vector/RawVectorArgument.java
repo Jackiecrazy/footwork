@@ -14,6 +14,16 @@ public class RawVectorArgument extends VectorArgument {
     };
     Argument<Double> x, y, z;
 
+    public RawVectorArgument(){
+
+    }
+
+    public RawVectorArgument(Argument<Double> x, Argument<Double> y, Argument<Double> z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     @Override
     public Vec3 _resolve(ArgumentContext argumentContext) {
         return new Vec3(x.resolve(argumentContext), y.resolve(argumentContext), z.resolve(argumentContext));

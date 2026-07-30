@@ -8,6 +8,7 @@ package jackiecrazy.footwork.utils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import jackiecrazy.footwork.capability.resources.CombatData;
+import jackiecrazy.footwork.mixin.AttributeInstanceAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -48,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class GeneralUtils {
-    private static final Cache<Integer, Double> cache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.SECONDS).build();
+    private static final Cache<Integer, Double> cache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.SECONDS).build();
     public static boolean kbHandled = false;
     public static DamageSource player_ds_override = null;
 
@@ -56,8 +57,6 @@ public class GeneralUtils {
         if (e.getVehicle() != null) if (e.getRootVehicle() instanceof LivingEntity)
             return CombatData.getCap((LivingEntity) e.getRootVehicle()).getMotionConsistently().lengthSqr();
         else return e.getRootVehicle().getDeltaMovement().lengthSqr();
-        if (e instanceof LivingEntity)
-            return Math.max(CombatData.getCap((LivingEntity) e).getMotionConsistently().lengthSqr(), e.getDeltaMovement().lengthSqr());
         return e.getDeltaMovement().lengthSqr();
     }
 
@@ -540,41 +539,41 @@ public class GeneralUtils {
 
         if (viewer.distanceToSqr(viewed) > 1000) return true;//what
         if (viewer == viewed || !viewer.isAlive() || !viewed.isAlive()) return true;//no brainers
-        if(viewer.level().clip(new ClipContext(viewer.getEyePosition(), viewed.getEyePosition(), flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS)
+        if (viewer.level().clip(new ClipContext(viewer.getEyePosition(), viewed.getEyePosition(), flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS)
             return false;//fast eye-eye check, hopefully
-        AABB viewerBoundBox = viewer.getBoundingBox();
-        AABB angelBoundingBox = viewed.getBoundingBox();
-        Vec3[] viewerPoints = {
-                new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.minZ),
-                new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.minZ),
-                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.minZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.maxZ),
-                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.minZ),
-                };
-
-        Vec3[] angelPoints = {
-                new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.minZ),
-                new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.minZ),
-                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.minZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.maxZ),
-                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.minZ),
-                };
-
-        for (int i = 0; i < viewerPoints.length; i++) {
-            if (viewer.level().clip(new ClipContext(viewerPoints[i], angelPoints[i], flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS) {
-                return false;
-            }
-            if (rayTraceBlocks(viewer, viewer.level(), viewerPoints[i], angelPoints[i], pos -> {
-                BlockState state = viewer.level().getBlockState(pos);
-                return flimsy ? !state.liquid() : !canSeeThrough(state, viewer.level(), pos);
-            }) == null) return false;
-        }
+//        AABB viewerBoundBox = viewer.getBoundingBox();
+//        AABB angelBoundingBox = viewed.getBoundingBox();
+//        Vec3[] viewerPoints = {
+//                new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.minZ),
+//                new Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.maxZ),
+//                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.minZ),
+//                new Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
+//                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.minZ),
+//                new Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
+//                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.maxZ),
+//                new Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.minZ),
+//                };
+//
+//        Vec3[] angelPoints = {
+//                new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.minZ),
+//                new Vec3(angelBoundingBox.minX, angelBoundingBox.minY, angelBoundingBox.maxZ),
+//                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.minZ),
+//                new Vec3(angelBoundingBox.minX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
+//                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.minZ),
+//                new Vec3(angelBoundingBox.maxX, angelBoundingBox.maxY, angelBoundingBox.maxZ),
+//                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.maxZ),
+//                new Vec3(angelBoundingBox.maxX, angelBoundingBox.minY, angelBoundingBox.minZ),
+//                };
+//
+//        for (int i = 0; i < viewerPoints.length; i++) {
+//            if (viewer.level().clip(new ClipContext(viewerPoints[i], angelPoints[i], flimsy ? ClipContext.Block.OUTLINE : ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer)).getType() == HitResult.Type.MISS) {
+//                return false;
+//            }
+//            if (rayTraceBlocks(viewer, viewer.level(), viewerPoints[i], angelPoints[i], pos -> {
+//                BlockState state = viewer.level().getBlockState(pos);
+//                return flimsy ? !state.liquid() : !canSeeThrough(state, viewer.level(), pos);
+//            }) == null) return false;
+//        }
 
         return true;
     }
@@ -951,22 +950,32 @@ public class GeneralUtils {
         if (h == InteractionHand.MAIN_HAND) return getAttributeValueSafe(e, a);
         final AttributeInstance instance = e.getAttribute(a);
         if (instance == null) return a.getDefaultValue();
-        int hash = (int) (e.hashCode() * instance.getValue() * e.getItemInHand(h).hashCode());
+        int hash = (int) (e.hashCode() * instance.getValue()*180 * e.getItemInHand(h).hashCode());//lol
         Double lookup = cache.getIfPresent(hash);
         if (lookup != null) return lookup;
-        AttributeInstance mai = new AttributeInstance(a, (n) -> {
-        });
-        mai.setBaseValue(instance.getBaseValue());
         Collection<AttributeModifier> ignore = e.getMainHandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).get(a);
-        instance.getModifiers().forEach(am -> {
-            if (ignore.stream().noneMatch(b -> am.getId() == b.getId())) mai.addTransientModifier(am);
-        });
-        for (AttributeModifier f : e.getOffhandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).get(a)) {
-            mai.removeModifier(f.getId());
-            mai.addTransientModifier(f);
+        double d0 = instance.getBaseValue();
+
+        for (AttributeModifier attributemodifier : ((AttributeInstanceAccessor) instance).callGetModifiersOrEmpty(AttributeModifier.Operation.ADDITION)) {
+            if (ignore.stream().noneMatch(b -> attributemodifier.getId() == b.getId()))
+                d0 += attributemodifier.getAmount();
         }
-        cache.put(hash, mai.getValue());
-        return mai.getValue();
+
+        double d1 = d0;
+
+        for (AttributeModifier attributemodifier : ((AttributeInstanceAccessor) instance).callGetModifiersOrEmpty(AttributeModifier.Operation.MULTIPLY_BASE)) {
+            if (ignore.stream().noneMatch(b -> attributemodifier.getId() == b.getId()))
+                d1 += d0 * attributemodifier.getAmount();
+        }
+
+        for (AttributeModifier attributemodifier : ((AttributeInstanceAccessor) instance).callGetModifiersOrEmpty(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
+            if (ignore.stream().noneMatch(b -> attributemodifier.getId() == b.getId()))
+                d1 *= 1.0D + attributemodifier.getAmount();
+        }
+
+        double sanity = a.sanitizeValue(d1);
+        cache.put(hash, sanity);
+        return sanity;
     }
 
     public static double getAttributeValueSafe(LivingEntity e, Attribute a) {

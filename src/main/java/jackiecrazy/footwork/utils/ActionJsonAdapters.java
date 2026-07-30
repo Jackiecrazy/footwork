@@ -165,14 +165,16 @@ public class ActionJsonAdapters {
         @Override
         public Argument<T> deserialize(JsonElement json,
                                        Type type,
-                                       JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+                                       JsonDeserializationContext ctx) throws JsonParseException {
             if (!json.isJsonObject()) {
                 try {
                     //everything is awful
                     //fixme the very act of getting it as string will break vec3s
-                    ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString(), Footwork.MODID));
-                    if (ArgumentRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonArgumentType<?> sat) {
-                        return (Argument<T>) sat.bake(null);
+                    if(json.isJsonPrimitive()) {
+                        ResourceLocation rl = new ResourceLocation(enforceNamespace(json.getAsString(), Footwork.MODID));
+                        if (ArgumentRegistry.SUPPLIER.get().getValue(rl) instanceof SingletonArgumentType<?> sat) {
+                            return (Argument<T>) sat.bake(null);
+                        }
                     }
                     Class<?> grabby = (Class<?>) ((ParameterizedType) TypeToken.of(type).getType()).getActualTypeArguments()[0];
                     if (grabby == Boolean.class) {
@@ -181,13 +183,20 @@ public class ActionJsonAdapters {
                         if (json.isJsonPrimitive()) return (Argument<T>) new FixedNumberArgument(json.getAsDouble());
                         if (!json.isJsonObject()) return (Argument<T>) FixedNumberArgument.ZERO;
                     } else if (grabby == Vec3.class) {
+                        if(json.isJsonArray()){
+                            JsonArray a=json.getAsJsonArray();
+                            Argument<Double> x=ctx.deserialize(a.get(0), new TypeToken<Argument<Double>>(){}.getType());
+                            Argument<Double> y=ctx.deserialize(a.get(1), new TypeToken<Argument<Double>>(){}.getType());
+                            Argument<Double> z=ctx.deserialize(a.get(2), new TypeToken<Argument<Double>>(){}.getType());
+                            return (Argument<T>) new RawVectorArgument(x,y,z);
+                        }
                         if (!json.isJsonObject()) return (Argument<T>) RawVectorArgument.ZERO;
                     } else if (grabby == ItemStack.class) {
                         //try to see if it's a proper ID first. If not, assume it's an item.
                         ResourceLocation id = new ResourceLocation(enforceNamespace(json.getAsString(), Footwork.MODID));
                         if (ArgumentRegistry.SUPPLIER.get().containsKey(id)) {
                             try {
-                                return (Argument<T>) ArgumentRegistry.SUPPLIER.get().getValue(rl).bake(new JsonObject());
+                                return (Argument<T>) ArgumentRegistry.SUPPLIER.get().getValue(id).bake(new JsonObject());
                             } catch (ClassCastException ignored) {
                             }
                         }

@@ -41,9 +41,6 @@ public abstract class MixinPlayerEntity extends LivingEntity {
         super(type, worldIn);
     }
 
-    @Shadow
-    public abstract void remove(RemovalReason p_150097_);
-
 //    @Inject(method = "attack", locals = LocalCapture.CAPTURE_FAILSOFT,
 //            at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lnet/minecraft/entity/player/PlayerEntity;resetCooldown()V"))
 //    private void noReset(Entity targetEntity, CallbackInfo ci, float f, float f1, float f2) {

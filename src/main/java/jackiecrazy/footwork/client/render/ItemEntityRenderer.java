@@ -24,6 +24,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.DoorBlock;
@@ -112,7 +113,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
             final int packedlight = 0xf000f0;
             final BakedModel model = n instanceof RenderNode.ItemNode a?itemRenderer.getModel(a.stack(), entity.level(), null, 0):null;
-            renderStackProperly(n, entity.getHeldItem(), poseStack, bufferSource, packedlight, model, entity.flipClientRender());
+            renderStackProperly(n, entity.getHeldItem(), poseStack, bufferSource, packedlight, model, entity.flipClientRender(), entity);
             poseStack.popPose();
         }
         poseStack.popPose();
@@ -159,7 +160,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
 //                    MultiBufferSource bufferWithAlpha = new AlphaMultiBufferSource(buffer, alpha);
 //                    itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, itemRenderer.getModel(stack, null, null, 0));
 
-                renderShadowWeapon(stack, entity.getHeldItem(), poseStack, buffer, lerpAlpha, entity.flipClientRender());
+                renderShadowWeapon(stack, entity.getHeldItem(), poseStack, buffer, lerpAlpha, entity.flipClientRender(), entity);
 
                 poseStack.popPose();
                 break;
@@ -201,7 +202,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                       PoseStack poseStack,
                                       MultiBufferSource bufferSource,
                                       int alpha,
-                                      boolean left) {
+                                      boolean left, FlyingItemEntity fie) {
         poseStack.pushPose();
         for (RenderNode n : group.nodes()) {
             poseStack.pushPose();
@@ -227,7 +228,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 return new CustomVertexConsumer(bufferSource.getBuffer(rt), 0, 0, 0, alpha / 256f);
             };
 
-            renderStackProperly(n, mess, poseStack, TEMP_OVERRIDE, packedlight, model, left);
+            renderStackProperly(n, mess, poseStack, TEMP_OVERRIDE, packedlight, model, left, fie);
             TEMP_OVERRIDE = null;
             poseStack.popPose();
         }
@@ -241,7 +242,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                                      PoseStack poseStack,
                                      MultiBufferSource bf,
                                      int packedlight,
-                                     BakedModel model, boolean left) {
+                                     BakedModel model, boolean left, FlyingItemEntity fie) {
         if (n.getType() == RenderNode.NodeType.BLOCK) {
             BlockState base = ((RenderNode.BlockNode) n).state();
             BlockRenderDispatcher brd = Minecraft.getInstance().getBlockRenderer();
@@ -289,16 +290,16 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
             poseStack.popPose();
         } else {
             ItemStack stack = n.getType() == RenderNode.NodeType.BASE ? original : ((RenderNode.ItemNode) n).stack();
-            if (stack.isEmpty()) {//render arms
+            if (stack.isEmpty() && fie.getOwner() instanceof AbstractClientPlayer p) {//render arms
                 poseStack.pushPose();
                 int flip = left ? -1 : 1;
                 poseStack.mulPose(Axis.XP.rotationDegrees(-9));//this cancels the sword rotation
                 poseStack.translate(n.translation().x, n.translation().y, n.translation().z);
                 poseStack.translate(flip * 0.37, 0.3, -0.05);
-                PlayerRenderer playerrenderer = (PlayerRenderer) this.entityRenderDispatcher.<AbstractClientPlayer>getRenderer(Minecraft.getInstance().player);
+                PlayerRenderer playerrenderer = (PlayerRenderer) this.entityRenderDispatcher.getRenderer(p);
                 if (left)
-                    playerrenderer.renderLeftHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
-                else playerrenderer.renderRightHand(poseStack, bf, packedlight, Minecraft.getInstance().player);
+                    playerrenderer.renderLeftHand(poseStack, bf, packedlight, p);
+                else playerrenderer.renderRightHand(poseStack, bf, packedlight, p);
                 poseStack.popPose();
             } else {
                 RenderNode nd = ItemPreTransforms.getCustomRender(stack);
@@ -368,7 +369,7 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
                 // Otherwise use the requested RenderType but wrap it to tint/alpha it
                 return new CustomVertexConsumer(buffer.getBuffer(rt), alpha);
             };
-            renderStackProperly(n, entity.getHeldItem(), poseStack, TEMP_OVERRIDE, packedLight, model, entity.flipClientRender());
+            renderStackProperly(n, entity.getHeldItem(), poseStack, TEMP_OVERRIDE, packedLight, model, entity.flipClientRender(), entity);
             TEMP_OVERRIDE = null;
             //itemRenderer.render(stack, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, false, poseStack, bufferWithAlpha, packedLight, OverlayTexture.NO_OVERLAY, model);
             poseStack.popPose();

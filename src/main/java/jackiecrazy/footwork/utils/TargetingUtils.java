@@ -1,8 +1,10 @@
 package jackiecrazy.footwork.utils;
 
+import jackiecrazy.footwork.mixin.NearestAttackableTargetGoalAccessor;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Projectile;
 
 public class TargetingUtils {
 
@@ -39,9 +41,14 @@ public class TargetingUtils {
                 LivingEntity revenge = ((LivingEntity) entity).getLastHurtByMob();
                 if (isAlly(revenge, to)) return true;
             }
-            if (entity instanceof Mob && ((Mob) entity).getTarget() != null) {
-                LivingEntity attack = ((Mob) entity).getTarget();
-                return isAlly(attack, to);
+            if (entity instanceof Mob m) {
+                LivingEntity attack = m.getTarget();
+                if (attack != null && isAlly(attack, to)) return true;
+                for (WrappedGoal wg : m.goalSelector.getAvailableGoals()) {
+                    if (wg.getGoal() instanceof NearestAttackableTargetGoal tg && ((NearestAttackableTargetGoalAccessor) tg).getTargetType().isAssignableFrom(to.getClass()))
+                        return true;
+                }
+                return false;
             }
         }
         return false;

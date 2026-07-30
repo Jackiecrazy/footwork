@@ -38,7 +38,6 @@ public class HitEffects {
     protected int parry_frames = 0;
     protected int invulnerable_frames = 0;
     protected ResourceLocation sound = null;
-    //todo per-weapon render adjustment
     protected HitEffects on_guard;
     protected HitEffects on_parry;
     protected HitEffects on_dodge;
