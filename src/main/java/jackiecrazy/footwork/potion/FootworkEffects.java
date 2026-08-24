@@ -27,7 +27,7 @@ public class FootworkEffects {
     //attacks against paralyzed targets apply the unaware bonus, paralyzed targets cannot move
     public static final RegistryObject<MobEffect> PARALYSIS = EFFECTS.register("paralysis", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x2c2c2c).addAttributeModifier(Attributes.MOVEMENT_SPEED, "55FCED67-E92A-486E-9800-B47F202C4386", -1, AttributeModifier.Operation.MULTIPLY_TOTAL));
     //identical to paralysis, but adds 4 armor
-    public static final RegistryObject<MobEffect> PETRIFY = EFFECTS.register("petrify", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x949494).addAttributeModifier(Attributes.MOVEMENT_SPEED, "55FCED67-E92A-486E-9800-B47F202C4386", -1, AttributeModifier.Operation.MULTIPLY_TOTAL).addAttributeModifier(Attributes.KNOCKBACK_RESISTANCE, "55FCED67-E92A-486E-9800-B47F202C4386", 100, AttributeModifier.Operation.ADDITION).addAttributeModifier(Attributes.ARMOR, "55FCED67-E92A-486E-9800-B47F202C4386", 4, AttributeModifier.Operation.ADDITION));
+    public static final RegistryObject<MobEffect> PETRIFY = EFFECTS.register("petrify", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x949494).addAttributeModifier(Attributes.MOVEMENT_SPEED, "55FCED67-E92A-486E-9800-B47F202C4386", -1, AttributeModifier.Operation.MULTIPLY_TOTAL).addAttributeModifier(Attributes.KNOCKBACK_RESISTANCE, "55FCED67-E92A-486E-9800-B47F202C4386", 100, AttributeModifier.Operation.ADDITION).addAttributeModifier(Attributes.ARMOR, "55FCED67-E92A-486E-9800-B47F202C4386", 7, AttributeModifier.Operation.ADDITION));
     //identical to paralysis, but is reduced by 1 second for every point of incoming damage
     public static final RegistryObject<MobEffect> SLEEP = EFFECTS.register("sleep", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0xc0c0d3e).addAttributeModifier(Attributes.MOVEMENT_SPEED, "55FCED67-E92A-486E-9800-B47F202C4386", -1, AttributeModifier.Operation.MULTIPLY_TOTAL));
     //increases incoming non-combat damage by potency
@@ -52,5 +52,7 @@ public class FootworkEffects {
     public static final RegistryObject<MobEffect> UNSTEADY = EFFECTS.register("unsteady", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x949494));
     //always considered to be wet
     public static final RegistryObject<MobEffect> WET = EFFECTS.register("wet", () -> new FootworkEffect(MobEffectCategory.NEUTRAL, 0x0000f0));
+    //reduce healing by 5% per level
+    public static final RegistryObject<MobEffect> WOUND = EFFECTS.register("wound", () -> new FootworkEffect(MobEffectCategory.HARMFUL, 0x940101));
 
 }

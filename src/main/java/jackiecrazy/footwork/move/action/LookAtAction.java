@@ -21,8 +21,14 @@ public class LookAtAction extends Action {
     @Override
     public int perform(ActionContext actionContext) {
         Entity toLook = looker.resolve(actionContext);
-        if (vector_target != null)
-            toLook.lookAt(anchor, vector_target.resolve(actionContext));
+        if (vector_target != null) {
+            final Vec3 resolve = vector_target.resolve(actionContext);
+            if(resolve!=null) {
+                toLook.lookAt(anchor, resolve);
+                if (toLook instanceof Mob e)
+                    e.getLookControl().setLookAt(resolve);
+            }
+        }
         if (toLook instanceof Mob e && entity_target != null) {
             e.getLookControl().setLookAt(entity_target.resolve(actionContext), (float) head_rotation_x.resolve(actionContext).floatValue(), (float) head_rotation_y.resolve(actionContext).floatValue());
         }

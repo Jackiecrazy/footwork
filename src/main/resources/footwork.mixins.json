@@ -3,7 +3,7 @@
   "package": "jackiecrazy.footwork.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "footwork.refmap.json",
-  "mixins": ["AttributeInstanceAccessor", "EffectStartAccessor", "MixinAttackSpeed", "MixinPlayerEntity", "MixinTimeSlow", "MixinTimeSlowServer", "NearestAttackableTargetGoalAccessor", "WetMixin"],
+  "mixins": ["aaaaaaaaaaa", "AttributeInstanceAccessor", "EffectStartAccessor", "MixinAttackSpeed", "MixinPlayerEntity", "MixinTimeSlow", "MixinTimeSlowServer", "NearestAttackableTargetGoalAccessor", "WetMixin"],
   "injectors": {
     "defaultRequire": 1
   },

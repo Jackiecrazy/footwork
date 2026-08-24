@@ -76,7 +76,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
         ds = null;
         if (GeneralUtils.player_ds_override != null) {
             ds = GeneralUtils.player_ds_override;
-            GeneralUtils.player_ds_override = null;
+            //GeneralUtils.player_ds_override = null;
         } else {
             ds = new CombatDamageSource(player).setDamageDealer(getMainHandItem()).setAttackingHand(CombatData.getCap(this).isOffhandAttack() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND).setProcAttackEffects(true).setProcNormalEffects(true).flagBreach(false).setDamageTyping(FootworkDamageArchetype.PHYSICAL);
         }
@@ -156,5 +156,10 @@ public abstract class MixinPlayerEntity extends LivingEntity {
             MinecraftForge.EVENT_BUS.post(mke);
 
         }
+    }
+    @Inject(method = "attack",
+            at = @At(value = "RETURN"))
+    private void resetDS(Entity p_36347_, CallbackInfo ci) {
+        GeneralUtils.player_ds_override=null;
     }
 }

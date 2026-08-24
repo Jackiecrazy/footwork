@@ -27,6 +27,10 @@ public interface IStyleCapability {
     default void resetAdrenaline(){
         setAdrenaline(0);
     }
+    default boolean drainAdrenaline(float amount){
+        setAdrenaline(getAdrenaline()-amount);
+        return getAdrenaline()!=0;
+    }
 
     void tick();
 

@@ -31,6 +31,7 @@ public class DodgeEvent extends LivingEvent {
         FORWARD,//slide
         BACK,
         LEFT,
-        RIGHT
+        RIGHT,
+        NONE
     }
 }

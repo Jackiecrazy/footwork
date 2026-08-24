@@ -18,14 +18,13 @@ import net.minecraft.util.StringUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class HitEffects {
     public String command = "";
@@ -42,9 +41,80 @@ public class HitEffects {
     protected HitEffects on_parry;
     protected HitEffects on_dodge;
     protected HitEffects on_iframe;
+    protected int stall = 0;
     private transient SoundEvent resolve = null;
 
     public HitEffects() {
+    }
+
+    public HitEffects setCommand(String command) {
+        this.command = command;
+        return this;
+    }
+
+    public HitEffects setVelocity(Vec3 velocity) {
+        this.velocity = velocity;
+        return this;
+    }
+
+    public HitEffects setSetVelocity(boolean set_velocity) {
+        this.set_velocity = set_velocity;
+        return this;
+    }
+
+    public HitEffects setTags(List<String> tags) {
+        this.tags = tags;
+        return this;
+    }
+
+    public HitEffects setRun_actions(List<Action> run_actions) {
+        this.run_actions = run_actions;
+        return this;
+    }
+
+    public HitEffects setGuard_frames(int guard_frames) {
+        this.guard_frames = guard_frames;
+        return this;
+    }
+
+    public HitEffects setDodge_frames(int dodge_frames) {
+        this.dodge_frames = dodge_frames;
+        return this;
+    }
+
+    public HitEffects setParry_frames(int parry_frames) {
+        this.parry_frames = parry_frames;
+        return this;
+    }
+
+    public HitEffects setInvulnerable_frames(int invulnerable_frames) {
+        this.invulnerable_frames = invulnerable_frames;
+        return this;
+    }
+
+    public HitEffects setSound(ResourceLocation sound) {
+        this.sound = sound;
+        return this;
+    }
+
+    public HitEffects setOn_guard(HitEffects on_guard) {
+        this.on_guard = on_guard;
+        return this;
+    }
+
+    public HitEffects setOn_parry(HitEffects on_parry) {
+        this.on_parry = on_parry;
+        return this;
+    }
+
+    public HitEffects setOn_dodge(HitEffects on_dodge) {
+        this.on_dodge = on_dodge;
+        return this;
+    }
+
+    public HitEffects setOn_iframe(HitEffects on_iframe) {
+        this.on_iframe = on_iframe;
+        return this;
     }
 
     public HitEffects on_guard() {
@@ -104,24 +174,20 @@ public class HitEffects {
         return he;
     }
 
-//    @Deprecated //what the fuck
-//    public boolean runEffects(LivingEntity hitter, LivingEntity target){
-//        return runEffects(hitter, (Entity)target);
-//    }
-
     public boolean runEffects(LivingEntity hitter, Entity target, InteractionHand hand, ItemStack stack) {
         Level level = target.level();
         if (!level.isClientSide) {
             if (sound != null) {
                 if (resolve == null)
-                    resolve = ForgeRegistries.SOUND_EVENTS.getValue(sound);
+                    resolve = SoundEvent.createVariableRangeEvent(sound);
                 if (resolve != null) {
-                    ServerLevel sl = (ServerLevel)target.level();
+                    ServerLevel sl = (ServerLevel) target.level();
                     Vec3 pos = target.position();
                     sl.playSound(null, pos.x, pos.y, pos.z, resolve, SoundSource.PLAYERS, 0.8f + Footwork.rand.nextFloat() * 0.4f, 0.8f + Footwork.rand.nextFloat() * 0.4f);
                 }
             }
             if (target instanceof LivingEntity le) {
+                HitEffectRegistry.applyAll(this, hitter, target, hand, stack);
                 final ICombatCapability cap = CombatData.getCap(le);
                 if (!cap.alreadyProc(this.toString())) {
                     MovementUtils.applyVelocity(velocity, target, set_velocity);
@@ -156,6 +222,7 @@ public class HitEffects {
             if (!run_actions.isEmpty()) {
                 final ActionSetWrapper wrapper = new ActionSetWrapper(run_actions);
                 wrapper.addContext("hand", hand);
+                wrapper.addContext("offhand", hand == InteractionHand.OFF_HAND);
                 wrapper.addContext("itemstack", stack);
                 ActionData.getCap(target).mark(hitter, wrapper);
             }
@@ -172,6 +239,36 @@ public class HitEffects {
             return true;
         } else {
             return false;
+        }
+    }
+
+    // API
+    public interface HitEffectBehavior {
+        /**
+         * Called at the end of (or during) HitEffect.execute().
+         */
+        void apply(HitEffects effect, LivingEntity hitter, Entity target, InteractionHand hand, ItemStack stack);
+    }
+
+//    @Deprecated //what the fuck
+//    public boolean runEffects(LivingEntity hitter, LivingEntity target){
+//        return runEffects(hitter, (Entity)target);
+//    }
+
+    public final class HitEffectRegistry {
+        private static final List<HitEffectBehavior> BEHAVIORS = new CopyOnWriteArrayList<>();
+
+        public static void register(HitEffectBehavior behavior) {
+            BEHAVIORS.add(behavior);
+        }
+
+        static void applyAll(HitEffects effect,
+                             LivingEntity hitter,
+                             Entity target,
+                             InteractionHand hand, ItemStack stack) {
+            for (HitEffectBehavior b : BEHAVIORS) {
+                b.apply(effect, hitter, target, hand, stack);
+            }
         }
     }
 }

@@ -12,6 +12,7 @@ import jackiecrazy.footwork.client.render.ItemEntityRenderer;
 import jackiecrazy.footwork.client.render.NothingRender;
 import jackiecrazy.footwork.command.AttributizeCommand;
 import jackiecrazy.footwork.command.SteveTimeCommand;
+import jackiecrazy.footwork.command.UnRemoveCommand;
 import jackiecrazy.footwork.compat.FootworkCompat;
 import jackiecrazy.footwork.entity.FootworkEntities;
 import jackiecrazy.footwork.entity.flyingweapon.FlyingItemEntity;
@@ -148,5 +149,6 @@ public class Footwork {
     private void commands(final RegisterCommandsEvent event) {
         AttributizeCommand.register(event.getDispatcher());
         SteveTimeCommand.register(event.getDispatcher());
+        UnRemoveCommand.register(event.getDispatcher());
     }
 }

@@ -31,8 +31,39 @@ public class FrameEffects extends HitEffects {
             return new Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
         }
     };
+    public FrameEffects setReset_hit(boolean reset_hit) {
+        this.reset_hit = reset_hit;
+        return this;
+    }
+
+    public FrameEffects setUnDrag(boolean unDrag) {
+        this.unDrag = unDrag;
+        return this;
+    }
+
+    public FrameEffects setOn_terrain_impact(HitEffects on_terrain_impact) {
+        this.on_terrain_impact = on_terrain_impact;
+        return this;
+    }
+
+    public FrameEffects setTrail_color(Color trail_color) {
+        this.trail_color = trail_color;
+        return this;
+    }
+
+    public FrameEffects setModify_initial_rotation(Vec3 modify_initial_rotation) {
+        this.modify_initial_rotation = modify_initial_rotation;
+        return this;
+    }
+
     private HitInfo attack_info = null;
     private List<FlyingWeaponEffect> effects = null;
+
+    public FrameEffects setDisplay_stack(RenderItemArgument display_stack) {
+        this.display_stack = display_stack;
+        return this;
+    }
+
     private RenderItemArgument display_stack = null;
     private double range = -1;
     private boolean reset_hit = false;

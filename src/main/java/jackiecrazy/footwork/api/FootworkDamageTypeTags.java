@@ -10,6 +10,8 @@ public class FootworkDamageTypeTags {
     public static final TagKey<DamageType> AUTO = create("normal_attack");
     public static final TagKey<DamageType> ATTACK = create("attack");
     public static final TagKey<DamageType> SKILL = create("skill");
+    public static final TagKey<DamageType> NO_DARKTIDE_DMG = TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation("wardance", "no_composure"));
+    public static final TagKey<DamageType> NO_SPIRIT_COST = TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation("wardance", "no_spirit_cost"));
 
     private static TagKey<DamageType> create(String tag) {
         return TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(Footwork.MODID,tag));

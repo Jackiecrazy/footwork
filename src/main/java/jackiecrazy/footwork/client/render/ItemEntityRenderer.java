@@ -63,6 +63,11 @@ public class ItemEntityRenderer extends EntityRenderer<FlyingItemEntity> {
         }
         RenderItemGroup stack = entity.getCosmeticItem();
         //if (!stack.isEmpty()) {
+        if(entity.getState()!= FlyingItemEntity.STATE.FOLLOW){
+            //universal offset is not applied in other forms, so we retroactively apply it here
+            Vec3 offset= entity.getUniversalOffset();
+            poseStack.translate(offset.x, offset.y, offset.z);
+        }
 
         if (entity.hasEffect(FlyingWeaponEffect.WEAPON))
             renderFlyingWeapon(entity, partialTicks, poseStack, stack);

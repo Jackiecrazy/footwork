@@ -1,5 +1,7 @@
 package jackiecrazy.footwork.move.action;
 
+import jackiecrazy.footwork.Footwork;
+import jackiecrazy.footwork.move.IErrorAble;
 import jackiecrazy.footwork.move.utils.ActionContext;
 import jackiecrazy.footwork.move.utils.ArgumentContext;
 import jackiecrazy.footwork.move.condition.Condition;
@@ -11,13 +13,21 @@ import jackiecrazy.footwork.move.Move;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public abstract class Action extends Move {
+public abstract class Action extends Move implements IErrorAble {
     protected Condition condition = TrueCondition.INSTANCE;
     protected Condition repeatable = FalseCondition.INSTANCE;
     protected boolean logErrors=false;
 
     public boolean logsErrors() {
         return logErrors;
+    }
+
+    @Override
+    public void error(String message) {
+        if(logErrors) {
+            Footwork.LOGGER.error("failed to execute action block {}", serializeToJson());
+            Footwork.LOGGER.error(message);
+        }
     }
 
     protected String ID = "(default)";

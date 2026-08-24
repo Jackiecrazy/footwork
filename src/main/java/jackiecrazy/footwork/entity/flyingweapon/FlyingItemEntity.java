@@ -499,8 +499,8 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     protected void handleEntityCollisions() {
         if (!intangible()) {
             final float range = getInteractionRange();
-            List<Entity> selfTarget = level().getEntities(getOwner(), getBoundingBox().inflate(0.2f), e -> e != getOwner() && e.isAlive() && e.isAttackable());
-            List<Entity> viewTarget = level().getEntities(getOwner(), getBoundingBox().move(getLookAngle().scale(range)).inflate(0.2f), e -> e != getOwner() && e.isAlive() && e.isAttackable());
+            List<Entity> selfTarget = level().getEntities(getOwner(), getBoundingBox().inflate(0.2f), e -> e.isAlive() && e.isAttackable());
+            List<Entity> viewTarget = level().getEntities(getOwner(), getBoundingBox().move(getLookAngle().scale(range)).inflate(0.2f), e -> e.isAlive() && e.isAttackable());
             List<Entity> targets = GeneralUtils.arcTraceEntities(level(), getOwner(), stateDependentPositionLook().getA(), getPosition(0).add(getViewVector(0).scale(range)), getPosition(1).add(getViewVector(1).scale(range)), range, 0.5, Entity::isAttackable);//level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(0.3));
 
             selfTarget.addAll(viewTarget);
@@ -546,7 +546,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
 
     public void unlock() {
         if (level().isClientSide()) return;
-        getEntityData().set(CURRENT_STATE, STATE.FOLLOW);
+        setState(STATE.FOLLOW);
         unlockLook();
         unlockPos();
     }
@@ -568,7 +568,7 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     protected void returnToIdle(int duration) {
-        unlock();
+//        unlock();
         if (getMotionTarget() == null) return;
         //idle animation, float next to the player
         update = getIdlePose().getEndFrame();
@@ -648,24 +648,26 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     }
 
     protected Tuple<Vec3, Vec3> stateDependentPositionLook() {
+        Vector3f pos = getEntityData().get(LOCK_POS);
+        Vector3f look = getEntityData().get(LOCK_LOOK);
+        Vec3 poss = new Vec3(pos);
+        Vec3 lookk = new Vec3(look);
         switch (getState()) {
             case THROW_TRACK -> {
-                return new Tuple<>(getMotionTarget().position(), getDeltaMovement());
+                poss = getMotionTarget().position();
+                if (look.equals(BOGUS)) lookk = getDeltaMovement();
             }
             case THROW_NATURAL -> {
-                return new Tuple<>(position(), getDeltaMovement());
+                poss = position();
+                if (look.equals(BOGUS)) lookk = getDeltaMovement();
             }
             default -> {
-                Vector3f pos = getEntityData().get(LOCK_POS);
-                Vector3f look = getEntityData().get(LOCK_LOOK);
-                Vec3 poss = new Vec3(pos);
-                Vec3 lookk = new Vec3(look);
                 if (pos.equals(BOGUS))
                     poss = getMotionTarget().position().add(0, getMotionTarget().getBbHeight() / 2, 0);
                 if (look.equals(BOGUS)) lookk = getMotionTarget().getLookAngle();
-                return new Tuple<>(poss, lookk);//fixme
             }
         }
+        return new Tuple<>(poss, lookk);//fixme
     }
 
     protected void updateClientData() {
@@ -729,10 +731,14 @@ public abstract class FlyingItemEntity extends Entity implements OwnableEntity, 
     public Vec3 stateDependentOrientation() {
         // Get player's rotation as a basis
         Vec3 forward = null;
+        Vector3f look = getEntityData().get(LOCK_LOOK);
+        if(!look.equals(BOGUS)){
+            forward = new Vec3(look);
+            if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
+            return forward;
+        }
         if (getState() == STATE.FOLLOW) {
-            Vector3f look = getEntityData().get(LOCK_LOOK);
-            if (look.equals(BOGUS)) forward = getMotionTarget().getLookAngle().normalize();
-            else forward = new Vec3(look);
+            forward = getMotionTarget().getLookAngle().normalize();
             if (forward.lengthSqr() < 0.0001) forward = new Vec3(0, 0, 1); // fallback
         }
 //        else if (getState() == STATE.FIXED_POINT) {

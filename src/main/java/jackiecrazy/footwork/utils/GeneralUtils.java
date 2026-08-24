@@ -381,7 +381,7 @@ public class GeneralUtils {
 
         List<Entity> results = new ArrayList<>();
 
-        for (Entity entity : level.getEntities(owner, sweepBox, selector)) {
+        for (Entity entity : level.getEntities((Entity) null, sweepBox, selector)) {
             // Closest point on entity bounding box to arc origin
             AABB entityBB = entity.getBoundingBox().inflate(hitPadding);
             Vec3 closestPoint = new Vec3(

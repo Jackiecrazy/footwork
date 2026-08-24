@@ -35,10 +35,7 @@ import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -183,6 +180,10 @@ public class EntityHandler {
         final LivingEntity uke = e.getEntity();
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid);
         uke.getAttribute(Attributes.ARMOR).removeModifier(uuid2);
+        if (e.getEntity().hasEffect(FootworkEffects.PETRIFY.get())) {
+            e.setAmount(e.getAmount() / 2);
+            CombatData.getCap(e.getEntity()).recordDamage(e.getAmount());
+        }
         if (e.getSource().getEntity() instanceof LivingEntity) {
             LivingEntity seme = ((LivingEntity) e.getSource().getEntity());
             if (isMeleeAttack(e.getSource())) {
@@ -223,6 +224,18 @@ public class EntityHandler {
         uke.removeEffect(FootworkEffects.DISTRACTION.get());
         uke.removeEffect(FootworkEffects.FEAR.get());
         uke.removeEffect(FootworkEffects.SLEEP.get());
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void noHealing(LivingHealEvent e) {
+        LivingEntity uke = e.getEntity();
+        if (uke.hasEffect(FootworkEffects.PETRIFY.get())) {
+            e.setCanceled(true);
+        }
+        if (uke.hasEffect(FootworkEffects.WOUND.get())) {
+            e.setAmount(e.getAmount() * (0.95f - (0.05f * (uke.getEffect(FootworkEffects.WOUND.get()).getAmplifier()))));
+            if(e.getAmount()<0)e.setCanceled(true);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)

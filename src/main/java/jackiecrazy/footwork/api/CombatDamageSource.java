@@ -180,6 +180,10 @@ public class CombatDamageSource extends DamageSource {
 
     public CombatDamageSource setSkillUsed(Move skillUsed) {
         this.skillUsed = skillUsed;
+        if(skillUsed!=null){
+            setProcSkillEffects(true);
+            flag(FootworkDamageTypeTags.NO_DARKTIDE_DMG, FootworkDamageTypeTags.NO_SPIRIT_COST);
+        }
         return this;
     }
 

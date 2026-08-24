@@ -22,8 +22,11 @@ public class PlaySoundAction extends Action {
 
     @Override
     public int perform(ActionContext actionContext) {
-        if (play == null)
-            play = ForgeRegistries.SOUND_EVENTS.getValue(sound.resolve(actionContext));
+        if (play == null) {
+            final ResourceLocation resolve = sound.resolve(actionContext);
+            if(resolve==null)return 0;
+            play = SoundEvent.createVariableRangeEvent(resolve);
+        }
         if (play == null) return 0;
         Vec3 pos = position.resolve(actionContext);
         actionContext.performer().level().playSound(null, pos.x, pos.y, pos.z, play, source, volume.resolve(actionContext).floatValue(), pitch.resolve(actionContext).floatValue());

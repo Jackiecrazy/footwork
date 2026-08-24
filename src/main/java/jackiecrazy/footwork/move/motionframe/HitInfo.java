@@ -52,6 +52,43 @@ public class HitInfo {
         return drag;
     }
 
+    public HitInfo withArmorPierce(double armor_pierce) {
+        this.armor_pierce = armor_pierce;
+        return this;
+    }
+
+    public HitInfo withKBDir(Vec3 knockback_direction) {
+        this.knockback_direction = knockback_direction;
+        return this;
+    }
+
+    public HitInfo withDamageTags(String... damage_tags) {
+        this.damage_tags = List.of(damage_tags);
+        return this;
+    }
+
+    public HitInfo withHitEffects(HitEffects fx, boolean damage, boolean other) {
+        if(damage){
+            if(other){
+                damage_other=fx;
+            }else{
+                damage_self=fx;
+            }
+        }else{
+            if(other){
+                hit_other=fx;
+            }else{
+                hit_self=fx;
+            }
+        }
+        return this;
+    }
+
+    public HitInfo withDrag(DragInfo drag) {
+        this.drag = drag;
+        return this;
+    }
+
     public HitInfo setSpirit_multiplier(double spirit_multiplier) {
         this.spirit_multiplier = spirit_multiplier;
         return this;
